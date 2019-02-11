@@ -21,7 +21,7 @@ This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_. Th
 
 ```
 
-### You can install MethylIT from PSU's GitHub
+### You can install _*usefr*_ package from GitHub
 
 ```install.p
    devtools::install_git("https://github.com/genomaths/usefr.git")
