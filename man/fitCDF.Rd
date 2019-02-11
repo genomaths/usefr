@@ -67,30 +67,30 @@ The nonlinear fit (NLF) problem for CDFs is addressed with
     incorporated. The studentized residuals are provided as well.
     The list (so far) of possible CDFs is:
     \enumerate{
-        \item Normal \href{https://goo.gl/xaEAdT}{Wikipedia}
-        \item Log-normal \href{https://goo.gl/a7MtYq}{Wikipedia}
-        \item Half-normal \href{https://goo.gl/yxMF6T}{Wikipedia}. An
+        \item Normal \href{https://goo.gl/xaEAdT}{(Wikipedia)}
+        \item Log-normal \href{https://goo.gl/a7MtYq}{(Wikipedia)}
+        \item Half-normal \href{https://goo.gl/yxMF6T}{(Wikipedia)}. An
             Alternatively using a scaled precision (inverse of the variance)
             parametrization (to avoid issues if \eqn{\sigma} is near zero),
             obtained by setting \eqn{\theta=sqrt(\pi)/\sigma*sqrt(2)}.
-        \item Generalized Normal \href{https://goo.gl/EPk8mH}{Wikipedia}
+        \item Generalized Normal \href{https://goo.gl/EPk8mH}{(Wikipedia)}
         \item T-Generalized Normal [2].
-        \item Laplace \href{https://goo.gl/fCykV9}{Wikipedia}
-        \item Gamma \href{https://goo.gl/cYkvar}{Wikipedia}
+        \item Laplace \href{https://goo.gl/fCykV9}{(Wikipedia)}
+        \item Gamma \href{https://goo.gl/cYkvar}{(Wikipedia)}
         \item 3P Gamma [3].
         \item Generalized 4P Gamma [3]
-                \href{https://goo.gl/1n4kpW.}{Wikipedia}
+                \href{https://goo.gl/1n4kpW.}{(Wikipedia)}
         \item Generalized 3P Gamma [3].
-        \item Weibull \href{https://goo.gl/WMXmQP}{Wikipedia}
-        \item 3P Weibull \href{https://goo.gl/WMXmQP}{Wikipedia}
-        \item Beta \href{https://goo.gl/893wzR}{Wikipedia}
-        \item 3P Beta \href{https://goo.gl/893wzR}{Wikipedia}
-        \item 4P Beta \href{https://goo.gl/893wzR}{Wikipedia}
+        \item Weibull \href{https://goo.gl/WMXmQP}{(Wikipedia)}
+        \item 3P Weibull \href{https://goo.gl/WMXmQP}{(Wikipedia)}
+        \item Beta \href{https://goo.gl/893wzR}{(Wikipedia)}
+        \item 3P Beta \href{https://goo.gl/893wzR}{(Wikipedia)}
+        \item 4P Beta \href{https://goo.gl/893wzR}{(Wikipedia)}
         \item Beta-Weibull \href{https://goo.gl/dpaG8h}{ReliaWiki}
-        \item Generalized Beta \href{https://goo.gl/UcVsct}{Wikipedia}
-        \item Rayleigh \href{https://goo.gl/d9b3zv}{Wikipedia}
-        \item Exponential \href{https://goo.gl/stVsi7}{Wikipedia}
-        \item 2P Exponential \href{https://goo.gl/stVsi7}{Wikipedia}
+        \item Generalized Beta \href{https://goo.gl/UcVsct}{(Wikipedia)}
+        \item Rayleigh \href{https://goo.gl/d9b3zv}{(Wikipedia)}
+        \item Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
+        \item 2P Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
     }
 }
 \examples{
