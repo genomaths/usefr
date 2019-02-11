@@ -1,0 +1,22 @@
+Package: usefr
+Type: Package
+Title: Utility Functions for Statistical Analyses 
+Version: 0.1.0
+Author: Robersy Sanchez
+Authors@genomaths: c(person("Robersy", "Sanchez", email = "robersy@gmail.com",
+                  role = c("aut", "cre", "cph"))
+Maintainer: Robersy Sanchez <robersy@gmail.com>
+Description: It provides some useful functions frequently needed in the 
+   downstream statistical analyses.
+License: file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.0
+Suggests: testthat
+Imports:
+   BiocParallel,
+   minpack.lm,
+   numDeriv,
+   utils,
+   stats,
+   graphics
