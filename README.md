@@ -15,10 +15,11 @@ This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_. Th
 ### Install R dependencies:
 
 ```install
-    source("https://bioconductor.org/biocLite.R")
-    biocLite('BiocParallel')
+    if (!requireNamespace("BiocManager")) install.packages("BiocManager")
+    BiocManager::install()
+    
+    BiocManager::install(c('BiocParallel')
     install.packages(c("minpack.lm", "numDeriv"),dependencies=TRUE)
-
 ```
 
 ### You can install _*usefr*_ package from GitHub
