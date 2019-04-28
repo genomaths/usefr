@@ -32,7 +32,7 @@ See examples for more details.}
 
 \item{log, log.p}{logical; if TRUE, probabilities p are given as log(p).}
 
-\item{lower.tail}{logical; if TRUE (default), probabilities are P[X ≤ x], 
+\item{lower.tail}{logical; if TRUE (default), probabilities are P[X ≤ x],
 otherwise, P[X > x].}
 
 \item{p}{vector of probabilities.}
@@ -41,7 +41,7 @@ otherwise, P[X > x].}
 the number required.}
 }
 \description{
-Density, distribution function, quantile function and random 
+Density, distribution function, quantile function and random
     generation for mixture of distributions
 }
 \examples{
@@ -52,15 +52,15 @@ pi = c(5/10, 3/10, 2/10) # Mixture proportions
 
 # Named vector of the corresponding distribution function parameters
 # must be provided
-args <- list(gamma = c(shape = 20, scale = 1/10), 
+args <- list(gamma = c(shape = 20, scale = 1/10),
             weibull = c(shape =  4, scale = 0.8),
             lnorm = c(meanlog = 1.2, sdlog = 0.08))
-             
-#  Sampling from the specified mixture distribution              
+
+#  Sampling from the specified mixture distribution
 x <- rmixtdistr(n = 1e5, pi = pi , arg = args)
 
-# The graphics for the simulated dataset and the corresponding theoretical 
-# mixture distribution
+# The graphics for the simulated dataset and the corresponding theoretical
+# mixture distributions:
 hist(x, 100, freq = FALSE)
 x1 <- seq(0, 10, by = 0.001)
 lines(x1, dmixtdistr(x1, pi = pi, arg = args), col = "red")
