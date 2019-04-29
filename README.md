@@ -18,7 +18,7 @@ This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_. Th
     if (!requireNamespace("BiocManager")) install.packages("BiocManager")
     BiocManager::install()
     
-    BiocManager::install(c('BiocParallel')
+    BiocManager::install('BiocParallel')
     install.packages(c("minpack.lm", "numDeriv"),dependencies=TRUE)
 ```
 
