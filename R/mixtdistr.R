@@ -25,7 +25,6 @@
 #' @examples
 #' set.seed(123) # set a seed for random generation
 #' # A mixture of three distributions
-#' dist.fun <- c("gamma", "weibull", "lnorm")
 #' pi = c(5/10, 3/10, 2/10) # Mixture proportions
 #'
 #' # Named vector of the corresponding distribution function parameters
@@ -38,7 +37,7 @@
 #' x <- rmixtdistr(n = 1e5, pi = pi , arg = args)
 #'
 #' # The graphics for the simulated dataset and the corresponding theoretical
-#' # mixture distributions:
+#' # mixture distribution
 #' hist(x, 100, freq = FALSE)
 #' x1 <- seq(0, 10, by = 0.001)
 #' lines(x1, dmixtdistr(x1, pi = pi, arg = args), col = "red")
