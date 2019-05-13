@@ -11,7 +11,7 @@
 #' @param p vector of probabilities.
 #' @param n number of observations. If length(n) > 1, the length is taken to be
 #'     the number required.
-#' @param pi Numerical vector with mixture proportions, where (sum(pi) = 1).
+#' @param phi Numerical vector with mixture proportions, where (sum(phi) = 1).
 #' @param arg A list of named vectors with the corresponding named distribution
 #'     parameters values. The names of the vector of parameters and the
 #'     parameter names must correspond to defined functions. For example, if
@@ -25,7 +25,7 @@
 #' @examples
 #' set.seed(123) # set a seed for random generation
 #' # A mixture of three distributions
-#' pi = c(5/10, 3/10, 2/10) # Mixture proportions
+#' phi = c(5/10, 3/10, 2/10) # Mixture proportions
 #'
 #' # Named vector of the corresponding distribution function parameters
 #' # must be provided
@@ -34,13 +34,13 @@
 #'             lnorm = c(meanlog = 1.2, sdlog = 0.08))
 #'
 #' #  Sampling from the specified mixture distribution
-#' x <- rmixtdistr(n = 1e5, pi = pi , arg = args)
+#' x <- rmixtdistr(n = 1e5, phi = phi , arg = args)
 #'
 #' # The graphics for the simulated dataset and the corresponding theoretical
 #' # mixture distribution
 #' hist(x, 100, freq = FALSE)
 #' x1 <- seq(0, 10, by = 0.001)
-#' lines(x1, dmixtdistr(x1, pi = pi, arg = args), col = "red")
+#' lines(x1, dmixtdistr(x1, phi = phi, arg = args), col = "red")
 
 #' @name dmixtdistr
 #' @rdname mixtdistr
@@ -49,13 +49,13 @@
 #' @details NULL
 #' @export
 #'
-dmixtdistr <- function(x, pi, arg,  log = FALSE,
+dmixtdistr <- function(x, phi, arg,  log = FALSE,
                        lower.tail = TRUE, log.p = FALSE) {
-   k <- length(pi)
+   k <- length(phi)
    n <- numeric(length(x))
    dfn = names(arg)
    rowSums(vapply(1:k, function(i)
-                       pi[i] * distfn(x, dfn = dfn[i], type = "d",
+                       phi[i] * distfn(x, dfn = dfn[i], type = "d",
                                       arg = arg[[i]], log = log), n))
 }
 
@@ -65,12 +65,12 @@ dmixtdistr <- function(x, pi, arg,  log = FALSE,
 #' @description NULL
 #' @details NULL
 #' @export
-pmixtdistr <- function(q, pi, arg,  lower.tail = TRUE, log.p = FALSE) {
-   k <- length(pi)
+pmixtdistr <- function(q, phi, arg,  lower.tail = TRUE, log.p = FALSE) {
+   k <- length(phi)
    n <- numeric(length(x))
    dfn = names(arg)
    rowSums(vapply(1:k, function(i)
-                   pi[i] * distfn(q, dfn = dfn[i], type = "p", arg = arg[[i]],
+                   phi[i] * distfn(q, dfn = dfn[i], type = "p", arg = arg[[i]],
                                    lower.tail = lower.tail, log.p = log.p), n))
 }
 
@@ -81,13 +81,13 @@ pmixtdistr <- function(q, pi, arg,  lower.tail = TRUE, log.p = FALSE) {
 #' @details NULL
 #' @export
 qmixtdistr <- function(p, interval = c(0, 1000),
-                       pi, arg, lower.tail = TRUE, log.p = FALSE) {
-   k <- length(pi)
+                       phi, arg, lower.tail = TRUE, log.p = FALSE) {
+   k <- length(phi)
    n <- numeric(length(x))
    dfn = names(arg)
    qmixtfn <- function(p) {
        uniroot(function(q) {
-           ifelse(p <= 0, 0, pmixtdistr(q, pi = pi, arg = arg,
+           ifelse(p <= 0, 0, pmixtdistr(q, phi = phi, arg = arg,
                                        lower.tail = lower.tail,
                                        log.p = log.p) - p)
        }, interval, tol = 1e-10)$root
@@ -102,9 +102,9 @@ qmixtdistr <- function(p, interval = c(0, 1000),
 #' @description NULL
 #' @details NULL
 #' @export
-rmixtdistr <- function(n, pi, arg) {
-   j <- sample.int(length(pi), n, replace = TRUE, prob = pi)
-   k <- length(pi)
+rmixtdistr <- function(n, phi, arg) {
+   j <- sample.int(length(phi), n, replace = TRUE, prob = phi)
+   k <- length(phi)
    dfn = names(arg)
    freqs <- sapply(1:k, function(i) sum(j == i))
    return(unlist(lapply(1:k, function(i)

@@ -8,19 +8,20 @@
 \alias{qmixtdistr}
 \title{Mixture of Distribution Functions}
 \usage{
-dmixtdistr(x, pi, arg, log = FALSE, lower.tail = TRUE, log.p = FALSE)
-
-pmixtdistr(q, pi, arg, lower.tail = TRUE, log.p = FALSE)
-
-qmixtdistr(p, interval = c(0, 1000), pi, arg, lower.tail = TRUE,
+dmixtdistr(x, phi, arg, log = FALSE, lower.tail = TRUE,
   log.p = FALSE)
 
-rmixtdistr(n, pi, arg)
+pmixtdistr(q, phi, arg, lower.tail = TRUE, log.p = FALSE)
+
+qmixtdistr(p, interval = c(0, 1000), phi, arg, lower.tail = TRUE,
+  log.p = FALSE)
+
+rmixtdistr(n, phi, arg)
 }
 \arguments{
 \item{x, }{q vector of quantiles.}
 
-\item{pi}{Numerical vector with mixture proportions, where (sum(pi) = 1).}
+\item{phi}{Numerical vector with mixture proportions, where (sum(phi) = 1).}
 
 \item{arg}{A list of named vectors with the corresponding named distribution
 parameters values. The names of the vector of parameters and the
@@ -47,7 +48,7 @@ Density, distribution function, quantile function and random
 \examples{
 set.seed(123) # set a seed for random generation
 # A mixture of three distributions
-pi = c(5/10, 3/10, 2/10) # Mixture proportions
+phi = c(5/10, 3/10, 2/10) # Mixture proportions
 
 # Named vector of the corresponding distribution function parameters
 # must be provided
@@ -56,11 +57,11 @@ args <- list(gamma = c(shape = 20, scale = 1/10),
             lnorm = c(meanlog = 1.2, sdlog = 0.08))
 
 #  Sampling from the specified mixture distribution
-x <- rmixtdistr(n = 1e5, pi = pi , arg = args)
+x <- rmixtdistr(n = 1e5, phi = phi , arg = args)
 
 # The graphics for the simulated dataset and the corresponding theoretical
 # mixture distribution
 hist(x, 100, freq = FALSE)
 x1 <- seq(0, 10, by = 0.001)
-lines(x1, dmixtdistr(x1, pi = pi, arg = args), col = "red")
+lines(x1, dmixtdistr(x1, phi = phi, arg = args), col = "red")
 }
