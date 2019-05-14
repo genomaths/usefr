@@ -67,7 +67,7 @@ dmixtdistr <- function(x, phi, arg,  log = FALSE,
 #' @export
 pmixtdistr <- function(q, phi, arg,  lower.tail = TRUE, log.p = FALSE) {
    k <- length(phi)
-   n <- numeric(length(x))
+   n <- numeric(length(q))
    dfn = names(arg)
    rowSums(vapply(1:k, function(i)
                    phi[i] * distfn(q, dfn = dfn[i], type = "p", arg = arg[[i]],
