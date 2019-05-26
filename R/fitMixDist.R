@@ -9,9 +9,9 @@
 #'     modification of Levenberg-Marquardt algorithm implemented in function
 #'     \code{\link[minpack.lm]{nls.lm}} from \emph{minpack.lm} package that is
 #'     used to perform the nonlinear fit. Cross-validations for the nonlinear
-#'     regressions (R.Cross.val) are performed as described in reference [1]. In addition,
-#'     Stein's formula for adjusted R squared (rho) was used as an estimator of
-#'     the average cross-validation predictive power [1].
+#'     regressions (R.Cross.val) are performed as described in reference [1]. In
+#'     addition, Stein's formula for adjusted R squared (rho) was used as an
+#'     estimator of the average cross-validation predictive power [1].
 #' @param X numerical vector
 #' @param arg A list of named vectors with the corresponding named distribution
 #'     parameters values. The names of the vector of parameters and the
@@ -35,7 +35,9 @@
 #'     Notice that the distribution given names correspond to the root-names as
 #'     given for R functions. For example, 'gamma' is the root-name for
 #'     functions \code{\link[stats]{GammaDist}}. See example, for more details.
-#' @param npoints number of points used in the fit.
+#' @param npoints number of points used in the fit of the density function.
+#'     These are used as histogram break points to estimate the empirical
+#'     density values. Default is 100.
 #' @param maxiter positive integer. Termination occurs when the number of
 #'     iterations reaches maxiter. Default value: 1024.
 #' @param prior Same as in \code{\link[mclust]{Mclust}} function.
@@ -60,7 +62,7 @@
 #'     about >= 10000. This number can be used to extract a random sample of
 #'     size 'usepoints' and to do the estimation with it.
 #' @param seed Seed for random number generation.
-#' @param dens Logic. Whether to use fit the 'PDF' or 'CDF'.
+#' @param dens Logic. Whether to use fit the 'PDF' or 'CDF'. Default is TRUE.
 #' @param kmean Logic. Whether to use \code{\link[stats]{kmeans}} algorithm to
 #'     perform the estimation in place of \code{\link[mclust]{Mclust}}. Deafult
 #'     is FALSE.
@@ -116,7 +118,7 @@
 #' @export
 fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
                                        weibull = c(shape = NULL, scale = NULL)),
-                       npoints=NULL, maxiter=1024, prior = priorControl(),
+                       npoints = 100, maxiter=1024, prior = priorControl(),
                        ftol=1e-14, ptol=1e-14, maxfev = 1e+5, equalPro = FALSE,
                        eps, tol, usepoints, seed = 123, dens = TRUE,
                        kmean = FALSE, verbose=TRUE, ...) {
@@ -126,7 +128,7 @@ fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
    numpar <- unlist(lapply(args, length))
    nampar <- lapply(args, names)
 
-   if (any(is.element(dfns, c("weibull", "gamma", "lnorm", "halfnorm","beta"))))
+   if (any(is.element(dfns, c("weibull", "gamma", "lnorm", "hnorm","beta"))))
        X <- X[X > 0]
 
    ## ========== Auxiliary functions & Starting parameter values ============= #
@@ -144,7 +146,7 @@ fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
      return(c(shape1 = alpha, shape2 = alpha * (1 / mu - 1)))
    }
 
-   distNames <- c("norm", "halfnorm", "gnorm", "gamma", "beta", "laplace",
+   distNames <- c("norm", "hnorm", "gnorm", "gamma", "beta", "laplace",
                   "weibull", "rayleigh", "exp")
 
    par_vector2list <- function(par) {
@@ -166,7 +168,7 @@ fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
    parLIST <- function(dfn, MEAN = NULL, VAR = NULL, SD = NULL) {
      return(switch(dfn,
                    norm = c(mean = MEAN, sd = SD),
-                   halfnorm = c(theta = sqrt(pi/2)),
+                   hnorm = c(theta = sqrt(pi/2)),
                    gnorm = c( mean = MEAN, sigma = SD, beta = 2 ),
                    laplace = c( mean = MEAN, sigma = SD ),
                    gamma = gammapars(mu = MEAN, sigma = SD),
@@ -178,17 +180,24 @@ fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
        )
    }
 
-   ## ==================== Starting parameter values ==================== #
+   # ==================== Starting parameter values ==================== #
    N <- length(X)
-   DENS <- hist(X, breaks = npoints, plot = FALSE)
-   x <- DENS$mids
-   n <- length(x)
+   if (!is.null(npoints)) {
+       DENS <- hist(X, breaks = npoints, plot = FALSE)
+       x <- DENS$mids
+       n <- length(x)
+   } else n <- N
+
+   if (dens) y <- DENS$density
 
    if (!dens) {
-      Fn <- ecdf(X)
-      y <- Fn(x)
-   } else {
-      y <- DENS$density
+       Fn <- ecdf(X)
+       if (!is.null(npoints)) {
+           y <- Fn(x)
+       } else {
+           y <- Fn(X)
+           x <- X
+       }
    }
 
    if (kmean && any(is.null(unlist(args))) && all(is.element(dfns, distNames)))
@@ -313,7 +322,9 @@ fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
        rho = (1 - ((N - 2) / (N - 3)) * ((N + 1) / (N)) * (1 - Adj.R.Square))
        rho = ifelse( is.na( rho ) | rho < 0, 0, rho )
 
+       ## =========================== Cross Validation ======================= #
        ##--- Crossvalidation standard model for Nonlinear regression: x versus r
+
        if (verbose) {
            cat(paste("*** Performing nonlinear regression model ",
                 "crossvalidation...\n" ))

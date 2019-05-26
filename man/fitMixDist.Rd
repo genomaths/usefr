@@ -5,7 +5,7 @@
 \title{Nonlinear fit of Mixture distributions}
 \usage{
 fitMixDist(X, args = list(norm = c(mean = NULL, sd = NULL), weibull =
-  c(shape = NULL, scale = NULL)), npoints = NULL, maxiter = 1024,
+  c(shape = NULL, scale = NULL)), npoints = 100, maxiter = 1024,
   prior = priorControl(), ftol = 1e-14, ptol = 1e-14,
   maxfev = 1e+05, equalPro = FALSE, eps, tol, usepoints, seed = 123,
   dens = TRUE, kmean = FALSE, verbose = TRUE, ...)
@@ -13,7 +13,9 @@ fitMixDist(X, args = list(norm = c(mean = NULL, sd = NULL), weibull =
 \arguments{
 \item{X}{numerical vector}
 
-\item{npoints}{number of points used in the fit.}
+\item{npoints}{number of points used in the fit of the density function.
+These are used as histogram break points to estimate the empirical
+density values. Default is 100.}
 
 \item{maxiter}{positive integer. Termination occurs when the number of
 iterations reaches maxiter. Default value: 1024.}
@@ -48,7 +50,7 @@ size 'usepoints' and to do the estimation with it.}
 
 \item{seed}{Seed for random number generation.}
 
-\item{dens}{Logic. Whether to use fit the 'PDF' or 'CDF'.}
+\item{dens}{Logic. Whether to use fit the 'PDF' or 'CDF'. Default is TRUE.}
 
 \item{kmean}{Logic. Whether to use \code{\link[stats]{kmeans}} algorithm to
 perform the estimation in place of \code{\link[mclust]{Mclust}}. Deafult
@@ -98,9 +100,9 @@ The approch tries to fit the proposed mixture distributions using a
     modification of Levenberg-Marquardt algorithm implemented in function
     \code{\link[minpack.lm]{nls.lm}} from \emph{minpack.lm} package that is
     used to perform the nonlinear fit. Cross-validations for the nonlinear
-    regressions (R.Cross.val) are performed as described in reference [1]. In addition,
-    Stein's formula for adjusted R squared (rho) was used as an estimator of
-    the average cross-validation predictive power [1].
+    regressions (R.Cross.val) are performed as described in reference [1]. In
+    addition, Stein's formula for adjusted R squared (rho) was used as an
+    estimator of the average cross-validation predictive power [1].
 }
 \examples{
 set.seed(123) # set a seed for random generation
