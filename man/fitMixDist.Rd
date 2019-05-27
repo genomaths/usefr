@@ -4,8 +4,8 @@
 \alias{fitMixDist}
 \title{Nonlinear fit of Mixture distributions}
 \usage{
-fitMixDist(X, args = list(norm = c(mean = NULL, sd = NULL), weibull =
-  c(shape = NULL, scale = NULL)), npoints = 100, maxiter = 1024,
+fitMixDist(X, args = list(norm = c(mean = NA, sd = NA), weibull = c(shape
+  = NA, scale = NA)), npoints = 100, maxiter = 1024,
   prior = priorControl(), ftol = 1e-14, ptol = 1e-14,
   maxfev = 1e+05, equalPro = FALSE, eps, tol, usepoints, seed = 123,
   dens = TRUE, kmean = FALSE, verbose = TRUE, ...)
@@ -13,9 +13,12 @@ fitMixDist(X, args = list(norm = c(mean = NULL, sd = NULL), weibull =
 \arguments{
 \item{X}{numerical vector}
 
-\item{npoints}{number of points used in the fit of the density function.
-These are used as histogram break points to estimate the empirical
-density values. Default is 100.}
+\item{npoints}{number of points used in the fit of the density function or
+NULL. These are used as histogram break points to estimate the empirical
+density values. If \emph{npoints} = NULL and \emph{dens} = TRUE, then.
+Kernel Density Estimation function \code{\link[stats]{density}} from
+\emph{stats} package is used to estimate the empirical density. Default
+value is 100.}
 
 \item{maxiter}{positive integer. Termination occurs when the number of
 iterations reaches maxiter. Default value: 1024.}
@@ -58,8 +61,8 @@ is FALSE.}
 
 \item{verbose}{if TRUE, prints the function log to stdout}
 
-\item{...}{Further arguments to pass to \code{\link[mclust]{Mclust}}
-function.}
+\item{...}{Further arguments to pass to other functions like
+\code{\link[mclust]{Mclust}} and \code{\link[stats]{density}}.}
 
 \item{arg}{A list of named vectors with the corresponding named distribution
 parameters values. The names of the vector of parameters and the
@@ -120,8 +123,8 @@ X <- rmixtdistr(n = 1e5, phi = phi , arg = args)
 ## ------------------------------------------------------------
 
 ## ===== Nonlinear fit of the specified mixture distribution ====
-FIT <- fitMixDist(X, args = list(gamma = c(shape = NULL, scale = NULL),
-                                 weibull = c(shape = NULL, scale = NULL)),
+FIT <- fitMixDist(X, args = list(gamma = c(shape = NA, scale = NA),
+                                 weibull = c(shape = NA, scale = NA)),
                   npoints = 200, usepoints = 1000)
 
 ## === The graphics for the simulated dataset and the corresponding theoretical

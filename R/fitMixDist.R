@@ -35,9 +35,12 @@
 #'     Notice that the distribution given names correspond to the root-names as
 #'     given for R functions. For example, 'gamma' is the root-name for
 #'     functions \code{\link[stats]{GammaDist}}. See example, for more details.
-#' @param npoints number of points used in the fit of the density function.
-#'     These are used as histogram break points to estimate the empirical
-#'     density values. Default is 100.
+#' @param npoints number of points used in the fit of the density function or
+#'     NULL. These are used as histogram break points to estimate the empirical
+#'     density values. If \emph{npoints} = NULL and \emph{dens} = TRUE, then.
+#'     Kernel Density Estimation function \code{\link[stats]{density}} from
+#'     \emph{stats} package is used to estimate the empirical density. Default
+#'     value is 100.
 #' @param maxiter positive integer. Termination occurs when the number of
 #'     iterations reaches maxiter. Default value: 1024.
 #' @param prior Same as in \code{\link[mclust]{Mclust}} function.
@@ -67,8 +70,8 @@
 #'     perform the estimation in place of \code{\link[mclust]{Mclust}}. Deafult
 #'     is FALSE.
 #' @param verbose if TRUE, prints the function log to stdout
-#' @param ... Further arguments to pass to \code{\link[mclust]{Mclust}}
-#'     function.
+#' @param ... Further arguments to pass to other functions like
+#'     \code{\link[mclust]{Mclust}} and \code{\link[stats]{density}}.
 #' @return A list with the model table with coefficients and goodness-of-fit
 #'     results, the fitted model returned by function
 #'     \code{\link[minpack.lm]{nls.lm}}, and a named list of fitted arguments.
@@ -101,8 +104,8 @@
 #' ## ------------------------------------------------------------
 #'
 #' ## ===== Nonlinear fit of the specified mixture distribution ====
-#' FIT <- fitMixDist(X, args = list(gamma = c(shape = NULL, scale = NULL),
-#'                                  weibull = c(shape = NULL, scale = NULL)),
+#' FIT <- fitMixDist(X, args = list(gamma = c(shape = NA, scale = NA),
+#'                                  weibull = c(shape = NA, scale = NA)),
 #'                   npoints = 200, usepoints = 1000)
 #'
 #' ## === The graphics for the simulated dataset and the corresponding theoretical
@@ -116,8 +119,8 @@
 #' legend(1, 1.5, legend=c("Theoretical Mixture PDF", "Estimated Mixture PDF"),
 #'        col=c("red", "blue"), lty=1, cex=0.8)
 #' @export
-fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
-                                       weibull = c(shape = NULL, scale = NULL)),
+fitMixDist <- function(X, args = list(norm = c(mean = NA, sd = NA),
+                                       weibull = c(shape = NA, scale = NA)),
                        npoints = 100, maxiter=1024, prior = priorControl(),
                        ftol=1e-14, ptol=1e-14, maxfev = 1e+5, equalPro = FALSE,
                        eps, tol, usepoints, seed = 123, dens = TRUE,
@@ -168,7 +171,7 @@ fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
    parLIST <- function(dfn, MEAN = NULL, VAR = NULL, SD = NULL) {
      return(switch(dfn,
                    norm = c(mean = MEAN, sd = SD),
-                   hnorm = c(theta = sqrt(pi/2)),
+                   hnorm = c(theta = 1/MEAN),
                    gnorm = c( mean = MEAN, sigma = SD, beta = 2 ),
                    laplace = c( mean = MEAN, sigma = SD ),
                    gamma = gammapars(mu = MEAN, sigma = SD),
@@ -188,7 +191,11 @@ fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
        n <- length(x)
    } else n <- N
 
-   if (dens) y <- DENS$density
+   if (dens & is.null(npoints)) {
+       DENS <- density(X, ...)
+       x <- DENS$x
+       y <- DENS$y
+   }
 
    if (!dens) {
        Fn <- ecdf(X)
@@ -200,16 +207,16 @@ fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
        }
    }
 
-   if (kmean && any(is.null(unlist(args))) && all(is.element(dfns, distNames)))
+   if (kmean && any(is.na(unlist(args))) && all(is.element(dfns, distNames)))
    {
-       cl <- mixture_stat(u = X, m = 2)
+       cl <- mixture_stat(u = X, m = length(dfns))
        mu <- cl$mu
        sigma <- cl$sigma
        phi <- cl$prop
        args <- mapply(parLIST, dfns, MEAN = mu, SD = sigma, SIMPLIFY = FALSE)
    }
 
-   if (any(is.null(unlist(args))) && all(is.element(dfns, distNames)) &&
+   if (any(is.na(unlist(args))) && all(is.element(dfns, distNames)) &&
        !kmean) {
        if (missing(eps)) eps = .Machine$double.eps
        if (missing(tol)) tol = c(1e-5,sqrt(.Machine$double.eps))
@@ -217,7 +224,7 @@ fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
           set.seed(seed)
           Z <- sample(X, usepoints)
        } else Z <- X
-       fit <- Mclust(Z, G=2, model="V", prior = prior,
+       fit <- Mclust(Z, G = length(dfns), model="V", prior = prior,
                      control = emControl(eps = eps, tol =  tol,
                                          equalPro = equalPro))
        rm(Z); gc()
@@ -227,7 +234,7 @@ fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
 
        args <- mapply(parLIST, dfns, MEAN = mu, SD = sigma, SIMPLIFY = FALSE)
    } else {
-       if (any(is.null(unlist(args))))
+       if (any(is.na(unlist(args))))
            stop("*** The list of functions and starting arguments",
                " must be given")
        if (!kmean) {
@@ -237,13 +244,13 @@ fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
                set.seed(seed)
                Z <- sample(X, usepoints)
            } else Z <- X
-           fit <- Mclust(Z, G=2, model="V", prior = prior,
+           fit <- Mclust(Z, G = length(dfns), model="V", prior = prior,
                         control = emControl(eps = eps, tol =  tol,
                                             equalPro = equalPro))
            phi <- fit$parameters$pro
 
        } else {
-           cl <- mixture_stat(u = X, m = 2)
+           cl <- mixture_stat(u = X, m = length(dfns))
            phi <- cl$prop
        }
    }
@@ -252,45 +259,42 @@ fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
 
 
    ## =========================== Fitting models ============================= #
+   optFun <- function(par, objFun, quantiles, obsVals, eval = FALSE) {
+      if (dens) {
+         START <- list(phi = phi, arg = par_vector2list(par),
+                       x = quantiles)
+      } else {
+         START <- list(phi = phi, arg = par_vector2list(par),
+                       q = quantiles)
+      }
+      EVAL <- try(do.call(objFun, START), silent = TRUE)
+      if (inherits(EVAL, "try-error")) return(NA)
+      EVAL[is.nan(EVAL)] <- 0
+      RSS <- (obsVals - EVAL)
+      if (eval) {
+         return(EVAL)
+      } else return(RSS)
+   }
 
    if (dens) {
-      optFun <- function(par, objFun, quantiles, obsVals, eval = FALSE) {
-         START <- list(phi = phi, arg = par_vector2list(par), x = quantiles)
-         EVAL <- try(do.call(objFun, START), silent = TRUE)
-         if (inherits(EVAL, "try-error")) return(NA)
-         EVAL[is.nan(EVAL)] <- 0
-         RSS <- (obsVals - EVAL)
-         if (eval) {
-            return(EVAL)
-         } else return(RSS)
-      }
-
       FIT <- try(nls.lm(par = unlist(args), fn = optFun, objFun = dmixtdistr,
                         quantiles = x, obsVals = y,
                         control = nls.lm.control(maxiter = maxiter, ftol = ftol,
                                                  maxfev = maxfev, ptol = ptol)),
                  silent = TRUE)
    } else {
-      optFun <- function(par, objFun, quantiles, obsVals, eval = FALSE) {
-         START <- list(phi = phi, arg = par_vector2list(par), q = quantiles)
-         EVAL <- try(do.call(objFun, START), silent = TRUE)
-         if (inherits(EVAL, "try-error")) return(NA)
-         EVAL[is.nan(EVAL)] <- 0
-         RSS <- (obsVals - EVAL)
-         if (eval) {
-            return(EVAL)
-         } else return(RSS)
-      }
+      # optFun(par = unlist(args), objFun = pmixtdistr, quantiles = x,
+      #        obsVals = y)
 
       FIT <- try(nls.lm(par = unlist(args), fn = optFun, objFun = pmixtdistr,
                         quantiles = x, obsVals = y,
                         control = nls.lm.control(maxiter = maxiter, ftol = ftol,
                                                  maxfev = maxfev, ptol = ptol)),
-                 silent = TRUE)
+                   silent = TRUE)
    }
 
    if (inherits( FIT, "try-error" ) && !kmean) {
-       cl <- mixture_stat(u = X, m = 2)
+       cl <- mixture_stat(u = X, m = length(dfns))
        mu <- cl$mu
        sigma <- cl$sigma
        phi <- cl$prop
@@ -329,48 +333,100 @@ fitMixDist <- function(X, args = list(norm = c(mean = NULL, sd = NULL),
            cat(paste("*** Performing nonlinear regression model ",
                 "crossvalidation...\n" ))
        }
+       arg1 <- unlist(coef(FIT))
 
-       set.seed(seed)
-       cros.ind.1 <- sample.int(N, size=round(N / 2))
-       cros.ind.2 <- setdiff(1:N, cros.ind.1)
-       args1 <- unname(coef(FIT))
+       if (dens && is.null(npoints)) {
+          set.seed(seed)
+          l <- length(x)
+          cros.ind.1 <- sample.int(l, size=round(l / 2))
+          cros.ind.2 <- setdiff(1:l, cros.ind.1)
+          x1 <- x[ cros.ind.1 ]
+          x2 <- x[ cros.ind.2 ]
+          y1 <- y[ cros.ind.1 ]
+          y2 <- y[ cros.ind.2 ]
+       } else {
+          if (dens && !is.null(npoints)) {
+             set.seed(seed)
+             cros.ind.1 <- sample.int(N, size=round(N / 2))
+             cros.ind.2 <- setdiff(1:N, cros.ind.1)
+             if (npoints > length(cros.ind.1)) {
+                breaks <- round(0.6 * length(cros.ind.1))
+             } else breaks = npoints
 
-       DENS <- hist(X[ cros.ind.1 ], breaks = npoints, plot = FALSE)
-       x1 <- DENS$breaks[-1]
-       y1 <- DENS$density; rm(DENS)
+             DENS <- hist(X[ cros.ind.1 ], breaks = breaks, plot = FALSE)
+             x1 <- DENS$breaks[-1]
+             y1 <- DENS$density; rm(DENS)
 
-       DENS <- hist(X[ cros.ind.2 ], breaks = npoints, plot = FALSE)
-       x2 <- DENS$breaks[-1]
-       y2 <- DENS$density; rm(DENS); gc()
+             DENS <- hist(X[ cros.ind.2 ], breaks = breaks, plot = FALSE)
+             x2 <- DENS$breaks[-1]
+             y2 <- DENS$density; rm(DENS); gc()
+          }
+       }
 
-       FIT1 <- try(nls.lm(par = args1, fn = optFun, objFun = dmixtdistr,
-                       quantiles = x1, obsVals = y1,
-                       control = nls.lm.control(maxiter = maxiter, ftol = ftol,
-                                                maxfev = maxfev, ptol = ptol)),
-                silent = TRUE)
+       if (dens) {
+           FIT1 <- try(nls.lm(par = arg1, fn = optFun, objFun = dmixtdistr,
+                            quantiles = x1, obsVals = y1,
+                            control = nls.lm.control(maxiter = maxiter,
+                                                   ftol = ftol, maxfev = maxfev,
+                                                   ptol = ptol)),
+                       silent = TRUE)
 
-       FIT2 <- try(nls.lm(par = args1, fn = optFun, objFun = dmixtdistr,
-                       quantiles = x2, obsVals = y2,
-                       control = nls.lm.control(maxiter = maxiter, ftol = ftol,
-                                                maxfev = maxfev, ptol = ptol)),
-                silent = TRUE)
+           FIT2 <- try(nls.lm(par = arg1, fn = optFun, objFun = dmixtdistr,
+                           quantiles = x2, obsVals = y2,
+                           control = nls.lm.control(maxiter = maxiter,
+                                                   ftol = ftol, maxfev = maxfev,
+                                                   ptol = ptol)),
+                       silent = TRUE)
+       } else {
+           x1 <- X[ cros.ind.1 ]
+           x2 <- X[ cros.ind.2 ]
+           y1 <- Fn(x1)
+           y2 <- Fn(x2)
+
+           FIT1 <- try(nls.lm(par = arg1, fn = optFun, objFun = pmixtdistr,
+                           quantiles = x1, obsVals = y1,
+                           control = nls.lm.control(maxiter = maxiter,
+                                                   ftol = ftol, maxfev = maxfev,
+                                                   ptol = ptol)),
+                       silent = TRUE)
+
+           FIT2 <- try(nls.lm(par = arg1, fn = optFun, objFun = pmixtdistr,
+                           quantiles = x2, obsVals = y2,
+                           control = nls.lm.control(maxiter = maxiter,
+                                                   ftol = ftol, maxfev = maxfev,
+                                                   ptol = ptol)),
+                       silent = TRUE)
+       }
 
        if (inherits(FIT1, "try-error") && inherits(FIT2, "try-error"))
            R.cross.FIT <- 0
        else {
+           if (dens) getPred <- dmixtdistr else getPred <- pmixtdistr
            ## prediction using model 1
-           p.FIT1 <-dmixtdistr(x2, phi = phi, arg = par_vector2list(coef(FIT1)))
-           R.FIT1 <- cor(p.FIT1, y2, use="complete.obs")
+           p.FIT1 <- getPred(x2, phi=phi, arg = par_vector2list(coef(FIT1)))
+           R.FIT1 <- try(cor(p.FIT1, y2, use = "complete.obs"), silent = TRUE)
+           if (inherits(R.FIT1, "try-error")) {
+              R.FIT1 <- try(cor(p.FIT1, y2, use = "pairwise.complete.obs"),
+                            silent = TRUE)
+           }
            ## prediction using model 2
-           p.FIT2 <- dmixtdistr(x1, phi = phi,
-                               arg = par_vector2list(coef(FIT2)))
-           R.FIT2 <- cor(p.FIT2, y1, use="complete.obs")
+           p.FIT2 <- getPred(x1, phi = phi, arg = par_vector2list(coef(FIT2)))
+           R.FIT2 <- try(cor(p.FIT2, y1, use = "complete.obs"), silent = TRUE)
+           if (inherits(R.FIT2, "try-error")) {
+              R.FIT2 <- try(cor(p.FIT2, y1, use = "pairwise.complete.obs"),
+                            silent = TRUE)
+           }
 
-           R.cross.FIT <- (length(p.FIT1) * R.FIT1 + length(p.FIT2) * R.FIT2) /
-               (length(p.FIT1) + length(p.FIT2))
+           if (inherits(R.FIT1, "try-error") && inherits(R.FIT2, "try-error")) {
+               R.cross.FIT <- NA
+           } else {
+               term1 <- length(p.FIT1) * R.FIT1
+               term2 <- length(p.FIT2) * R.FIT2
+               R.cross.FIT <- (term1 + term2)/(length(p.FIT1) + length(p.FIT2))
+           }
        }
        gaps <- rep("", length(coef(FIT)) - 1)
-       sumario <-try(summary(FIT)$coefficients, silent = TRUE)
+       sumario <- try(summary(FIT)$coefficients, silent = TRUE)
        if (!kmean) bic <- fit$bic else bic <- NA
 
        if (inherits(sumario, "try-error")) {

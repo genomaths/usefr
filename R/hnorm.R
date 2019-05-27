@@ -67,13 +67,13 @@ dhnorm <- function(x, theta = 1, log = FALSE) {
 #' @description NULL
 #' @details NULL
 #' @export
-phnorm <- function(q, theta = 1, lower.tail = TRUE, log = FALSE) {
+phnorm <- function(q, theta = 1, lower.tail = TRUE, log.p = FALSE) {
    q <- q * theta * sqrt(2/pi)
    # 'p' is given in terms of the error function through 'pnorm'
    # erfc <- function(x) 2 * pnorm(x * sqrt(2), lower = FALSE), see ?qnorm
    p <- ifelse(q < 0, 0, 2 * pnorm(q) - 1)
    if (!lower.tail) p = 1 - p
-   if (log) p <- log(p)
+   if (log.p) p <- log(p)
    return(p)
 }
 

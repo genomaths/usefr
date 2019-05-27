@@ -12,7 +12,7 @@
 \usage{
 dhnorm(x, theta = 1, log = FALSE)
 
-phnorm(q, theta = 1, lower.tail = TRUE, log = FALSE)
+phnorm(q, theta = 1, lower.tail = TRUE, log.p = FALSE)
 
 qhnorm(p, theta = 1, sigma = NULL, lower.tail = TRUE,
   log.p = FALSE)
@@ -31,11 +31,11 @@ sigma2theta(sigma)
 \item{lower.tail}{logical; if TRUE (default), probabilities are P[X<=x],
 otherwise, P[X > x]}
 
-\item{sigma}{Standart deviation of the normal distribution. Here,
-\eqn{\sigma = \sqrt \pi/(\theta\sqrt 2)}}
-
 \item{log.p}{logical; if TRUE, probabilities/densities p are returned as
 log(p).}
+
+\item{sigma}{Standart deviation of the normal distribution. Here,
+\eqn{\sigma = \sqrt \pi/(\theta\sqrt 2)}}
 
 \item{n}{number of observations}
 }
