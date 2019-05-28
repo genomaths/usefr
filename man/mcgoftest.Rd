@@ -2,9 +2,10 @@
 % Please edit documentation in R/mcgoftest.R
 \name{mcgoftest}
 \alias{mcgoftest}
-\title{Permutation test for Goodness of fit}
+\title{Permutation test for Goodness of fit (GoF)}
 \usage{
 mcgoftest(varobj, cdf, pars, num.sampl = 999, sample.size,
+  stat = c("ks", "ad", "rmst", "chisq"), breaks = NULL,
   num.cores = 1, tasks = 0)
 }
 \arguments{
@@ -12,14 +13,24 @@ mcgoftest(varobj, cdf, pars, num.sampl = 999, sample.size,
 CDF parameters was estimated.}
 
 \item{cdf}{The name of the cummulative distribution function (CDF) or a
-concrete CDF from where estimate the cummulative probabilities.}
+concrete CDF from where estimate the cummulative probabilities. The cdf
+must be defined in environment-namespace from any package or environment
+defined by user.}
 
-\item{pars}{CDF model parameters. A list of parameters to evaluate the CDF}
+\item{pars}{CDF model parameters. A list of parameters to evaluate the CDF.}
 
 \item{num.sampl}{Number of samplings/permutations. If sample.size < length(x)
 , then the test becomes a Monte Carlo test.}
 
 \item{sample.size}{Size of the samples used for each sampling.}
+
+\item{stat}{One string denoting the statistic to used in the testing: "ks":
+Kolmogorov–Smirnov, "ad": Anderson–Darling statistic, "chisq: Pearson's
+Chi-squared, and "rmst": Root Mean Square statistic.}
+
+\item{breaks}{Default is NULL. Basically, the it is same as in function
+\code{\link[graphics]{hist}}. If \emph{breaks} = NULL, then function
+\code{\link[grDevices]{nclass.FD}} is applied to estimate the breaks.}
 
 \item{num.cores, tasks}{Paramaters for parallele computation using package
 \code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to
@@ -30,15 +41,12 @@ use, i.e. at most how many child processes will be run simultaneously
 \value{
 A numeric vector with the following data:
     \enumerate{
+
+        \item Statistic value.
+
         \item mc_p.value: the probability of finding the observed, or more
               extreme, results when the null hypothesis \eqn{H_0} of a study
               question is true obtained Monte Carlo/permutation approach.
-        \item KS: Kolmogorov-Smirnov statistic obtained with the application
-              of the function \code{\link[stats]{ks.test}} on the
-              variable *varobj*.
-        \item KS_p.value: the probability of finding the observed, or more
-              extreme, results when the null hypothesis \eqn{H_0} of a study
-              question is true obtained with Kolmogorov-Smirnov test.
     }
 }
 \description{
@@ -47,14 +55,39 @@ To accomplis the nonlinear fit of a probability distribution
     algorithm will return a different set of estimated parameter values. AIC
     and BIC are not useful (in this case) to decide which parameter set of
     values is the best. The goodness-of-fit tests (GOF) can help in this
-    case. In addition, when the sample size goes beyond 150, standard GOFs
-    can fail. In this case, permutation test can help to confront the issue.
+    case.
 }
 \details{
-For the current version the permutation test for Kolmogorov-Smirnov
-    statistics, is based on \href{https://goo.gl/hfnNy8}{Alastair Sanderson}
-    idea presented in his post: \emph{Using R to analyse data statistical and
-    numerical data analysis with R}.
+The test is intended for continuos distributions. If sampling size
+    is lesser the size of the sample, then the test becomes a Monte Carlo
+    test. The thes is based on the use of measures of goodness of fit,
+    statistics. The following statistics are availible:
+
+    \itemize{
+        \item Kolmogorov- Smirnov statistic (ks). Limitations: sensitive to
+              ties [1].
+
+        \item Anderson–Darling statistic (ad) [2]. Limitation: by
+              construction, it depends on the sample size. So, the size of
+              the sampling must be close to the sample size if Monte Carlo
+              resampling is used, which could be a limitation if the sample
+              size is too large [2]. In particular, could be an issue in some
+              genomic applications. It is worth highlighting that, for the
+              current application, the Anderson–Darling statistic is not
+              standardized as typically done in testing GoF for normal
+              distribution with Anderson–Darling test. It is not required
+              since, the statistic is not compared with a corresponding
+              theoretical value.
+
+        \item Pearson's Chi-squared statistic (chisq). Limitation: the sample
+              must be discretized (partitioned into bins), which is could be
+              a source of bias that leads to the rejection of the null
+              hypothesis. Here, the discretization is done using function
+              the resources from function \code{\link[graphics]{hist}}.
+
+        \item Root Mean Square statistic (rmst). Limitation: the same
+              as 'chisq'.
+    }
 }
 \examples{
 # Example 1
@@ -83,7 +116,19 @@ x = rnorm(10000, mean = 1.5, sd = 2)
 mcgoftest(x, cdf = pnorm, pars = c(1.5, 2), num.sampl = 500,
           sample.size = 1000, num.cores = 1)
 }
+\references{
+\enumerate{
+        \item Feller, W. On the Kolmogorov-Smirnov Limit Theorems for
+            Empirical Distributions. Ann. Math. Stat. 19, 177–189 (1948).
+        \item Anderson, T. . & Darling, D. A. A Test Of Goodness Of Fit. J.
+            Am. Stat. Assoc. 49, 765–769 (1954).
+        \item Watson, G. S. On Chi-Square Goodness-Of-Fit Tests for
+            Continuous Distributions. J. R. Stat. Soc. Ser. B Stat.
+            Methodol. 20, 44–72 (1958).
+    }
+}
 \author{
-Original script from \href{https://goo.gl/hfnNy8}{Alastair Sanderson}
-    . Modified and adapted by Robersy Sanchez (https://genomaths.com).
+Original permutation script idea from
+    \href{https://goo.gl/hfnNy8}{Alastair Sanderson}. Modified and adapted by
+    Robersy Sanchez (https://genomaths.com).
 }
