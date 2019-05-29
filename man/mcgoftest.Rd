@@ -4,18 +4,18 @@
 \alias{mcgoftest}
 \title{Permutation test for Goodness of fit (GoF)}
 \usage{
-mcgoftest(varobj, cdf, pars, num.sampl = 999, sample.size,
+mcgoftest(varobj, distr, pars, num.sampl = 999, sample.size,
   stat = c("ks", "ad", "rmst", "chisq"), breaks = NULL,
-  num.cores = 1, tasks = 0)
+  parametric = TRUE, seed = 1, num.cores = 1, tasks = 0)
 }
 \arguments{
 \item{varobj}{A a vector containing observations, the variable for which the
 CDF parameters was estimated.}
 
-\item{cdf}{The name of the cummulative distribution function (CDF) or a
-concrete CDF from where estimate the cummulative probabilities. The cdf
-must be defined in environment-namespace from any package or environment
-defined by user.}
+\item{distr}{The name of the cummulative distribution function (CDF) or a
+concrete CDF from where estimate the cummulative probabilities.
+Distribution \emph{distr} must be defined in environment-namespace from
+any package or environment defined by user.}
 
 \item{pars}{CDF model parameters. A list of parameters to evaluate the CDF.}
 
@@ -31,6 +31,11 @@ Chi-squared, and "rmst": Root Mean Square statistic.}
 \item{breaks}{Default is NULL. Basically, the it is same as in function
 \code{\link[graphics]{hist}}. If \emph{breaks} = NULL, then function
 \code{\link[grDevices]{nclass.FD}} is applied to estimate the breaks.}
+
+\item{parametric}{Logical object. If TRUE, then samples are drawn from the
+theoretical population described by \emph{distr}. Default: TRUE.}
+
+\item{seed}{An integer used to set a 'seed' for random number generation.}
 
 \item{num.cores, tasks}{Paramaters for parallele computation using package
 \code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to
@@ -65,7 +70,9 @@ The test is intended for continuos distributions. If sampling size
 
     \itemize{
         \item Kolmogorov- Smirnov statistic (ks). Limitations: sensitive to
-              ties [1].
+              ties [1]. Only the parametric Monte Carlo resampling or
+              permutation (provided that there is not ties in the data) can
+              be used.
 
         \item Anderson–Darling statistic (ad) [2]. Limitation: by
               construction, it depends on the sample size. So, the size of
@@ -77,7 +84,10 @@ The test is intended for continuos distributions. If sampling size
               standardized as typically done in testing GoF for normal
               distribution with Anderson–Darling test. It is not required
               since, the statistic is not compared with a corresponding
-              theoretical value.
+              theoretical value. In addition, since the computation of this
+              statistic requires for the data to be put in order [2], it does
+              not make sense to perform a permutation test. That is, the
+              maximum sampling size is the sample size less 1.
 
         \item Pearson's Chi-squared statistic (chisq). Limitation: the sample
               must be discretized (partitioned into bins), which is could be
@@ -100,7 +110,7 @@ x = rweibull(10000, shape = 0.5, scale = 1.2)
 # MC KS test accept the null hypothesis that variable x comes
 # from Weibull(x | shape = 0.5, scale = 1.2), while the standard
 # Kolmogorov-Smirnov test reject the Null Hypothesis.
-mcgoftest(x, cdf = pweibull, pars = c( 0.5, 1.2 ), num.sampl = 500,
+mcgoftest(x, distr = pweibull, pars = c( 0.5, 1.2 ), num.sampl = 500,
         sample.size = 1000, num.cores = 4)
 
 # Example 2
@@ -113,7 +123,7 @@ x = rnorm(10000, mean = 1.5, sd = 2)
 # MC KS test accept the null hypothesis that variable x comes
 # from N(x | mean = 0.5, sd = 1.2), while the standard
 # Kolmogorov-Smirnov test reject the Null Hypothesis.
-mcgoftest(x, cdf = pnorm, pars = c(1.5, 2), num.sampl = 500,
+mcgoftest(x, distr = pnorm, pars = c(1.5, 2), num.sampl = 500,
           sample.size = 1000, num.cores = 1)
 }
 \references{

@@ -13,7 +13,9 @@
 #'
 #'     \itemize{
 #'         \item Kolmogorov- Smirnov statistic (ks). Limitations: sensitive to
-#'               ties [1].
+#'               ties [1]. Only the parametric Monte Carlo resampling or
+#'               permutation (provided that there is not ties in the data) can
+#'               be used.
 #'
 #'         \item Anderson–Darling statistic (ad) [2]. Limitation: by
 #'               construction, it depends on the sample size. So, the size of
@@ -25,7 +27,10 @@
 #'               standardized as typically done in testing GoF for normal
 #'               distribution with Anderson–Darling test. It is not required
 #'               since, the statistic is not compared with a corresponding
-#'               theoretical value.
+#'               theoretical value. In addition, since the computation of this
+#'               statistic requires for the data to be put in order [2], it does
+#'               not make sense to perform a permutation test. That is, the
+#'               maximum sampling size is the sample size less 1.
 #'
 #'         \item Pearson's Chi-squared statistic (chisq). Limitation: the sample
 #'               must be discretized (partitioned into bins), which is could be
@@ -38,10 +43,10 @@
 #'     }
 #' @param varobj A a vector containing observations, the variable for which the
 #'     CDF parameters was estimated.
-#' @param cdf The name of the cummulative distribution function (CDF) or a
-#'     concrete CDF from where estimate the cummulative probabilities. The cdf
-#'     must be defined in environment-namespace from any package or environment
-#'     defined by user.
+#' @param distr The name of the cummulative distribution function (CDF) or a
+#'     concrete CDF from where estimate the cummulative probabilities.
+#'     Distribution \emph{distr} must be defined in environment-namespace from
+#'     any package or environment defined by user.
 #' @param pars CDF model parameters. A list of parameters to evaluate the CDF.
 #' @param stat One string denoting the statistic to used in the testing: "ks":
 #'     Kolmogorov–Smirnov, "ad": Anderson–Darling statistic, "chisq: Pearson's
@@ -49,9 +54,12 @@
 #' @param breaks Default is NULL. Basically, the it is same as in function
 #'     \code{\link[graphics]{hist}}. If \emph{breaks} = NULL, then function
 #'     \code{\link[grDevices]{nclass.FD}} is applied to estimate the breaks.
+#' @param parametric Logical object. If TRUE, then samples are drawn from the
+#'     theoretical population described by \emph{distr}. Default: TRUE.
 #' @param num.sampl Number of samplings/permutations. If sample.size < length(x)
 #'     , then the test becomes a Monte Carlo test.
 #' @param sample.size Size of the samples used for each sampling.
+#' @param seed An integer used to set a 'seed' for random number generation.
 #' @param num.cores,tasks Paramaters for parallele computation using package
 #'     \code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to
 #'     use, i.e. at most how many child processes will be run simultaneously
@@ -93,7 +101,7 @@
 #' # MC KS test accept the null hypothesis that variable x comes
 #' # from Weibull(x | shape = 0.5, scale = 1.2), while the standard
 #' # Kolmogorov-Smirnov test reject the Null Hypothesis.
-#' mcgoftest(x, cdf = pweibull, pars = c( 0.5, 1.2 ), num.sampl = 500,
+#' mcgoftest(x, distr = pweibull, pars = c( 0.5, 1.2 ), num.sampl = 500,
 #'         sample.size = 1000, num.cores = 4)
 #'
 #' # Example 2
@@ -106,82 +114,113 @@
 #' # MC KS test accept the null hypothesis that variable x comes
 #' # from N(x | mean = 0.5, sd = 1.2), while the standard
 #' # Kolmogorov-Smirnov test reject the Null Hypothesis.
-#' mcgoftest(x, cdf = pnorm, pars = c(1.5, 2), num.sampl = 500,
+#' mcgoftest(x, distr = pnorm, pars = c(1.5, 2), num.sampl = 500,
 #'           sample.size = 1000, num.cores = 1)
 
-mcgoftest <- function(varobj, cdf, pars, num.sampl = 999, sample.size,
+mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
                    stat = c("ks", "ad", "rmst", "chisq"), breaks = NULL,
-                   num.cores = 1, tasks = 0) {
+                   parametric = TRUE, seed = 1, num.cores = 1, tasks = 0) {
    # The current version the permutation test for Kolmogorov-Smirnov
    # statistics, is based on \href{https://goo.gl/hfnNy8}{Alastair Sanderson}
    # idea presented in his post: \emph{Using R to analyse data statistical and
    # numerical data analysis with R}.
 
+   set.seed( seed )
    stat <- match.arg(stat)
+   if (!is.character(distr))
+       stop("*** 'distr' must be a characterstring naming a distribution ",
+            "function e.g, 'norm' will permit accessing ",
+            "functions 'pnorm' and 'rnorm'")
 
-   if(is.character(cdf))
-       cdf <- get(cdf, mode = "function", envir = parent.frame())
-   if(!is.function(cdf))
-       stop("*** 'cdf' must be numeric or a function ",
-            "or a string naming a valid function")
+   if (is.character(distr)) {
+       pdistr <- paste0("p", distr)
+       pdistr <- get(pdistr, mode = "function", envir = parent.frame())
+       if (!is.function(pdistr))
+          stop("*** 'distr' must be a characterstring naming a distribution ",
+               "function e.g, 'norm' will permit accessing ",
+               "functions 'pnorm' and 'rnorm'")
+
+       if (parametric) {
+           rdistr <- paste0("r", distr)
+           rdistr <- get(rdistr, mode = "function", envir = parent.frame())
+           if (!is.function(rdistr))
+              stop("*** 'distr' must be a characterstring naming a ",
+                   "distribution function e.g, 'norm' will permit accessing ",
+                   "functions 'pnorm' and 'rnorm'")
+       }
+   }
+
 
    if (missing( sample.size ) || sample.size > round(length(varobj)))
        sample.size = round(length(varobj)/3)
 
-   GoFtest <- function(x, R, szise, cdf, pars, stat, breaks, mc.cores) {
-       myfun <- function(a, cdf, pars, stat, breaks) {
+   GoFtest <- function(x, R, szise, distr, pars, stat, breaks, parametric,
+                       mc.cores) {
+
+       myfun <- function(a, distr, pars, stat, breaks, parametric) {
            switch(stat,
-               ks = suppressWarnings(unname(ks.test(a, cdf, pars)$statistic)),
-               ad = ad_stat(x = a, cdf = cdf, pars = pars),
-               rmst = rmst(x, cdf, pars, breaks = breaks),
-               chisq = chisq(x, cdf, pars, breaks = breaks)
+               ks = ks_stat(x = a, distr = distr, pars = pars)$stat,
+               ad = ad_stat(x = a, distr = distr, pars = pars),
+               rmst = rmst(x = a, distr = distr, pars = pars, breaks = breaks),
+               chisq = chisq(x = a, distr = distr, pars = pars, breaks=breaks)
           )
        }
 
-       DoIt <- function(r, cdf, pars, stat, breaks) {
-           i <- sample( length( x ), szise )
+       DoIt <- function(r, distr, pars, stat, breaks, parametric) {
+           if (parametric) a <- distfn(x = szise, dfn = distr,
+                                       type = "r", arg = pars)
+           else {
+               i <- sample( length( x ), szise )
+               a = x[ i ]
+           }
+
            # to test empirical versus theoretical values
-           myfun(a = x[ i ], cdf = cdf, pars = pars, stat = stat, breaks = breaks)
+           myfun(a = a, distr = distr, pars = pars, stat = stat,
+                   breaks = breaks, parametric = parametric)
        }
+
+       DoIt(1, distr=distr, pars=pars, stat=stat, breaks=breaks,
+            parametric=parametric)
 
        if (Sys.info()['sysname'] == "Linux") {
            bpparam <- MulticoreParam(workers=num.cores, tasks=tasks)
        } else bpparam <- SnowParam(workers=num.cores, type = "SOCK")
 
-       pstats <- unlist(bplapply(1:R, DoIt, cdf = cdf, pars = pars, stat = stat,
-                               breaks = breaks, BPPARAM=bpparam))
+       pstats <- unlist(bplapply(1:R, DoIt, distr = distr, pars = pars,
+                               stat = stat, breaks = breaks,
+                               parametric = parametric, BPPARAM=bpparam))
 
        res <- switch(stat,
                    ks = {
-                           stat = suppressWarnings(ks.test(x, cdf,pars))
-                           p.value = unname(stat$p.value)
-                           stat = unname(stat$statistic)
-                           c(KS.stat.D = stat,
-                               mc_p.value = mean(c(stat, pstats) >= stat,
+                           statis = ks_stat(x = x, distr = distr, pars = pars)
+                           p.value = statis$p.value
+                           statis = statis$stat
+                           c(KS.stat.D = statis,
+                               mc_p.value = mean(c(statis, pstats) >= statis,
                                                na.rm = TRUE),
                                KS.stat.p.value = p.value,
                                sample.size = sample.size, num.sampl = num.sampl)
                         },
                    ad = {
-                           stat = ad_stat(x = x, cdf = cdf, pars = pars)
-                           c(AD.stat = stat,
-                               mc_p.value=mean(c(stat, pstats) >= stat,
+                           statis = ad_stat(x = x, distr = distr, pars = pars)
+                           c(AD.stat = statis,
+                               mc_p.value=mean(c(statis, pstats) >= statis,
                                                na.rm = TRUE),
                                sample.size = sample.size, num.sampl = num.sampl)
                         },
                    rmst = {
-                           stat = rmst(x = x, cdf = cdf, pars = pars ,
+                           statis = rmst(x = x, distr = distr, pars = pars ,
                                        breaks = breaks)
-                           c(rmst = stat,
-                             mc_p.value=mean(c(stat, pstats) >= stat,
+                           c(rmst = statis,
+                             mc_p.value=mean(c(statis, pstats) >= statis,
                                              na.rm = TRUE),
                              sample.size = sample.size, num.sampl = num.sampl)
                           },
                    chisq = {
-                               stat = chisq(x = x, cdf = cdf, pars = pars,
+                               statis = chisq(x = x, distr = distr, pars=pars,
                                             breaks = breaks)
-                               c(rmst = stat,
-                                   mc_p.value=mean(c(stat, pstats) >= stat,
+                               c(Chisq = unname(statis),
+                                   mc_p.value=mean(c(statis, pstats) >= statis,
                                                    na.rm = TRUE),
                                    sample.size = sample.size,
                                    num.sampl = num.sampl)
@@ -200,48 +239,83 @@ mcgoftest <- function(varobj, cdf, pars, num.sampl = 999, sample.size,
    method <- ifelse(sample.size < length(varobj), "Monte Carlo GoF testing",
                     "Permutation GoF testing")
 
-   cat( "***", method,"based on" , statis,"statistic ...\n" )
-   GoFtest(x = varobj, R = num.sampl, szise = sample.size, cdf = cdf, pars=pars,
-           stat = stat, breaks = breaks, mc.cores = num.cores)
+   if (sample.size == length(varobj)) parametric <- FALSE
+   approach <- ifelse(parametric, "parametric approach",
+                       "non-parametric approach")
+
+   cat( "***", method,"based on" , statis,"statistic", "(", approach, ")",
+       " ...\n")
+
+   if (stat == "ks" && !parametric && sample.size < length(varobj)) {
+      warning("*** ", method," based on ", statis," statistic ",
+              "(", approach, ") ", "is not reliable. \n",
+              "Use the parametric approach or permutation instead.")
+   }
+
+   GoFtest(x = varobj, R = num.sampl, szise = sample.size, distr = distr,
+           pars=pars, stat = stat, breaks = breaks, parametric = parametric,
+           mc.cores = num.cores)
 }
 
 # ======================= Anderson–Darling statistic ========================= #
-ad_stat <- function(x, cdf, pars) {
+ad_stat <- function(x, distr, pars) {
    x <- sort(x[complete.cases(x)])
    n <- length(x)
    if (n < 8)
       stop("AD statistic the sample size must be greater than 7")
 
-   logp1 <- log(cdf(x, pars))
-   logp2 <- log(1 - cdf(rev(x), pars))
+   logp1 <- log(distfn(x = x, dfn = distr, type = "p", arg = pars))
+   logp2 <- log(1 - distfn(x = rev(x), dfn = distr, type = "p", arg = pars))
    h <-  (2 * seq(1:n) - 1) * (logp1 + logp2)
    return(-n - mean(h))
 }
 
 # ================ Auxiliary funciton to compute the frequencies ============= #
-freqs <- function(x, cdf, pars, breaks = NULL) {
+freqs <- function(x, distr, pars, breaks = NULL) {
    n <- length(x)
    if (is.null(breaks)) breaks <- nclass.FD(x)
    DENS <- hist(x, breaks = breaks, plot = FALSE)
    freq0 <- DENS$counts
    bounds <- data.frame(lower = DENS$breaks[ -length(DENS$breaks)],
                         upper = DENS$breaks[ -1 ])
-   freq <- round(n * (cdf(bounds$upper, pars) - cdf(bounds$lower, pars)))
+
+   up_val <- distfn(x = bounds$upper, dfn = distr, type = "p", arg = pars)
+   low_val <- distfn(x = bounds$lower, dfn = distr, type = "p", arg = pars)
+
+   freq <- round(n * (up_val - low_val))
    return(data.frame(obsf = freq0, expf = freq))
 }
 
-
 # ===================== Root-Mean-Square statistic ========================== #
-rmst <- function(x, cdf, pars, breaks = NULL) {
-   freq <- freqs(x = x, cdf = cdf, pars = pars, breaks = breaks)
+rmst <- function(x, distr, pars, breaks = NULL) {
+   freq <- freqs(x = x, distr = distr, pars = pars, breaks = breaks)
    return(sqrt(mean((freq$obsf - freq$expf) ^ 2)))
 }
 
 # ================== Pearson's Chi-squared  statistic ======================= #
-chisq <- function(x, cdf, pars, breaks = NULL) {
-   freq <- freqs(x = x, cdf = cdf, pars = pars, breaks = breaks)
+chisq <- function(x, distr, pars, breaks = NULL) {
+   freq <- freqs(x = x, distr = distr, pars = pars, breaks = breaks)
    return(suppressWarnings(chisq.test(x = freq$obsf, y = freq$expf)$statistic))
 }
 
+# ================== Kolmogorov-Smirnov  statistic ======================= #
+
+ks_stat <- function(x, distr, pars) {
+   cdf <- function(x, pars) distfn(x = x, dfn = distr, type = "p", arg = pars)
+   res <- suppressWarnings(ks.test(x = x, y = cdf, pars))
+   return(list(stat = unname(res$statistic), p.value = res$p.value))
+}
+
+
+# --------------------- Auxiliary function to get distribution --------------- #
+distfn <- function(x, dfn, type = "r", arg, log = FALSE,
+                   lower.tail = TRUE, log.p = FALSE) {
+   switch(type,
+          p = do.call(paste0(type, dfn),
+                      c(list(x), arg, lower.tail = lower.tail, log.p = log.p)),
+          r = do.call(paste0(type, dfn), c(list(x), arg))
+   )
+}
+# -------------------------- End auxiliar function --------------------------- #
 
 
