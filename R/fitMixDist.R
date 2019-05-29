@@ -378,6 +378,11 @@ fitMixDist <- function(X, args = list(norm = c(mean = NA, sd = NA),
                                                    ptol = ptol)),
                        silent = TRUE)
        } else {
+           set.seed(seed)
+           l <- length(x)
+           cros.ind.1 <- sample.int(l, size=round(l / 2))
+           cros.ind.2 <- setdiff(1:l, cros.ind.1)
+
            x1 <- X[ cros.ind.1 ]
            x2 <- X[ cros.ind.2 ]
            y1 <- Fn(x1)
