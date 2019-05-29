@@ -197,6 +197,8 @@ fitMixDist <- function(X, args = list(norm = c(mean = NA, sd = NA),
        y <- DENS$y
    }
 
+   if (dens & !is.null(npoints)) y <- DENS$density
+
    if (!dens) {
        Fn <- ecdf(X)
        if (!is.null(npoints)) {
