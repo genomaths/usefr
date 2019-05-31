@@ -13,9 +13,8 @@
 #'     zero is applied by using a scaled precision (inverse of the variance)
 #'     obtained by setting \eqn{\theta=sqrt(\pi)/\sigma*sqrt(2)}. Details about
 #'     these functions can be found in \href{https://goo.gl/yxMF6T}{Wikipedia}
-#'     and in \href{http://mathworld.wolfram.com/Half-NormalDistribution.html}{
-#'     MathWorld}. Notice that \eqn{\theta = 1} means
-#'     \eqn{\sigma = \sqrt \pi/\sqrt 2}.
+#'     and in \href{https://is.gd/S9Kdss}{ MathWorld}. Notice that
+#'     \eqn{\theta = 1} means \eqn{\sigma = \sqrt \pi/\sqrt 2}.
 #' @param q numeric vector
 #' @param n number of observations
 #' @param theta numerical parameter, strictly positive (default 1).
