@@ -54,9 +54,16 @@ dmixtdistr <- function(x, phi, arg,  log = FALSE,
    k <- length(phi)
    n <- numeric(length(x))
    dfn = names(arg)
-   rowSums(vapply(1:k, function(i)
-                       phi[i] * distfn(x, dfn = dfn[i], type = "d",
-                                      arg = arg[[i]], log = log), n))
+   if (length(x) > 1) {
+      d <- rowSums(vapply(1:k, function(i)
+                                   phi[i] * distfn(x, dfn = dfn[i], type = "d",
+                                               arg = arg[[i]], log = log), n))
+   } else {
+      d <- sum(sapply(1:k, function(i)
+                                   phi[i] * distfn(x, dfn = dfn[i], type = "d",
+                                               arg = arg[[i]], log = log)))
+   }
+   return(d)
 }
 
 #' @name pmixtdistr
@@ -69,9 +76,20 @@ pmixtdistr <- function(q, phi, arg,  lower.tail = TRUE, log.p = FALSE) {
    k <- length(phi)
    n <- numeric(length(q))
    dfn = names(arg)
-   rowSums(vapply(1:k, function(i)
-                   phi[i] * distfn(q, dfn = dfn[i], type = "p", arg = arg[[i]],
-                                   lower.tail = lower.tail, log.p = log.p), n))
+   if (length(q) > 1) {
+      d <- rowSums(vapply(1:k, function(i)
+                                   phi[i] * distfn(q, dfn = dfn[i], type = "p",
+                                                   arg = arg[[i]],
+                                                   lower.tail = lower.tail,
+                                                   log.p = log.p), n))
+   } else {
+      d <- sum(sapply(1:k, function(i)
+                                   phi[i] * distfn(q, dfn = dfn[i], type = "p",
+                                                   arg = arg[[i]],
+                                                   lower.tail = lower.tail,
+                                                   log.p = log.p)))
+   }
+   return(d)
 }
 
 #' @name qmixtdistr
