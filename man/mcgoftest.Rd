@@ -30,7 +30,8 @@ Chi-squared, and "rmst": Root Mean Square statistic.}
 
 \item{breaks}{Default is NULL. Basically, the it is same as in function
 \code{\link[graphics]{hist}}. If \emph{breaks} = NULL, then function
-\code{\link[grDevices]{nclass.FD}} is applied to estimate the breaks.}
+'nclass.FD' (see \code{\link[grDevices]{nclass}} is applied to estimate
+the breaks.}
 
 \item{parametric}{Logical object. If TRUE, then samples are drawn from the
 theoretical population described by \emph{distr}. Default: TRUE.}
