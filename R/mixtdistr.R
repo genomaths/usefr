@@ -101,7 +101,7 @@ pmixtdistr <- function(q, phi, arg,  lower.tail = TRUE, log.p = FALSE) {
 qmixtdistr <- function(p, interval = c(0, 1000),
                        phi, arg, lower.tail = TRUE, log.p = FALSE) {
    k <- length(phi)
-   n <- numeric(length(x))
+   n <- numeric(length(p))
    dfn = names(arg)
    qmixtfn <- function(p) {
        uniroot(function(q) {
