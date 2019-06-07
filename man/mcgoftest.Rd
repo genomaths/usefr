@@ -55,7 +55,7 @@ A numeric vector with the following data:
     }
 }
 \description{
-To accomplis the nonlinear fit of a probability distribution
+To accomplish the nonlinear fit of a probability distribution
     function (*PDF*), dIfferent optimization algorithms can be used. Each
     algorithm will return a different set of estimated parameter values. AIC
     and BIC are not useful (in this case) to decide which parameter set of

@@ -1,6 +1,6 @@
 #' @rdname mcgoftest
 #' @title Permutation test for Goodness of fit (GoF)
-#' @description To accomplis the nonlinear fit of a probability distribution
+#' @description To accomplish the nonlinear fit of a probability distribution
 #'     function (*PDF*), dIfferent optimization algorithms can be used. Each
 #'     algorithm will return a different set of estimated parameter values. AIC
 #'     and BIC are not useful (in this case) to decide which parameter set of
@@ -179,8 +179,8 @@ mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
                    breaks = breaks, parametric = parametric)
        }
 
-       DoIt(1, distr=distr, pars=pars, stat=stat, breaks=breaks,
-            parametric=parametric)
+       # DoIt(1, distr=distr, pars=pars, stat=stat, breaks=breaks,
+       #      parametric=parametric)
 
        if (Sys.info()['sysname'] == "Linux") {
            bpparam <- MulticoreParam(workers=num.cores, tasks=tasks)
@@ -258,15 +258,16 @@ mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
 }
 
 # ======================= Anderson–Darling statistic ========================= #
-ad_stat <- function(x, distr, pars) {
+ad_stat <- function(x, distr, pars = NULL) {
    x <- sort(x[complete.cases(x)])
+   if (!missing(distr))  x <- distfn(x = x, dfn = distr, type = "p", arg = pars)
+
    n <- length(x)
    if (n < 8)
       stop("AD statistic the sample size must be greater than 7")
 
-   logp1 <- log(distfn(x = x, dfn = distr, type = "p", arg = pars))
-   logp2 <- log(1 - distfn(x = rev(x), dfn = distr, type = "p", arg = pars))
-   h <-  (2 * seq(1:n) - 1) * (logp1 + logp2)
+   h <- x * (1 - rev(x))
+   h <- (2 * seq(x) - 1) * log(h)
    return(-n - mean(h))
 }
 
