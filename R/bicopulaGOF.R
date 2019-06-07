@@ -14,7 +14,7 @@
 ## this program; if not, see <http://www.gnu.org/licenses/>.
 
 #' @rdname bicopulaGOF
-#' @title  Goodness of fit for Two-dimensional Copula with Known Margins
+#' @title  Goodness of fit for Bidimensional Copula with Known Margins
 #' @description Goodness-of-fit (GOF) tests for a two-dimensional copula based,
 #'     by default, on the knowledge of the marginal probability distributions.
 #'     Several functionalities/tools from \code{\link[copula]{copula-package}}
