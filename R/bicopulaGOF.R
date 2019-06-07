@@ -222,7 +222,7 @@ bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
                     sample.size = sample.size, num.sampl = nboots)
                   },
                 chisq = {
-                  fq <- freqs(x = x, y = y, copula = copula, breaks = breaks)
+                  fq <- freqs.(x = x, y = y, copula = copula, breaks = breaks)
                   stat <- sum((fq$obsf - fq$expf)^2/fq$expf)
                   p.value <- mean(c(stat, pstats) >= stat, na.rm = TRUE)
                   c(Chisq.stat = stat, mc_p.value = p.value,
@@ -235,8 +235,7 @@ bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
 
 
 # =================== Auxiliary function to compute frequencies ============== #
-freqs <- function(x, y, copula = NULL, breaks = NULL,
-                  unifnumb = 2 * 1e4) {
+freqs. <- function(x, y, copula = NULL, breaks = NULL, unifnumb = 2 * 1e4) {
    n <- length(x)
    # r <- cbind(runif(unifnumb), runif(unifnumb))
    if (!is.null(copula)) {
@@ -244,9 +243,9 @@ freqs <- function(x, y, copula = NULL, breaks = NULL,
            stop("*** object 'copula' must be a 'mvdc' class")
    }
    pdistr <- function(u, v, copula) pCopula(cbind(u,v), copula@copula)
-   u1 <- distfn(x, dfn = copula@margins[1], type = "p",
+   u1 <- distfn(x = x, dfn = copula@margins[1], type = "p",
                arg = copula@paramMargins[[1]])
-   u2 <- distfn(y, dfn = copula@margins[2], type = "p",
+   u2 <- distfn(x = y, dfn = copula@margins[2], type = "p",
                arg = copula@paramMargins[[1]])
    U <- cbind(u1, u2)
    U <- pobs(U) # Compute the pseudo-observations for the given data matrix
@@ -303,8 +302,7 @@ statFun <- function(r, n, x = NULL, y = NULL, copula, d, approach,
 
          chisq = {
            idx <- sample.int(n = length(x), size = n)
-           fq <- freqs(x = x[idx], y = y[idx], copula = copula,
-                       breaks = breaks)
+           fq <- freqs.(x = x[idx], y = y[idx], copula = copula, breaks = breaks)
            sum((fq$obsf - fq$expf)^2/fq$expf)
          }
   )
