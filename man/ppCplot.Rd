@@ -120,7 +120,11 @@ Empirical and theoretical probabilities are estimated using the
     margin distributions can be previously accomplished using any of the
     functions \code{\link{fitCDF}}, \code{\link[MASS]{fitdistr}}, or function
     \code{\link{fitMixDist}} for the case where the margins are mixture of
-    distributions.
+    distributions. \emph{npoints} random uniform and iid numbers from the
+    interval [0, 1] are generated and used to evaluate the quantile margin
+    distribution functions. Next, the quantiles are used to compute the
+    empirical and theoretical copulas, which will be used to estimated the
+    corresponding probabilities.
 }
 \examples{
 set.seed(12)
