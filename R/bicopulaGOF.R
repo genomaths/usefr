@@ -1,9 +1,13 @@
 ## Copyright (C) 2019 Robersy Sanchez <https://genomaths.com/>
 ##
-## This program is free software; you can redistribute it and/or modify it under
-## the terms of the GNU General Public License as published by the Free Software
-## Foundation; either version 3 of the License, or (at your option) any later
-## version.
+## Author: Robersy Sanchez
+#
+## This file is part of the R package "usefr".
+##
+## 'usefr' is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
 ##
 ## This program is distributed in the hope that it will be useful, but WITHOUT
 ## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -35,7 +39,7 @@
 #'     \code{\link[copula]{copula-package}}.
 #' @param margins A character vector specifying all the parametric marginal
 #'     distributions. See details below.
-#' @param paramMargins a list whose each component is a list (or numeric
+#' @param paramMargins A list whose each component is a list (or numeric
 #'     vectors) of named components, giving the parameter values of the marginal
 #'     distributions. See details below.
 #' @param sample.size The size of the samples used for each sampling. It is not
@@ -61,7 +65,7 @@
 #' @param breaks A single number giving the number of bins for the computation
 #'     of the Pearson's Chi-squared statistic as suggested in reference [1].
 #'     Bascally, it is used to split the unit square [0, 1]^2 into bins/regions.
-#' @param method a character string specifying the estimation method to be used
+#' @param method A character string specifying the estimation method to be used
 #'     to estimate the dependence parameter(s); see
 #'     \code{\link[copula]{fitCopula}}.
 #' @param num.cores,tasks Paramaters for parallele computation using package

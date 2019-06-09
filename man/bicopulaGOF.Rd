@@ -23,7 +23,7 @@ string specifying all the name for a copula from package
 \item{margins}{A character vector specifying all the parametric marginal
 distributions. See details below.}
 
-\item{paramMargins}{a list whose each component is a list (or numeric
+\item{paramMargins}{A list whose each component is a list (or numeric
 vectors) of named components, giving the parameter values of the marginal
 distributions. See details below.}
 
@@ -55,7 +55,7 @@ SO, the desicion on whether to apply the Rosenblatt transformation
 of the Pearson's Chi-squared statistic as suggested in reference [1].
 Bascally, it is used to split the unit square [0, 1]^2 into bins/regions.}
 
-\item{method}{a character string specifying the estimation method to be used
+\item{method}{A character string specifying the estimation method to be used
 to estimate the dependence parameter(s); see
 \code{\link[copula]{fitCopula}}.}
 
