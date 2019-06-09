@@ -137,3 +137,8 @@ bicopulaGOF(x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
 ##  user  system elapsed
 ## 2.491   0.100  51.185
 }
+\seealso{
+\code{\link{ppCplot}}, \code{\link[copula]{gofCopula}},
+    \code{\link{fitCDF}}, \code{\link[MASS]{fitdistr}}, and
+    \code{\link{fitMixDist}}
+}

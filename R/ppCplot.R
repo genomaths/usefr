@@ -93,15 +93,17 @@
 #' @importFrom copula pobs fitCopula mvdc pMvdc C.n
 #' @return The P-P plot and invisible temporary object with the
 #'     information to build the graphic which can be assigned to a variable
-#'     for use in further plots or analysis.
+#'     to use in further plots or analyses.
+#' @seealso \code{\link{fitCDF}}, \code{\link[MASS]{fitdistr}},
+#'     \code{\link{fitMixDist}}, and \code{\link{bicopulaGOF}}.
 #' @export
 #'
 #' @examples
 #' set.seed(12)
 #' margins = c("norm", "norm")
 #' ## Random variates from normal distributions
-#' X <- rlnorm(2*1e2, meanlog =- 0.5, sdlog = 3.1)
-#' Y <- rnorm(2*1e2, mean = 0, sd = 6)
+#' X <- rlnorm(200, meanlog =- 0.5, sdlog = 3.1)
+#' Y <- rnorm(200, mean = 0, sd = 6)
 #' cor(X,Y) ## Correlation between X and Y
 #'
 #' parMargins = list( list(mean = 0, sd = 10),

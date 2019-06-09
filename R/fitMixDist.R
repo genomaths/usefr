@@ -107,6 +107,7 @@
 #' @importFrom minpack.lm nls.lm nls.lm.control
 #' @importFrom mclust Mclust mclustBIC priorControl emControl
 #' @importFrom mixdist weibullpar
+#' @seealso \code{\link[MASS]{fitdistr}} and \code{\link{fitCDF}}
 #' @examples
 #' set.seed(123) # set a seed for random generation
 #' ## ========= A mixture of three distributions =========

@@ -111,6 +111,9 @@ summary(cdfp$bestfit)
           University of Stockholm (e-mail: walck@physto.se).
   }
 }
+\seealso{
+\code{\link[MASS]{fitdistr}} and \code{\link{fitMixDist}}
+}
 \author{
 Robersy Sanchez (https://genomaths.com)
 }

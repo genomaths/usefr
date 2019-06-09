@@ -142,6 +142,9 @@ legend(1, 1.5, legend=c("Theoretical Mixture PDF", "Estimated Mixture PDF"),
 1. Stevens JP. Applied Multivariate Statistics for the Social
     Sciences. Fifth Edit. Routledge Academic; 2009.
 }
+\seealso{
+\code{\link[MASS]{fitdistr}} and \code{\link{fitCDF}}
+}
 \author{
 Robersy Sanchez - 05/13/2019
 }
