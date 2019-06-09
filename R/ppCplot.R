@@ -112,7 +112,7 @@
 #'
 ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
                npoints = 100, method = "ml", xlab = "Empirical probabilities",
-               lab = "Theoretical probabilities", glwd = 1.2, bgcol = "grey94",
+               ylab = "Theoretical probabilities", glwd = 1.2, bgcol = "grey94",
                gcol = "white", dcol = "red", dlwd = 0.8, tck = NA, tcl = -0.3,
                xlwd = 0.8, ylwd = 0.8, xcol = "black", ycol = "black",
                padj = -1, hadj = 0.7, cex.xtitle = 1.3, cex.ytitle = 1.3,
@@ -138,7 +138,7 @@ ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
        v <- do.call(paste0("p", margins[2]), c(list(Y), paramMargins[[2]]))
        U <- cbind(u, v)
        U <- pobs(U) # Compute the pseudo-observations for the given data matrix
-       copula = eval(parse(text=paste0(copula, "()")))
+       copula = eval(parse(text=paste0("copula::",copula, "()")))
 
        fit <- fitCopula(copula, U, method = method)
        copula = mvdc(fit@copula, margins = margins, paramMargins = paramMargins)

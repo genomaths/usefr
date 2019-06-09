@@ -6,7 +6,7 @@
 \usage{
 ppCplot(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
   npoints = 100, method = "ml", xlab = "Empirical probabilities",
-  lab = "Theoretical probabilities", glwd = 1.2, bgcol = "grey94",
+  ylab = "Theoretical probabilities", glwd = 1.2, bgcol = "grey94",
   gcol = "white", dcol = "red", dlwd = 0.8, tck = NA, tcl = -0.3,
   xlwd = 0.8, ylwd = 0.8, xcol = "black", ycol = "black",
   padj = -1, hadj = 0.7, cex.xtitle = 1.3, cex.ytitle = 1.3,
@@ -40,6 +40,8 @@ to estimate the dependence parameter(s); see
 \code{\link[copula]{fitCopula}}.}
 
 \item{xlab}{A label for the x axis, defaults to a description of x.}
+
+\item{ylab}{A label for the y axis, defaults to a description of y.}
 
 \item{glwd}{Grid line width.}
 
@@ -102,8 +104,6 @@ by setting mfrow.}
 \item{...}{Other graphical parameters to pass to functions:
 \code{\link[graphics]{abline}}, \code{\link[graphics]{mtext}} and
 \code{\link[graphics]{axis}}.}
-
-\item{ylab}{A label for the y axis, defaults to a description of y.}
 }
 \value{
 The P-P plot and invisible temporary object with the
