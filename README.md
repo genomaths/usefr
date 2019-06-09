@@ -1,7 +1,6 @@
 ## Welcome to the R package _usefr_
 
 This is an utility package where some useful functions frequently needed in the dowstream statistical analyses will be available.
-The package started with the first two functions and other functions will be added "little by little".
 
 ### Status
 
@@ -9,7 +8,7 @@ The package started with the first two functions and other functions will be add
 
 ### Dependences
 
-This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_. There are also other dependencies which are included in R by default, e.g., _start_
+This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_, _copula_. There are also other dependencies which are included in R by default, e.g., _start_
 
 
 ### Install R dependencies:
@@ -19,7 +18,7 @@ This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_. Th
     BiocManager::install()
     
     BiocManager::install('BiocParallel')
-    install.packages(c("minpack.lm", "numDeriv"),dependencies=TRUE)
+    install.packages(c("minpack.lm", "numDeriv", "copula"), dependencies=TRUE)
 ```
 
 ### You can install _*usefr*_ package from GitHub
