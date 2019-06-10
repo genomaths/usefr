@@ -27,3 +27,12 @@ This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_, _c
    devtools::install_git("https://github.com/genomaths/usefr.git")
 
 ```
+
+### _usefr_ R Package Manual:
+------------
+
+<a href="https://github.com/genomaths/usefr/blob/master/usefr.pdf" target="_blank">_usefr_ PDF manual</a>
+
+
+<a href="https://genomaths.github.io/usefr_manual/usefr_manual.html" target="_blank">_usefr_ browser manual</a>
+
