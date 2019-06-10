@@ -153,7 +153,7 @@ bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
        u2 <- distfn(y, dfn = margins[2], type = "p", arg = paramMargins[[1]])
        U <- cbind(u1, u2)
        U <- pobs(U)
-       copula = eval(parse(text=paste0("normalCopula", "()")))
+       copula = eval(parse(text=paste0(copula, "()")))
 
        fit <- fitCopula(copula, U, method = method)
        copula = mvdc(fit@copula, margins = margins, paramMargins = paramMargins)
