@@ -240,7 +240,7 @@ bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
                 }
          )
   }
-  return(res)
+  return(list(gof = res, copula = copula))
 }
 
 
