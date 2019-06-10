@@ -40,7 +40,7 @@ otherwise, P[X > x]}
 }
 \value{
 GG PDF values (3-parameters or 4-parameters) for dggamma,
-    GG probability for pggamma, quaniles or GG random generated values for
+    GG probability for pggamma, quantiles or GG random generated values for
     rggamma.
 }
 \description{
