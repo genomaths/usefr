@@ -76,6 +76,7 @@
 #' @param seed An integer used to set a 'seed' for random number generation.
 #' @importFrom BiocParallel MulticoreParam SnowParam bplapply
 #' @importFrom copula pobs fitCopula mvdc cCopula htrafo describeCop gofTstat
+#' @importFrom copula pCopula
 #' @importFrom stats pgamma
 #' @return The statistic value estimated for the observations, and the estimated
 #'     bootstrap p.value.
@@ -193,6 +194,8 @@ bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
    set.seed(seed)
    # ---- Parametric bootstrap with Anderson–Darling statistic ---- -
    if (is.null(sample.size) && !t) stop("*** Please provide a sample size")
+
+   cat("Bootstrap GOF test ...")
    if (l) {
        pstats <- unlist(bplapply(1:nboots, statFun, n = sample.size,
                                copula = copula, d = d, approach = approach,
