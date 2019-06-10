@@ -68,10 +68,8 @@
 #'     (‘horizontal’) to the reading direction. If this is not a finite value,
 #'     the default is used (centring for strings parallel to the axis,
 #'     justification of the end nearest the axis otherwise).
-#' @param cex A numerical value giving the amount by which plotting text and
-#'     symbols should be magnified relative to the default. This starts as 1
-#'     when a device is opened, and is reset when the layout is changed, e.g.
-#'     by setting mfrow.
+#' @param xcex,ycex A numerical value giving the amount by which axis labels
+#'     should be magnified relative to the default.
 #' @param tck The length of tick marks as a fraction of the smaller of the width
 #'     or height of the plotting region. If tck >= 0.5 it is interpreted as a
 #'     fraction of the relevant side, so if tck = 1 grid lines are drawn. The
@@ -86,6 +84,10 @@
 #'     axes titles (see \code{\link[graphics]{par}}).
 #' @param family,lty,bty,col,xlim,ylim,pch,las,mar,font Graphical parameters
 #'     (see \code{\link[graphics]{par}}).
+#' @param cex A numerical value giving the amount by which plotting text and
+#'     symbols should be magnified relative to the default. This starts as 1
+#'     when a device is opened, and is reset when the layout is changed, e.g.
+#'     by setting mfrow.
 #' @param seed An integer used to set a 'seed' for random number generation.
 #' @param ... Other graphical parameters to pass to functions:
 #'     \code{\link[graphics]{abline}}, \code{\link[graphics]{mtext}} and
@@ -121,11 +123,11 @@ ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
                ylab = "Theoretical probabilities", glwd = 1.2, bgcol = "grey94",
                gcol = "white", dcol = "red", dlwd = 0.8, tck = NA, tcl = -0.3,
                xlwd = 0.8, ylwd = 0.8, xcol = "black", ycol = "black",
-               padj = -1, hadj = 0.7, cex.xtitle = 1.3, cex.ytitle = 1.3,
-               xline = 1.6, yline = 2.1, xfont = 3, yfont = 3, family = "serif",
-               lty = 1, bty="n", col = "black", xlim = c(0, 1), ylim = c(0, 1),
-               pch = 20, las = 1, mar = c(4, 4, 2, 1), font=3, cex = 1,
-               seed = 132, ...) {
+               cex.xtitle = 1.3, cex.ytitle = 1.3, padj = -1, hadj = 0.7,
+               xcex = 1.3, ycex = 1.3, xline = 1.6, yline = 2.1, xfont = 3,
+               yfont = 3, family = "serif", lty = 1, bty="n", col = "black",
+               xlim = c(0, 1), ylim = c(0, 1), pch = 20, las = 1,
+               mar = c(4, 4, 2, 1), font=3, cex = 1, seed = 132, ...) {
    if (is.null(copula))
        stop("*** A copula or a character string naming a copula must be given")
    n <- length(X)
@@ -173,16 +175,17 @@ ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
    emprob <- C.n(u = x, X = U)
    thprob <- pMvdc(x = cbind(u, v), mvdc = copula)
 
-   par(mar = mar, font = font, family = family, cex = cex)
+   par(mar = mar, font = font, family = family)
    plot(emprob, thprob, pch = pch,
        panel.first = {points(0, 0, pch=16, cex=1e6, col = bgcol)
                       grid(col = gcol, lty = lty)},
        xaxt ="n", yaxt = "n", ann = FALSE, bty = bty, col = col, xlim = xlim,
-       ylim = ylim, ...)
+       ylim = ylim, cex = cex, ...)
    abline(a = 0, b =  1, col = dcol, lwd = dlwd, ...)
-   axis(1, padj = padj, tck = tck, tcl = tcl, lwd = xlwd, col = xcol, ...)
+   axis(1, padj = padj, tck = tck, tcl = tcl, lwd = xlwd, col = xcol,
+       cex = xcex, ...)
    axis(2, hadj = hadj, las = las, tck = tck, tcl = tcl, lwd = ylwd,
-       col = ycol, ...)
+       col = ycol, cex = ycex, ...)
    mtext(side = 1, text = xlab, line = xline, cex = cex.xtitle,
        font = xfont, ...)
    mtext(side = 2, text = ylab, line = yline, cex = cex.ytitle,

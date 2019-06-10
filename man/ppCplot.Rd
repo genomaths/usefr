@@ -9,9 +9,9 @@ ppCplot(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
   ylab = "Theoretical probabilities", glwd = 1.2, bgcol = "grey94",
   gcol = "white", dcol = "red", dlwd = 0.8, tck = NA, tcl = -0.3,
   xlwd = 0.8, ylwd = 0.8, xcol = "black", ycol = "black",
-  padj = -1, hadj = 0.7, cex.xtitle = 1.3, cex.ytitle = 1.3,
-  xline = 1.6, yline = 2.1, xfont = 3, yfont = 3,
-  family = "serif", lty = 1, bty = "n", col = "black",
+  cex.xtitle = 1.3, cex.ytitle = 1.3, padj = -1, hadj = 0.7,
+  xcex = 1.3, ycex = 1.3, xline = 1.6, yline = 2.1, xfont = 3,
+  yfont = 3, family = "serif", lty = 1, bty = "n", col = "black",
   xlim = c(0, 1), ylim = c(0, 1), pch = 20, las = 1, mar = c(4,
   4, 2, 1), font = 3, cex = 1, seed = 132, ...)
 }
@@ -70,6 +70,10 @@ is S' default.}
 
 \item{ycol}{Y-axis line color.}
 
+\item{cex.xtitle}{Cex for x-axis title.}
+
+\item{cex.ytitle}{Cex for y-axis title.}
+
 \item{padj}{adjustment for each tick label perpendicular to the reading
 direction. For labels parallel to the axes, padj = 0 means right or top
 alignment, and padj = 1 means left or bottom alignment. This can be a
@@ -80,9 +84,8 @@ vector given a value for each string, and will be recycled as necessary.}
 the default is used (centring for strings parallel to the axis,
 justification of the end nearest the axis otherwise).}
 
-\item{cex.xtitle}{Cex for x-axis title.}
-
-\item{cex.ytitle}{Cex for y-axis title.}
+\item{xcex, ycex}{A numerical value giving the amount by which axis labels
+should be magnified relative to the default.}
 
 \item{xline, yline}{On which margin line of the plot the x & y labels must be
 placed, starting at 0 counting outwards

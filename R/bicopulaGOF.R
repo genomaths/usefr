@@ -195,7 +195,7 @@ bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
    # ---- Parametric bootstrap with Anderson–Darling statistic ---- -
    if (is.null(sample.size) && !t) stop("*** Please provide a sample size")
 
-   cat("Bootstrap GOF test ...")
+   cat("Bootstrap GOF test ... \n")
    if (l) {
        pstats <- unlist(bplapply(1:nboots, statFun, n = sample.size,
                                copula = copula, d = d, approach = approach,
