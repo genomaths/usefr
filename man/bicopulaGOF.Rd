@@ -7,7 +7,8 @@
 bicopulaGOF(x, y, copula = NULL, margins = NULL, paramMargins = NULL,
   sample.size = NULL, nboots = 10, approach = c("adchisq", "adgamma",
   "chisq", "Sn", "SnB", "SnC"), Rosenblatt = FALSE, breaks = 12,
-  method = "ml", num.cores = 1L, tasks = 0, seed = 123, ...)
+  method = "ml", num.cores = 1L, tasks = 0, seed = 123,
+  verbose = TRUE, ...)
 }
 \arguments{
 \item{x}{Numerical vector with the observations from the first margin
@@ -66,6 +67,8 @@ use, i.e. at most how many child processes will be run simultaneously
 (only for Linux OS).}
 
 \item{seed}{An integer used to set a 'seed' for random number generation.}
+
+\item{verbose}{if verbose, comments and progress bar will be printed.}
 }
 \value{
 The statistic value estimated for the observations, and the estimated

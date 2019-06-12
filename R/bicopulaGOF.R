@@ -73,6 +73,7 @@
 #'     use, i.e. at most how many child processes will be run simultaneously
 #'     (see \code{\link[BiocParallel]{bplapply}} and the number of tasks per job
 #'     (only for Linux OS).
+#' @param verbose if verbose, comments and progress bar will be printed.
 #' @param seed An integer used to set a 'seed' for random number generation.
 #' @importFrom BiocParallel MulticoreParam SnowParam bplapply
 #' @importFrom copula pobs fitCopula mvdc cCopula htrafo describeCop gofTstat
@@ -139,7 +140,8 @@ bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
                        approach = c("adchisq", "adgamma", "chisq",
                                     "Sn", "SnB", "SnC"),
                        Rosenblatt = FALSE, breaks = 12, method = 'ml',
-                       num.cores = 1L, tasks = 0, seed = 123, ...) {
+                       num.cores = 1L, tasks = 0, seed = 123,
+                       verbose = TRUE, ...) {
   if (is.null(copula))
        stop("*** A copula or a character string naming a copula must be given")
   if (is.character(copula)) {
@@ -185,17 +187,17 @@ bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
        U <- cCopula(u = U, copula = copula@copula)
    }
    # ------------------------------------------------------------ -
-
+  if (verbose) progressbar = TRUE else progressbar = FALSE
   if (Sys.info()['sysname'] == "Linux") {
-    bpparam <- MulticoreParam(workers=num.cores, progressbar = TRUE,
+    bpparam <- MulticoreParam(workers=num.cores, progressbar = progressbar,
                                tasks=tasks)
-  } else bpparam <- SnowParam(workers=num.cores, progressbar = TRUE,
+  } else bpparam <- SnowParam(workers=num.cores, progressbar = progressbar,
                                type = "SOCK")
    set.seed(seed)
    # ---- Parametric bootstrap with Anderson–Darling statistic ---- -
    if (is.null(sample.size) && !t) stop("*** Please provide a sample size")
 
-   cat("Bootstrap GOF test ... \n")
+   if (verbose) cat("Bootstrap GOF test ... \n")
    if (l) {
        pstats <- unlist(bplapply(1:nboots, statFun, n = sample.size,
                                copula = copula, d = d, approach = approach,
@@ -411,12 +413,6 @@ distfn <- function(x, dfn, type = "r", arg, log = FALSE,
       warning("argument 'ties' set to TRUE")
   }
 
-  ## Progress bar
-  if(verbose) {
-    pb <- txtProgressBar(max = N+1, style=if(isatty(stdout())) 3 else 1) # setup progress bar
-    on.exit(close(pb)) # on exit, close progress bar
-  }
-
   ## 1) Compute the pseudo-observations
   uhat <- pobs(x, ties.method = ties.method[1])
   uhat.fit <- if (ties == FALSE || ties.method == fit.ties.meth) uhat
@@ -449,7 +445,6 @@ distfn <- function(x, dfn, type = "r", arg, log = FALSE,
   T. <- if(method == "Sn") gofTstat(u, method = method, copula = C.th.n,
                                    useR = useR)
   else gofTstat(u, method = method)
-  if(verbose) setTxtProgressBar(pb, 1) # update progress bar
 
   ## 4) Simulate the test statistic under H_0
 
@@ -460,9 +455,9 @@ distfn <- function(x, dfn, type = "r", arg, log = FALSE,
   else ir <- NA
 
   if (Sys.info()['sysname'] == "Linux") {
-    bpparam <- MulticoreParam(workers = num.cores, progressbar = TRUE,
+    bpparam <- MulticoreParam(workers = num.cores, progressbar = progressbar,
                               tasks = tasks)
-  } else bpparam <- SnowParam(workers = num.cores, progressbar = TRUE,
+  } else bpparam <- SnowParam(workers = num.cores, progressbar = progressbar,
                               type = "SOCK")
 
   T0 <- unlist(bplapply(1:N, STAT, copula = copula, method = method,
