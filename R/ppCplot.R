@@ -34,7 +34,7 @@
 #'     distributions. \emph{npoints} random uniform and iid numbers from the
 #'     interval [0, 1] are generated and used to evaluate the quantile margin
 #'     distribution functions. Next, the quantiles are used to compute the
-#'     empirical and theoretical copulas, which will be used to estimated the
+#'     empirical and theoretical copulas, which will be used to estimate the
 #'     corresponding probabilities.
 #' @param Y Numerical vector with the observations from the second margin
 #'     distribution.
@@ -132,9 +132,7 @@
 ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
                npoints = 100, method = "ml",
                smoothing = c("none", "beta", "checkerboard"),
-               ties.method = c("max", "average", "first", "last",
-                               "random", "min"),
-               xlab = "Empirical probabilities",
+               ties.method = "max", xlab = "Empirical probabilities",
                ylab = "Theoretical probabilities", glwd = 1.2, bgcol = "grey94",
                gcol = "white", dcol = "red", dlwd = 0.8, tck = NA, tcl = -0.3,
                xlwd = 0.8, ylwd = 0.8, xcol = "black", ycol = "black",
@@ -161,9 +159,9 @@ ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
        u <- do.call(paste0("p", margins[1]), c(list(X), paramMargins[[1]]))
        v <- do.call(paste0("p", margins[2]), c(list(Y), paramMargins[[2]]))
        U <- cbind(u, v)
-       # U <- pobs(U) # Compute the pseudo-observations for the given data matrix
        copula = eval(parse(text=paste0("copula::",copula, "()")))
 
+       # U <- pobs(U, ties.method = ties.method)
        fit <- fitCopula(copula, U, method = method)
        copula = mvdc(fit@copula, margins = margins, paramMargins = paramMargins)
    } else {
@@ -174,6 +172,7 @@ ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
        v <- do.call(paste0("p", copula@margins[2]),
                    c(list(Y), copula@paramMargins[[2]]))
        U <- cbind(u, v)
+       # U <- pobs(U, ties.method = ties.method)
    }
 
    set.seed(seed)
@@ -185,7 +184,7 @@ ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
                     c(list(npoints), copula@paramMargins[[2]]))
    }
 
-   emprob <- C.n(u = pobs(cbind(u, v)), X = U)
+   emprob <- C.n(u = pobs(cbind(u, v), ties.method = ties.method), X = U)
    thprob <- pMvdc(x = cbind(u, v), mvdc = copula)
 
    par(mar = mar, font = font, family = family)
