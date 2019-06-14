@@ -174,7 +174,6 @@ ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
        v <- do.call(paste0("p", copula@margins[2]),
                    c(list(Y), copula@paramMargins[[2]]))
        U <- cbind(u, v)
-       # U <- pobs(U) # Compute the pseudo-observations for the given data matrix
    }
 
    set.seed(seed)
@@ -184,11 +183,6 @@ ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
                     c(list(npoints), copula@paramMargins[[1]]))
        v <- do.call(paste0("r", copula@margins[2]),
                     c(list(npoints), copula@paramMargins[[2]]))
-
-       # u <- do.call(paste0("q", copula@margins[1]),
-       #             c(list(x), copula@paramMargins[[1]]))
-       # v <- do.call(paste0("q", copula@margins[2]),
-       #             c(list(y), copula@paramMargins[[2]]))
    }
 
    emprob <- C.n(u = pobs(cbind(u, v)), X = U)
