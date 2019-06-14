@@ -20,7 +20,10 @@
 #' @rdname ppCplot
 #' @title P-P plot of Two-dimensional Copulas
 #' @description The function build the P-P plot of Two-dimensional Copulas upon
-#'     the knowledge of the margin distribution provided by the user.
+#'     the knowledge of the margin distribution provided by the user. The
+#'     empirical probabilities are computed using function
+#'     \code{\link[copula]{empCopula}} from package
+#'     \code{[copula-package]{copula}}.
 #' @param X Numerical vector with the observations from the first margin
 #'     distribution.
 #' @details Empirical and theoretical probabilities are estimated using the
@@ -47,6 +50,14 @@
 #' @param method A character string specifying the estimation method to be used
 #'     to estimate the dependence parameter(s); see
 #'     \code{\link[copula]{fitCopula}}.
+#' @param smoothing character string specifying whether the empirical
+#'     distribution function (for F.n()) or copula (for C.n()) is computed (if
+#'     smoothing = "none"), or whether the empirical beta copula (smoothing =
+#'     "beta") or the empirical checkerboard copula (smoothing = "checkerboard")
+#'     is computed (see \code{\link[copula]{empCopula}}.
+#' @param ties.method character string specifying how ranks should be computed
+#'     if there are ties in any of the coordinate samples of x; passed to
+#'     \code{\link[copula]{pobs}} (see \code{\link[copula]{empCopula}}.
 #' @param xlab A label for the x axis, defaults to a description of x.
 #' @param ylab A label for the y axis, defaults to a description of y.
 #' @param glwd Grid line width.
@@ -108,7 +119,7 @@
 #' Y <- rnorm(200, mean = 0, sd = 6)
 #' cor(X,Y) ## Correlation between X and Y
 #'
-#' parMargins = list( list(mean = 0, sd = 10),
+#' parMargins = list( list(meanlog = 0.5, sdlog = 3.1),
 #'                    list(mean = 0, sd = 10))
 #'
 #' copula = "normalCopula"
@@ -119,7 +130,11 @@
 #'              paramMargins = parMargins, npoints = 20)
 #'
 ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
-               npoints = 100, method = "ml", xlab = "Empirical probabilities",
+               npoints = 100, method = "ml",
+               smoothing = c("none", "beta", "checkerboard"),
+               ties.method = c("max", "average", "first", "last",
+                               "random", "min"),
+               xlab = "Empirical probabilities",
                ylab = "Theoretical probabilities", glwd = 1.2, bgcol = "grey94",
                gcol = "white", dcol = "red", dlwd = 0.8, tck = NA, tcl = -0.3,
                xlwd = 0.8, ylwd = 0.8, xcol = "black", ycol = "black",
@@ -140,12 +155,13 @@ ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
        if (missing(X)) stop("*** Provide the numerical vector of X values")
        if (missing(Y)) stop("*** Provide the numerical vector of Y values")
 
+       smoothing <- match.arg(smoothing)
        # Compute the pseudo-observations for the given data matrix through
        # the margin distributions
        u <- do.call(paste0("p", margins[1]), c(list(X), paramMargins[[1]]))
        v <- do.call(paste0("p", margins[2]), c(list(Y), paramMargins[[2]]))
        U <- cbind(u, v)
-       U <- pobs(U) # Compute the pseudo-observations for the given data matrix
+       # U <- pobs(U) # Compute the pseudo-observations for the given data matrix
        copula = eval(parse(text=paste0("copula::",copula, "()")))
 
        fit <- fitCopula(copula, U, method = method)
@@ -158,25 +174,28 @@ ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
        v <- do.call(paste0("p", copula@margins[2]),
                    c(list(Y), copula@paramMargins[[2]]))
        U <- cbind(u, v)
-       U <- pobs(U) # Compute the pseudo-observations for the given data matrix
+       # U <- pobs(U) # Compute the pseudo-observations for the given data matrix
    }
 
    set.seed(seed)
    if (missing(npoints) || is.null(npoints)) npoints <- 100
    if (is.numeric(npoints)) {
-       x <- runif(npoints)
-       u <- do.call(paste0("q", copula@margins[1]),
-                   c(list(x), copula@paramMargins[[1]]))
-       v <- do.call(paste0("q", copula@margins[2]),
-                   c(list(x), copula@paramMargins[[2]]))
+       u <- do.call(paste0("r", copula@margins[1]),
+                    c(list(npoints), copula@paramMargins[[1]]))
+       v <- do.call(paste0("r", copula@margins[2]),
+                    c(list(npoints), copula@paramMargins[[2]]))
+
+       # u <- do.call(paste0("q", copula@margins[1]),
+       #             c(list(x), copula@paramMargins[[1]]))
+       # v <- do.call(paste0("q", copula@margins[2]),
+       #             c(list(y), copula@paramMargins[[2]]))
    }
 
-   x = pobs(cbind(u, v))
-   emprob <- C.n(u = x, X = U)
+   emprob <- C.n(u = pobs(cbind(u, v)), X = U)
    thprob <- pMvdc(x = cbind(u, v), mvdc = copula)
 
    par(mar = mar, font = font, family = family)
-   plot(emprob, thprob, pch = pch,
+   plot(x = emprob, y = thprob, pch = pch,
        panel.first = {points(0, 0, pch=16, cex=1e6, col = bgcol)
                       grid(col = gcol, lty = lty)},
        xaxt ="n", yaxt = "n", ann = FALSE, bty = bty, col = col, xlim = xlim,
@@ -191,7 +210,6 @@ ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
    mtext(side = 2, text = ylab, line = yline, cex = cex.ytitle,
        font = yfont, ...)
 
-   data.frame(emprob = emprob, thprob = thprob)
    invisible(list(data = data.frame(emprob = emprob, thprob = thprob),
                    copula = copula))
 }

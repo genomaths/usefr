@@ -5,7 +5,9 @@
 \title{P-P plot of Two-dimensional Copulas}
 \usage{
 ppCplot(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
-  npoints = 100, method = "ml", xlab = "Empirical probabilities",
+  npoints = 100, method = "ml", smoothing = c("none", "beta",
+  "checkerboard"), ties.method = c("max", "average", "first", "last",
+  "random", "min"), xlab = "Empirical probabilities",
   ylab = "Theoretical probabilities", glwd = 1.2, bgcol = "grey94",
   gcol = "white", dcol = "red", dlwd = 0.8, tck = NA, tcl = -0.3,
   xlwd = 0.8, ylwd = 0.8, xcol = "black", ycol = "black",
@@ -38,6 +40,16 @@ distributions. See details below.}
 \item{method}{A character string specifying the estimation method to be used
 to estimate the dependence parameter(s); see
 \code{\link[copula]{fitCopula}}.}
+
+\item{smoothing}{character string specifying whether the empirical
+distribution function (for F.n()) or copula (for C.n()) is computed (if
+smoothing = "none"), or whether the empirical beta copula (smoothing =
+"beta") or the empirical checkerboard copula (smoothing = "checkerboard")
+is computed (see \code{\link[copula]{empCopula}}.}
+
+\item{ties.method}{character string specifying how ranks should be computed
+if there are ties in any of the coordinate samples of x; passed to
+\code{\link[copula]{pobs}} (see \code{\link[copula]{empCopula}}.}
 
 \item{xlab}{A label for the x axis, defaults to a description of x.}
 
@@ -115,7 +127,10 @@ The P-P plot and invisible temporary object with the
 }
 \description{
 The function build the P-P plot of Two-dimensional Copulas upon
-    the knowledge of the margin distribution provided by the user.
+    the knowledge of the margin distribution provided by the user. The
+    empirical probabilities are computed using function
+    \code{\link[copula]{empCopula}} from package
+    \code{[copula-package]{copula}}.
 }
 \details{
 Empirical and theoretical probabilities are estimated using the
@@ -137,7 +152,7 @@ X <- rlnorm(200, meanlog =- 0.5, sdlog = 3.1)
 Y <- rnorm(200, mean = 0, sd = 6)
 cor(X,Y) ## Correlation between X and Y
 
-parMargins = list( list(mean = 0, sd = 10),
+parMargins = list( list(meanlog = 0.5, sdlog = 3.1),
                    list(mean = 0, sd = 10))
 
 copula = "normalCopula"
