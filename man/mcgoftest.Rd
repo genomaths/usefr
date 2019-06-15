@@ -138,6 +138,10 @@ mcgoftest(x, distr = pnorm, pars = c(1.5, 2), num.sampl = 500,
             Methodol. 20, 44–72 (1958).
     }
 }
+\seealso{
+For fitting distributions: \code{\link{fitMixDist}},
+    \code{\link[MASS]{fitdistr}}, \code{\link{fitCDF}}.
+}
 \author{
 Original permutation script idea from
     \href{https://goo.gl/hfnNy8}{Alastair Sanderson}. Modified and adapted by

@@ -112,7 +112,8 @@ summary(cdfp$bestfit)
   }
 }
 \seealso{
-\code{\link[MASS]{fitdistr}} and \code{\link{fitMixDist}}
+\code{\link[MASS]{fitdistr}} and \code{\link{fitMixDist}} and
+    for goodness-of-fit: \code{\link{mcgoftest}}.
 }
 \author{
 Robersy Sanchez (https://genomaths.com)

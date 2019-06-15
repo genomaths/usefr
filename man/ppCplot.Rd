@@ -6,14 +6,14 @@
 \usage{
 ppCplot(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
   npoints = 100, method = "ml", smoothing = c("none", "beta",
-  "checkerboard"), ties.method = c("max", "average", "first", "last",
-  "random", "min"), xlab = "Empirical probabilities",
-  ylab = "Theoretical probabilities", glwd = 1.2, bgcol = "grey94",
-  gcol = "white", dcol = "red", dlwd = 0.8, tck = NA, tcl = -0.3,
-  xlwd = 0.8, ylwd = 0.8, xcol = "black", ycol = "black",
-  cex.xtitle = 1.3, cex.ytitle = 1.3, padj = -1, hadj = 0.7,
-  xcex = 1.3, ycex = 1.3, xline = 1.6, yline = 2.1, xfont = 3,
-  yfont = 3, family = "serif", lty = 1, bty = "n", col = "black",
+  "checkerboard"), ties.method = "max",
+  xlab = "Empirical probabilities", ylab = "Theoretical probabilities",
+  glwd = 1.2, bgcol = "grey94", gcol = "white", dcol = "red",
+  dlwd = 0.8, tck = NA, tcl = -0.3, xlwd = 0.8, ylwd = 0.8,
+  xcol = "black", ycol = "black", cex.xtitle = 1.3,
+  cex.ytitle = 1.3, padj = -1, hadj = 0.7, xcex = 1.3,
+  ycex = 1.3, xline = 1.6, yline = 2.1, xfont = 3, yfont = 3,
+  family = "serif", lty = 1, bty = "n", col = "black",
   xlim = c(0, 1), ylim = c(0, 1), pch = 20, las = 1, mar = c(4,
   4, 2, 1), font = 3, cex = 1, seed = 132, ...)
 }
@@ -141,7 +141,7 @@ Empirical and theoretical probabilities are estimated using the
     distributions. \emph{npoints} random uniform and iid numbers from the
     interval [0, 1] are generated and used to evaluate the quantile margin
     distribution functions. Next, the quantiles are used to compute the
-    empirical and theoretical copulas, which will be used to estimated the
+    empirical and theoretical copulas, which will be used to estimate the
     corresponding probabilities.
 }
 \examples{

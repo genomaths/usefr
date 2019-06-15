@@ -30,7 +30,9 @@
 #'     used to perform the nonlinear fit. Cross-validations for the nonlinear
 #'     regressions (R.Cross.val) are performed as described in reference [1]. In
 #'     addition, Stein's formula for adjusted R squared (rho) was used as an
-#'     estimator of the average cross-validation predictive power [1].
+#'     estimator of the average cross-validation predictive power [1]. Notice
+#'     that the parameter values must be given in way \emph{understandable}
+#'     by the set of functions \code{\link{mixtdistr}} (see the example below)
 #' @param X numerical vector
 #' @param arg A list of named vectors with the corresponding named distribution
 #'     parameters values. The names of the vector of parameters and the
@@ -88,7 +90,7 @@
 #' @param kmean Logic. Whether to use \code{\link[stats]{kmeans}} algorithm to
 #'     perform the estimation in place of \code{\link[mclust]{Mclust}}. Deafult
 #'     is FALSE.
-#' @param verbose if TRUE, prints the function log to stdout
+#' @param verbose if TRUE, prints the function log to stdout and a progress bar
 #' @param ... Further arguments to pass to other functions like
 #'     \code{\link[mclust]{Mclust}} and \code{\link[stats]{density}}.
 #' @return A list with the model table with coefficients and goodness-of-fit
@@ -107,7 +109,8 @@
 #' @importFrom minpack.lm nls.lm nls.lm.control
 #' @importFrom mclust Mclust mclustBIC priorControl emControl
 #' @importFrom mixdist weibullpar
-#' @seealso \code{\link[MASS]{fitdistr}} and \code{\link{fitCDF}}
+#' @seealso \code{\link[MASS]{fitdistr}}, \code{\link{fitCDF}},
+#'     \code{\link{mixtdistr}}, and \code{\link{mcgoftest}}.
 #' @examples
 #' set.seed(123) # set a seed for random generation
 #' ## ========= A mixture of three distributions =========
@@ -248,7 +251,8 @@ fitMixDist <- function(X, args = list(norm = c(mean = NA, sd = NA),
        } else Z <- X
        fit <- Mclust(Z, G = length(dfns), model="V", prior = prior,
                      control = emControl(eps = eps, tol =  tol,
-                                         equalPro = equalPro))
+                                         equalPro = equalPro),
+                     verbose = verbose)
        rm(Z); gc()
        mu <- fit$parameters$mean
        sigma <- sqrt(fit$parameters$variance$sigmasq)
@@ -268,7 +272,8 @@ fitMixDist <- function(X, args = list(norm = c(mean = NA, sd = NA),
            } else Z <- X
            fit <- Mclust(Z, G = length(dfns), model="V", prior = prior,
                         control = emControl(eps = eps, tol =  tol,
-                                            equalPro = equalPro))
+                                            equalPro = equalPro),
+                        verbose = verbose)
            phi <- fit$parameters$pro
 
        } else {
@@ -452,17 +457,17 @@ fitMixDist <- function(X, args = list(norm = c(mean = NA, sd = NA),
                R.cross.FIT <- (term1 + term2)/(length(p.FIT1) + length(p.FIT2))
            }
        }
-       gaps <- rep("", length(coef(FIT)) - 1)
+       gaps <- rep(NA, length(coef(FIT)) - 1)
        sumario <- try(summary(FIT)$coefficients, silent = TRUE)
        if (!kmean) bic <- fit$bic else bic <- NA
 
        if (inherits(sumario, "try-error")) {
            stats <- data.frame(Estimate = c("Choleski Decomposition fail", NA),
-                               Adj.R.Square=c(Adj.R.Square, ""),
-                               rho=c(rho, ""),
-                               R.Cross.val=c(R.cross.FIT, ""),
-                               DEV=c(deviance(FIT), ""),
-                               BIC=c(bic, ""),
+                               Adj.R.Square=c(Adj.R.Square, NA),
+                               rho=c(rho, NA),
+                               R.Cross.val=c(R.cross.FIT, NA),
+                               DEV=c(deviance(FIT), NA),
+                               BIC=c(bic, NA),
                                n=c(N , n))
        } else {
            stats <- data.frame(sumario,

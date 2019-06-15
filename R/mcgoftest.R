@@ -110,6 +110,8 @@
 #'             Continuous Distributions. J. R. Stat. Soc. Ser. B Stat.
 #'             Methodol. 20, 44–72 (1958).
 #'     }
+#' @seealso For fitting distributions: \code{\link{fitMixDist}},
+#'     \code{\link[MASS]{fitdistr}}, \code{\link{fitCDF}}.
 #' @examples
 #' # Example 1
 #' # Let us generate a random sample a from a specified Weibull distribution:

@@ -21,7 +21,8 @@ rmixtdistr(n, phi, arg)
 \arguments{
 \item{x, }{q vector of quantiles.}
 
-\item{phi}{Numerical vector with mixture proportions, where \eqn{sum(phi) = 1}.}
+\item{phi}{Numerical vector with mixture proportions, where
+\eqn{sum(phi) = 1}.}
 
 \item{arg}{A list of named vectors with the corresponding named distribution
 parameters values. The names of the vector of parameters and the
@@ -33,8 +34,8 @@ See examples for more details.}
 
 \item{log, log.p}{logical; if TRUE, probabilities p are given as log(p).}
 
-\item{lower.tail}{logical; if TRUE (default), probabilities are \eqn{P[X <= x]},
-otherwise, \eqn{P[X > x]}.}
+\item{lower.tail}{logical; if TRUE (default), probabilities are
+\eqn{P[X <= x]}, otherwise, \eqn{P[X > x]}.}
 
 \item{p}{vector of probabilities.}
 
@@ -64,4 +65,9 @@ x <- rmixtdistr(n = 1e5, phi = phi , arg = args)
 hist(x, 100, freq = FALSE)
 x1 <- seq(0, 10, by = 0.001)
 lines(x1, dmixtdistr(x1, phi = phi, arg = args), col = "red")
+}
+\seealso{
+\code{\link{fitMixDist}}, \code{\link{mcgoftest}}
+    (for goodness-of fit), and for additional examples:
+    \url{https://genomaths.com/stats/sampling-from-a-mixture-of-distributions/}
 }

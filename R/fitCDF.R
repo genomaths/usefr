@@ -98,7 +98,8 @@
 #' @importFrom graphics par grid lines mtext abline
 #' @export
 #' @author Robersy Sanchez (https://genomaths.com)
-#' @seealso \code{\link[MASS]{fitdistr}} and \code{\link{fitMixDist}}
+#' @seealso \code{\link[MASS]{fitdistr}} and \code{\link{fitMixDist}} and
+#'     for goodness-of-fit: \code{\link{mcgoftest}}.
 #' @references
 #'   \enumerate{
 #'     \item Andrej-Nikolai Spiess (2014). propagate: Propagation of

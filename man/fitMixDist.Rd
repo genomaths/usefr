@@ -59,7 +59,7 @@ size 'usepoints' and to do the estimation with it.}
 perform the estimation in place of \code{\link[mclust]{Mclust}}. Deafult
 is FALSE.}
 
-\item{verbose}{if TRUE, prints the function log to stdout}
+\item{verbose}{if TRUE, prints the function log to stdout and a progress bar}
 
 \item{...}{Further arguments to pass to other functions like
 \code{\link[mclust]{Mclust}} and \code{\link[stats]{density}}.}
@@ -105,7 +105,9 @@ The approch tries to fit the proposed mixture distributions using a
     used to perform the nonlinear fit. Cross-validations for the nonlinear
     regressions (R.Cross.val) are performed as described in reference [1]. In
     addition, Stein's formula for adjusted R squared (rho) was used as an
-    estimator of the average cross-validation predictive power [1].
+    estimator of the average cross-validation predictive power [1]. Notice
+    that the parameter values must be given in way \emph{understandable}
+    by the set of functions \code{\link{mixtdistr}} (see the example below)
 }
 \examples{
 set.seed(123) # set a seed for random generation
@@ -143,7 +145,8 @@ legend(1, 1.5, legend=c("Theoretical Mixture PDF", "Estimated Mixture PDF"),
     Sciences. Fifth Edit. Routledge Academic; 2009.
 }
 \seealso{
-\code{\link[MASS]{fitdistr}} and \code{\link{fitCDF}}
+\code{\link[MASS]{fitdistr}}, \code{\link{fitCDF}},
+    \code{\link{mixtdistr}}, and \code{\link{mcgoftest}}.
 }
 \author{
 Robersy Sanchez - 05/13/2019

@@ -30,7 +30,8 @@
 #' @param p vector of probabilities.
 #' @param n number of observations. If length(n) > 1, the length is taken to be
 #'     the number required.
-#' @param phi Numerical vector with mixture proportions, where \eqn{sum(phi) = 1}.
+#' @param phi Numerical vector with mixture proportions, where
+#'     \eqn{sum(phi) = 1}.
 #' @param arg A list of named vectors with the corresponding named distribution
 #'     parameters values. The names of the vector of parameters and the
 #'     parameter names must correspond to defined functions. For example, if
@@ -39,8 +40,12 @@
 #'     parameters must be gamma = c(shape = 'some value', scale = 'some value').
 #'     See examples for more details.
 #' @param log,log.p	logical; if TRUE, probabilities p are given as log(p).
-#' @param lower.tail logical; if TRUE (default), probabilities are \eqn{P[X <= x]},
-#'     otherwise, \eqn{P[X > x]}.
+#' @param lower.tail logical; if TRUE (default), probabilities are
+#'     \eqn{P[X <= x]}, otherwise, \eqn{P[X > x]}.
+#'
+#' @seealso \code{\link{fitMixDist}}, \code{\link{mcgoftest}}
+#'     (for goodness-of fit), and for additional examples:
+#'     \url{https://genomaths.com/stats/sampling-from-a-mixture-of-distributions/}
 #' @examples
 #' set.seed(123) # set a seed for random generation
 #' # A mixture of three distributions
