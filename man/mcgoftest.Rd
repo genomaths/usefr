@@ -139,7 +139,7 @@ mcgoftest(x, distr = pnorm, pars = c(1.5, 2), num.sampl = 500,
     }
 }
 \seealso{
-For fitting distributions: \code{\link{fitMixDist}},
+Distribution fitting: \code{\link{fitMixDist}},
     \code{\link[MASS]{fitdistr}}, \code{\link{fitCDF}}.
 }
 \author{
