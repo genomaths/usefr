@@ -18,7 +18,7 @@
 ## this program; if not, see <http://www.gnu.org/licenses/>.
 
 #' @rdname mcgoftest
-#' @title Permutation test for Goodness of fit (GoF)
+#' @title Bootstrap test for Goodness of fit (GoF)
 #' @description To accomplish the nonlinear fit of a probability distribution
 #'     function (*PDF*), dIfferent optimization algorithms can be used. Each
 #'     algorithm will return a different set of estimated parameter values. AIC
@@ -32,9 +32,8 @@
 #'
 #'     \itemize{
 #'         \item Kolmogorov- Smirnov statistic (ks). Limitations: sensitive to
-#'               ties [1]. Only the parametric Monte Carlo resampling or
-#'               permutation (provided that there is not ties in the data) can
-#'               be used.
+#'               ties [1]. Only the parametric Monte Carlo resampling
+#'               (provided that there is not ties in the data) can be used.
 #'
 #'         \item Anderson–Darling statistic (ad) [2]. Limitation: by
 #'               construction, it depends on the sample size. So, the size of
@@ -76,8 +75,7 @@
 #'     the breaks.
 #' @param parametric Logical object. If TRUE, then samples are drawn from the
 #'     theoretical population described by \emph{distr}. Default: TRUE.
-#' @param num.sampl Number of samplings/permutations. If sample.size < length(x)
-#'     , then the test becomes a Monte Carlo test.
+#' @param num.sampl Number of resamplings.
 #' @param sample.size Size of the samples used for each sampling.
 #' @param seed An integer used to set a 'seed' for random number generation.
 #' @param num.cores,tasks Paramaters for parallele computation using package
@@ -94,7 +92,7 @@
 #'
 #'         \item mc_p.value: the probability of finding the observed, or more
 #'               extreme, results when the null hypothesis \eqn{H_0} of a study
-#'               question is true obtained Monte Carlo/permutation approach.
+#'               question is true obtained Monte Carlo resampling approach.
 #'     }
 #' @export
 #' @author Original permutation script idea from

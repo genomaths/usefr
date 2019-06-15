@@ -2,7 +2,7 @@
 % Please edit documentation in R/mcgoftest.R
 \name{mcgoftest}
 \alias{mcgoftest}
-\title{Permutation test for Goodness of fit (GoF)}
+\title{Bootstrap test for Goodness of fit (GoF)}
 \usage{
 mcgoftest(varobj, distr, pars, num.sampl = 999, sample.size,
   stat = c("ks", "ad", "rmst", "chisq"), breaks = NULL,
@@ -19,8 +19,7 @@ any package or environment defined by user.}
 
 \item{pars}{CDF model parameters. A list of parameters to evaluate the CDF.}
 
-\item{num.sampl}{Number of samplings/permutations. If sample.size < length(x)
-, then the test becomes a Monte Carlo test.}
+\item{num.sampl}{Number of resamplings.}
 
 \item{sample.size}{Size of the samples used for each sampling.}
 
@@ -52,7 +51,7 @@ A numeric vector with the following data:
 
         \item mc_p.value: the probability of finding the observed, or more
               extreme, results when the null hypothesis \eqn{H_0} of a study
-              question is true obtained Monte Carlo/permutation approach.
+              question is true obtained Monte Carlo resampling approach.
     }
 }
 \description{
@@ -71,9 +70,8 @@ The test is intended for continuos distributions. If sampling size
 
     \itemize{
         \item Kolmogorov- Smirnov statistic (ks). Limitations: sensitive to
-              ties [1]. Only the parametric Monte Carlo resampling or
-              permutation (provided that there is not ties in the data) can
-              be used.
+              ties [1]. Only the parametric Monte Carlo resampling
+              (provided that there is not ties in the data) can be used.
 
         \item Anderson–Darling statistic (ad) [2]. Limitation: by
               construction, it depends on the sample size. So, the size of
