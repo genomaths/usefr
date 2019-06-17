@@ -182,7 +182,7 @@ mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
                ks = ks_stat(x = a, distr = distr, pars = pars)$stat,
                ad = ad_stat(x = a, distr = distr, pars = pars),
                rmst = rmst(x = a, distr = distr, pars = pars, breaks = breaks),
-               chisq = chisq(x = a, distr = distr, pars = pars, breaks=breaks)
+               chisq = chisq(x = a, distr = distr, pars = pars, breaks = breaks)
           )
        }
 
@@ -239,7 +239,7 @@ mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
                    chisq = {
                                statis = chisq(x = x, distr = distr, pars=pars,
                                             breaks = breaks)
-                               c(Chisq = unname(statis),
+                               c(Chisq = statis,
                                    mc_p.value=mean(c(statis, pstats) >= statis,
                                                    na.rm = TRUE),
                                    sample.size = sample.size,
@@ -310,13 +310,17 @@ freqs <- function(x, distr, pars, breaks = NULL) {
 # ===================== Root-Mean-Square statistic ========================== #
 rmst <- function(x, distr, pars, breaks = NULL) {
    freq <- freqs(x = x, distr = distr, pars = pars, breaks = breaks)
-   return(sqrt(mean((freq$obsf - freq$expf) ^ 2)))
+   return(sqrt(mean((freq$obsf - freq$expf)^2)))
 }
 
 # ================== Pearson's Chi-squared  statistic ======================= #
 chisq <- function(x, distr, pars, breaks = NULL) {
    freq <- freqs(x = x, distr = distr, pars = pars, breaks = breaks)
-   return(suppressWarnings(chisq.test(x = freq$obsf, y = freq$expf)$statistic))
+   if (any(freq$expf == 0)) {
+      freq$expf <- freq$expf + 1
+      freq$obsf <- freq$obsf + 1
+   }
+   return(sum((freq$obsf - freq$expf)^2/freq$expf))
 }
 
 # ================== Kolmogorov-Smirnov  statistic ======================= #

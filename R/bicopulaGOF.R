@@ -1,7 +1,7 @@
 ## Copyright (C) 2019 Robersy Sanchez <https://genomaths.com/>
 ##
 ## Author: Robersy Sanchez
-#
+##
 ## This file is part of the R package "usefr".
 ##
 ## 'usefr' is free software: you can redistribute it and/or modify
