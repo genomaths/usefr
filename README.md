@@ -40,3 +40,16 @@ This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_, _c
 
 <a href="https://genomaths.github.io/usefr_manual/usefr_manual.html" target="_blank">_usefr_ browser manual</a>
 
+------------
+
+### Some examples of applications:
+<a href="https://genomaths.com/stats/sampling-from-a-mixture-of-distributions/">Sampling from a Mixture of Distributions</a>
+
+
+<a href="https://genomaths.com/stats/non-linear-fit-of-mixture-distributions/">Fitting Mixture Distributions</a>
+
+
+------------
+
+
+
