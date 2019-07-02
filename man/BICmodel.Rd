@@ -49,3 +49,6 @@ res = y - coef(nlm)[1] * exp(coef(nlm)[2] * x)
 BICmodel(residuals = res, np = 2) == BIC(nlm)
 
 }
+\author{
+Robersy Sanchez (\url{https://genomaths.com}).
+}

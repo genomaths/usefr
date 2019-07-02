@@ -65,6 +65,7 @@
 #' hist(x, 100, freq = FALSE)
 #' x1 <- seq(0, 10, by = 0.001)
 #' lines(x1, dmixtdistr(x1, phi = phi, arg = args), col = "red")
+#' @author Robersy Sanchez (\url{https://genomaths.com}).
 
 #' @name dmixtdistr
 #' @rdname mixtdistr

@@ -141,7 +141,5 @@ Distribution fitting: \code{\link{fitMixDist}},
     \code{\link[MASS]{fitdistr}}, \code{\link{fitCDF}}.
 }
 \author{
-Original permutation script idea from
-    \href{https://goo.gl/hfnNy8}{Alastair Sanderson}. Modified and adapted by
-    Robersy Sanchez (https://genomaths.com).
+Robersy Sanchez (\url{https://genomaths.com}).
 }

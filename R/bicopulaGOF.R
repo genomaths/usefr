@@ -47,11 +47,11 @@
 #' @param nboots The number of booststrap resampling to perform.
 #' @param approach a character string specifying the goodness-of-fit test
 #'     statistic to be used, which has to be one (or a unique abbreviation) of
-#'     following: "adchisq", "adgamma", "Sn", "SnB", "SnC", "chisq". With the
-#'     exception of \emph{chisq}, all the other statistics are the same as in
-#'     functions \code{\link[copula]{gofTstat}} and
-#'     \code{\link[copula]{gofCopula}}. The test using \emph{chisq} implement
-#'     the approach described in reference [1].
+#'     following: "adchisq", "adgamma", "Sn", "SnB", "SnC", "chisq", and "rmse".
+#'     With the exception of \emph{chisq} and \emph{rmse}, all the other
+#'     statistics are the same as in functions \code{\link[copula]{gofTstat}}
+#'     and \code{\link[copula]{gofCopula}}. The test using \emph{chisq}
+#'     implement the approach described in reference [1].
 #' @param Rosenblatt The  Anderson–Darling statistic approach using Rosenblatt
 #'     transformation is normally used for the GOF in function
 #'     \code{\link[copula]{gofCopula}} from \code{\link[copula]{copula-package}}
@@ -77,13 +77,22 @@
 #' @param seed An integer used to set a 'seed' for random number generation.
 #' @importFrom BiocParallel MulticoreParam SnowParam bplapply
 #' @importFrom copula pobs fitCopula mvdc cCopula htrafo describeCop gofTstat
-#' @importFrom copula pCopula
+#' @importFrom copula pCopula rMvdc rCopula getTheta
 #' @importFrom stats pgamma
 #' @return The statistic value estimated for the observations, and the estimated
 #'     bootstrap p.value.
 #' @seealso \code{\link{ppCplot}}, \code{\link[copula]{gofCopula}},
 #'     \code{\link{fitCDF}}, \code{\link[MASS]{fitdistr}}, and
 #'     \code{\link{fitMixDist}}
+#' @references
+#' \enumerate{
+#'   \item Jaworski, P. Copulae in Mathematical and Quantitative Finance. 213,
+#'         d (2013).
+#'   \item Wang, Y. et al. Multivariate analysis of joint probability of
+#'         different rainfall frequencies based on copulas. Water (Switzerland)
+#'          9, (2017).
+#' }
+#' @author Robersy Sanchez (\url{https://genomaths.com}).
 #' @export
 #' @examples
 #' require(stats)
@@ -99,13 +108,11 @@
 #'
 #' bicopulaGOF(x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
 #'             margins = margins, paramMargins = parMargins, nboots = 999,
-#'             Rosenblatt = TRUE, approach = "adgamma", breaks = 10,
-#'             num.cores = 1L)
+#'             Rosenblatt = TRUE, approach = "adgamma", num.cores = 1L)
 #'
 #' bicopulaGOF(x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
 #'             margins = margins, paramMargins = parMargins, nboots = 999,
-#'             Rosenblatt = FALSE, approach = "adgamma", breaks = 10,
-#'             num.cores = 1L)
+#'             Rosenblatt = FALSE, approach = "adgamma", num.cores = 1L)
 #'
 #' ## --- Non-parallel expensive computation ---- -
 #' # require(copula)
@@ -116,10 +123,10 @@
 #' #
 #' # set.seed(123)
 #' # system.time(
-#' #   gofCopula(copula = fit@copula, x = U, N = 99, method = "Sn",
+#' #   gof <- gofCopula(copula = fit@copula, x = U, N = 99, method = "Sn",
 #' #             simulation = "pb")
 #' # )
-#' #
+#' # gof
 #' ## About
 #' ##    user  system elapsed
 #' ## 103.370   0.613 105.022
@@ -127,17 +134,28 @@
 #' ## --- Parallel computation with 2 cores ---- -
 #' ## Same algorithm as in 'gofCopula' adapted for parallel computation
 #' # system.time(
-#' #   bicopulaGOF(x = X, y = Y, copula = "normalCopula",
+#' #   gof <- bicopulaGOF(x = X, y = Y, copula = "normalCopula",
 #' #               margins = margins, paramMargins = parMargins, nboots = 99,
-#' #               Rosenblatt = TRUE, approach = "Sn", breaks = 10, seed = 123,
+#' #               Rosenblatt = TRUE, approach = "Sn", seed = 123,
 #' #               num.cores = 2L)
 #' # )
+#' # gof
 #' ## About
 #' ##  user  system elapsed
 #' ## 2.491   0.100  51.185
+#' ##
+#' ## Same algorithm as in 'gofCopula' adapted for parallel computation and
+#' ## Rosenblatt = FALSE
+#' # system.time(
+#' #   gof <- bicopulaGOF(x = X, y = Y, copula = "normalCopula",
+#' #               margins = margins, paramMargins = parMargins, nboots = 99,
+#' #               Rosenblatt = FALSE, approach = "Sn", seed = 123,
+#' #               num.cores = 2L)
+#' # )
+#' # gof
 bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
                        paramMargins = NULL, sample.size = NULL, nboots = 10,
-                       approach = c("adchisq", "adgamma", "chisq",
+                       approach = c("adchisq", "adgamma", "chisq", "rmse",
                                     "Sn", "SnB", "SnC"),
                        Rosenblatt = FALSE, breaks = 12, method = 'ml',
                        num.cores = 1L, tasks = 0, seed = 123,
@@ -204,7 +222,7 @@ bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
                                Rosenblatt = Rosenblatt, BPPARAM = bpparam))
    }
 
-   if (approach == "chisq") {
+   if (approach == "chisq" || approach == "rmse") {
        pstats <- unlist(bplapply(1:nboots, statFun, n = sample.size,
                                copula = copula, d = d, x = x, y = y,
                                approach = approach, breaks = breaks,
@@ -216,7 +234,7 @@ bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
        # if (missing(estim.method)) estim.method <- "mpl"
        res <- .gofPB(copula = copula@copula, U, N = nboots,
                        method = approach, num.cores = num.cores,
-                       sample.size = sample.size, ...)
+                       sample.size = sample.size, verbose = verbose, ...)
    }
 
    if (!t) {
@@ -235,9 +253,16 @@ bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
                   },
                 chisq = {
                   fq <- freqs.(x = x, y = y, copula = copula, breaks = breaks)
-                  stat <- sum((fq$obsf - fq$expf)^2/fq$expf)
+                  stat <- sum((fq$obsf - fq$expf)^2/fq$expf, na.rm = TRUE)
                   p.value <- mean(c(stat, pstats) >= stat, na.rm = TRUE)
                   c(Chisq.stat = stat, mc_p.value = p.value,
+                    sample.size = sample.size, num.sampl = nboots)
+                },
+                rmse = {
+                  fq <- freqs.(x = x, y = y, copula = copula, breaks = breaks)
+                  stat <- mean((fq$obsf - fq$expf)^2, na.rm = TRUE)
+                  p.value <- mean(c(stat, pstats) >= stat, na.rm = TRUE)
+                  c(RMSE.stat = stat, mc_p.value = p.value,
                     sample.size = sample.size, num.sampl = nboots)
                 }
          )
@@ -290,7 +315,9 @@ freqs. <- function(x, y, copula = NULL, breaks = NULL, unifnumb = 2 * 1e4) {
            p[i] <- (bd - ad - bc + ac)
            expf[i] <- n * p[i]
            # ----- Observed counts ------ -
+           # How many U[, 1] observations fall inside the square [0,1]^2
            a2b <- (U[, 1] > bounds[k, 1]) & (U[, 1] <= bounds[k, 2])
+           # How many U[, 2] observations fall inside the square [0,1]^2
            c2d <- (U[, 2] > bounds[j, 1]) & (U[, 2] <= bounds[j, 2])
            obsf[i] <- sum(a2b & c2d)
            i = i + 1
@@ -302,7 +329,7 @@ freqs. <- function(x, y, copula = NULL, breaks = NULL, unifnumb = 2 * 1e4) {
 # ======== Auxiliary function to compute the statistics for bootstrap ======== #
 statFun <- function(r, n, x = NULL, y = NULL, copula, d, approach,
                     breaks = 12, Rosenblatt = FALSE, ...) {
-  if (approach != "chisq") {
+  if (approach != "chisq" && approach != "rmse") {
     U <- rMvdc(n, copula) # Random sampling from copula distribution
     U <- pobs(U)  # Compute the pseudo-observations
     if (Rosenblatt) U <- cCopula(u = U, copula = copula@copula)
@@ -314,8 +341,16 @@ statFun <- function(r, n, x = NULL, y = NULL, copula, d, approach,
 
          chisq = {
            idx <- sample.int(n = length(x), size = n)
-           fq <- freqs.(x = x[idx], y = y[idx], copula = copula, breaks = breaks)
-           sum((fq$obsf - fq$expf)^2/fq$expf)
+           fq <- freqs.(x = x[idx], y = y[idx], copula = copula,
+                        breaks = breaks)
+           sum((fq$obsf - fq$expf)^2/fq$expf, na.rm = TRUE)
+         },
+
+         rmse = {
+           idx <- sample.int(n = length(x), size = n)
+           fq <- freqs.(x = x[idx], y = y[idx], copula = copula,
+                        breaks = breaks)
+           mean((fq$obsf - fq$expf)^2, na.rm = TRUE)
          }
   )
 }
@@ -373,12 +408,11 @@ distfn <- function(x, dfn, type = "r", arg, log = FALSE,
                    trafo.method = ifelse(method == "Sn", "none",
                                          c("cCopula", "htrafo")),
                    trafoArgs = list(), test.method = c("family", "single"),
-                   verbose = interactive(), useR = FALSE,
+                   verbose = TRUE, useR = FALSE,
                    ties = NA, ties.method = c("max", "average", "first",
                                               "last", "random", "min"),
                    fit.ties.meth = eval(formals(rank)$ties.method),
-                   sample.size = NULL, num.cores = 1L, tasks = 0,
-                   ...) {
+                   sample.size = NULL, num.cores = 1L, tasks = 0, ...) {
   ## Checks -- NB: let the *generic* fitCopula() check 'copula'
   stopifnot(N >= 1)
   if(!is.matrix(x)) {
@@ -454,6 +488,7 @@ distfn <- function(x, dfn, type = "r", arg, log = FALSE,
     ir <- apply(x, 2, function(y) rank(sort(y)))
   else ir <- NA
 
+  if (verbose) progressbar = TRUE else progressbar = FALSE
   if (Sys.info()['sysname'] == "Linux") {
     bpparam <- MulticoreParam(workers = num.cores, progressbar = progressbar,
                               tasks = tasks)

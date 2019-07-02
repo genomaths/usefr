@@ -97,7 +97,7 @@
 #'     plnorm na.omit splinefun qqnorm qqline
 #' @importFrom graphics par grid lines mtext abline
 #' @export
-#' @author Robersy Sanchez (https://genomaths.com)
+#' @author Robersy Sanchez (\url{https://genomaths.com}).
 #' @seealso \code{\link[MASS]{fitdistr}} and \code{\link{fitMixDist}} and
 #'     for goodness-of-fit: \code{\link{mcgoftest}}.
 #' @references

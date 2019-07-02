@@ -110,6 +110,7 @@
 #' @seealso \code{\link{fitCDF}}, \code{\link[MASS]{fitdistr}},
 #'     \code{\link{fitMixDist}}, and \code{\link{bicopulaGOF}}.
 #' @export
+#' @author Robersy Sanchez (\url{https://genomaths.com}).
 #'
 #' @examples
 #' set.seed(12)

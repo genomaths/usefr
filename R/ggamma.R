@@ -69,6 +69,7 @@
 #'
 #' 4. Sanchez, R. & Mackenzie, S. A. Information Thermodynamics of Cytosine DNA
 #' Methylation. PLoS One 11, e0150427 (2016).
+#' @author Robersy Sanchez (\url{https://genomaths.com}).
 #'
 #' @examples
 #' q <- (1:9)/10

@@ -99,7 +99,6 @@
 #'
 #' @references 1. Stevens JP. Applied Multivariate Statistics for the Social
 #'     Sciences. Fifth Edit. Routledge Academic; 2009.
-#' @author Robersy Sanchez - 05/13/2019
 #'
 #' @importFrom stats var stepfun as.formula coef AIC pweibull BIC vcov knots
 #' @importFrom stats deviance BIC cor quantile
@@ -141,6 +140,7 @@
 #' lines(x1, dmixtdistr(x1, phi = FIT$phi, arg = FIT$args), col = "blue")
 #' legend(1, 1.5, legend=c("Theoretical Mixture PDF", "Estimated Mixture PDF"),
 #'        col=c("red", "blue"), lty=1, cex=0.8)
+#' @author Robersy Sanchez (\url{https://genomaths.com}).
 #' @export
 fitMixDist <- function(X, args = list(norm = c(mean = NA, sd = NA),
                                        weibull = c(shape = NA, scale = NA)),

@@ -149,5 +149,5 @@ legend(1, 1.5, legend=c("Theoretical Mixture PDF", "Estimated Mixture PDF"),
     \code{\link{mixtdistr}}, and \code{\link{mcgoftest}}.
 }
 \author{
-Robersy Sanchez - 05/13/2019
+Robersy Sanchez (\url{https://genomaths.com}).
 }

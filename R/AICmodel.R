@@ -31,6 +31,7 @@
 #'     provided, then 'np' and 'residuals' must be provided.
 #'
 #' @return AIC numerical value
+#' @author Robersy Sanchez (\url{https://genomaths.com}).
 #'
 #' @examples
 #' set.seed(77)

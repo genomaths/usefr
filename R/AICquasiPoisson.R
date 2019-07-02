@@ -24,6 +24,7 @@
 #'
 #' @importFrom stats predict coef dpois
 #' @keywords internal
+#' @author Robersy Sanchez (\url{https://genomaths.com}).
 .AICquasiPoisson <- function(fitObj) {
    LogLike <- sum(dpois(fitObj$data$count, lambda=exp(predict(fitObj)),
                        log=TRUE))

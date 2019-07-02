@@ -71,3 +71,6 @@ lines(x1, dmixtdistr(x1, phi = phi, arg = args), col = "red")
     (for goodness-of fit), and for additional examples:
     \url{https://genomaths.com/stats/sampling-from-a-mixture-of-distributions/}
 }
+\author{
+Robersy Sanchez (\url{https://genomaths.com}).
+}

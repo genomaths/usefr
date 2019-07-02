@@ -95,9 +95,7 @@
 #'               question is true obtained Monte Carlo resampling approach.
 #'     }
 #' @export
-#' @author Original permutation script idea from
-#'     \href{https://goo.gl/hfnNy8}{Alastair Sanderson}. Modified and adapted by
-#'     Robersy Sanchez (https://genomaths.com).
+#' @author Robersy Sanchez (\url{https://genomaths.com}).
 #' @references
 #'     \enumerate{
 #'         \item Feller, W. On the Kolmogorov-Smirnov Limit Theorems for
@@ -140,11 +138,10 @@
 mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
                    stat = c("ks", "ad", "rmst", "chisq"), breaks = NULL,
                    parametric = TRUE, seed = 1, num.cores = 1, tasks = 0) {
-   # The current version the permutation test for Kolmogorov-Smirnov
-   # statistics, is based on \href{https://goo.gl/hfnNy8}{Alastair Sanderson}
-   # idea presented in his post: \emph{Using R to analyse data statistical and
-   # numerical data analysis with R}.
-
+   ## A starting permutation script for permutation test used the idea
+   ## published on \href{https://goo.gl/hfnNy8}{Alastair Sanderson}
+   ## An idea presented in his post: \emph{Using R to analyse data statistical
+   ## and numerical data analysis with R}. Herein, it is modified and extended.
    set.seed( seed )
    stat <- match.arg(stat)
    if (!is.character(distr))

@@ -63,7 +63,7 @@
 #' x3 <- dhnorm(x, theta = sigma2theta(2), log = TRUE)
 #' x4 <- dhnorm(x, theta = sigma2theta(2), log = FALSE)
 #' all(round(x3, 8) == round(log(x4), 8))
-
+#' @author Robersy Sanchez (\url{https://genomaths.com}).
 #' @name dhnorm
 #' @rdname hnorm
 #' @title Half-Normal distribution

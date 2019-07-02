@@ -6,9 +6,9 @@
 \usage{
 bicopulaGOF(x, y, copula = NULL, margins = NULL, paramMargins = NULL,
   sample.size = NULL, nboots = 10, approach = c("adchisq", "adgamma",
-  "chisq", "Sn", "SnB", "SnC"), Rosenblatt = FALSE, breaks = 12,
-  method = "ml", num.cores = 1L, tasks = 0, seed = 123,
-  verbose = TRUE, ...)
+  "chisq", "rmse", "Sn", "SnB", "SnC"), Rosenblatt = FALSE,
+  breaks = 12, method = "ml", num.cores = 1L, tasks = 0,
+  seed = 123, verbose = TRUE, ...)
 }
 \arguments{
 \item{x}{Numerical vector with the observations from the first margin
@@ -35,11 +35,11 @@ required for the approaches: "Sn", "SnB", and "SnC"; see below.}
 
 \item{approach}{a character string specifying the goodness-of-fit test
 statistic to be used, which has to be one (or a unique abbreviation) of
-following: "adchisq", "adgamma", "Sn", "SnB", "SnC", "chisq". With the
-exception of \emph{chisq}, all the other statistics are the same as in
-functions \code{\link[copula]{gofTstat}} and
-\code{\link[copula]{gofCopula}}. The test using \emph{chisq} implement
-the approach described in reference [1].}
+following: "adchisq", "adgamma", "Sn", "SnB", "SnC", "chisq", and "rmse".
+With the exception of \emph{chisq} and \emph{rmse}, all the other
+statistics are the same as in functions \code{\link[copula]{gofTstat}}
+and \code{\link[copula]{gofCopula}}. The test using \emph{chisq}
+implement the approach described in reference [1].}
 
 \item{Rosenblatt}{The  Anderson–Darling statistic approach using Rosenblatt
 transformation is normally used for the GOF in function
@@ -103,13 +103,11 @@ parMargins = list( list(mean = 0, sd = 10),
 
 bicopulaGOF(x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
             margins = margins, paramMargins = parMargins, nboots = 999,
-            Rosenblatt = TRUE, approach = "adgamma", breaks = 10,
-            num.cores = 1L)
+            Rosenblatt = TRUE, approach = "adgamma", num.cores = 1L)
 
 bicopulaGOF(x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
             margins = margins, paramMargins = parMargins, nboots = 999,
-            Rosenblatt = FALSE, approach = "adgamma", breaks = 10,
-            num.cores = 1L)
+            Rosenblatt = FALSE, approach = "adgamma", num.cores = 1L)
 
 ## --- Non-parallel expensive computation ---- -
 # require(copula)
@@ -120,10 +118,10 @@ bicopulaGOF(x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
 #
 # set.seed(123)
 # system.time(
-#   gofCopula(copula = fit@copula, x = U, N = 99, method = "Sn",
+#   gof <- gofCopula(copula = fit@copula, x = U, N = 99, method = "Sn",
 #             simulation = "pb")
 # )
-#
+# gof
 ## About
 ##    user  system elapsed
 ## 103.370   0.613 105.022
@@ -131,17 +129,40 @@ bicopulaGOF(x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
 ## --- Parallel computation with 2 cores ---- -
 ## Same algorithm as in 'gofCopula' adapted for parallel computation
 # system.time(
-#   bicopulaGOF(x = X, y = Y, copula = "normalCopula",
+#   gof <- bicopulaGOF(x = X, y = Y, copula = "normalCopula",
 #               margins = margins, paramMargins = parMargins, nboots = 99,
-#               Rosenblatt = TRUE, approach = "Sn", breaks = 10, seed = 123,
+#               Rosenblatt = TRUE, approach = "Sn", seed = 123,
 #               num.cores = 2L)
 # )
+# gof
 ## About
 ##  user  system elapsed
 ## 2.491   0.100  51.185
+##
+## Same algorithm as in 'gofCopula' adapted for parallel computation and
+## Rosenblatt = FALSE
+# system.time(
+#   gof <- bicopulaGOF(x = X, y = Y, copula = "normalCopula",
+#               margins = margins, paramMargins = parMargins, nboots = 99,
+#               Rosenblatt = FALSE, approach = "Sn", seed = 123,
+#               num.cores = 2L)
+# )
+# gof
+}
+\references{
+\enumerate{
+  \item Jaworski, P. Copulae in Mathematical and Quantitative Finance. 213,
+        d (2013).
+  \item Wang, Y. et al. Multivariate analysis of joint probability of
+        different rainfall frequencies based on copulas. Water (Switzerland)
+         9, (2017).
+}
 }
 \seealso{
 \code{\link{ppCplot}}, \code{\link[copula]{gofCopula}},
     \code{\link{fitCDF}}, \code{\link[MASS]{fitdistr}}, and
     \code{\link{fitMixDist}}
+}
+\author{
+Robersy Sanchez (\url{https://genomaths.com}).
 }

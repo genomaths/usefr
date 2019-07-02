@@ -49,3 +49,6 @@ res = y - coef(nlm)[1] * exp(coef(nlm)[2] * x)
 AICmodel(residuals=res, np=2) == AIC(nlm)
 
 }
+\author{
+Robersy Sanchez (\url{https://genomaths.com}).
+}

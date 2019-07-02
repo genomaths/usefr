@@ -116,5 +116,5 @@ summary(cdfp$bestfit)
     for goodness-of-fit: \code{\link{mcgoftest}}.
 }
 \author{
-Robersy Sanchez (https://genomaths.com)
+Robersy Sanchez (\url{https://genomaths.com}).
 }
