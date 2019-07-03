@@ -18,7 +18,8 @@
 ## this program; if not, see <http://www.gnu.org/licenses/>.
 
 #' @rdname bicopulaGOF
-#' @title  Goodness of fit for Bidimensional Copula with Known Margins
+#' @title Goodness of Fit Boostrap Test for Bivariate distributions Constructed
+#'     from Copula with Known Margins.
 #' @description Goodness-of-fit (GOF) tests for a two-dimensional copula based,
 #'     by default, on the knowledge of the marginal probability distributions.
 #'     Several functionalities/tools from \code{\link[copula]{copula-package}}
@@ -60,8 +61,11 @@
 #'     the margin CDFs, the test does not depend on the theoretical distribution
 #'     of the Anderson–Darling statistic. Simulations suggest, so far, that the
 #'     application of Rosenblatt transformation may not be needed in this case.
-#'     SO, the desicion on whether to apply the Rosenblatt transformation
-#'     (computational expensive for big datasets) is left to the users.
+#'     Hence, the desicion on whether to apply the Rosenblatt transformation
+#'     (computational expensive for big datasets) is left to the users. Function
+#'     \code{\link[copula]{cCopula}} is used to computes the Rosenblatt
+#'     transform. So, the application of Rosenblatt transform is limited to
+#'     those copulas for which \code{\link[copula]{cCopula}} is implemented.
 #' @param breaks A single number giving the number of bins for the computation
 #'     of the Pearson's Chi-squared statistic as suggested in reference [1].
 #'     Bascally, it is used to split the unit square [0, 1]^2 into bins/regions.
@@ -136,8 +140,7 @@
 #' # system.time(
 #' #   gof <- bicopulaGOF(x = X, y = Y, copula = "normalCopula",
 #' #               margins = margins, paramMargins = parMargins, nboots = 99,
-#' #               Rosenblatt = TRUE, approach = "Sn", seed = 123,
-#' #               num.cores = 2L)
+#' #               approach = "Sn", seed = 123, num.cores = 2L)
 #' # )
 #' # gof
 #' ## About
@@ -149,7 +152,7 @@
 #' # system.time(
 #' #   gof <- bicopulaGOF(x = X, y = Y, copula = "normalCopula",
 #' #               margins = margins, paramMargins = parMargins, nboots = 99,
-#' #               Rosenblatt = FALSE, approach = "Sn", seed = 123,
+#' #               approach = "Sn", seed = 123,
 #' #               num.cores = 2L)
 #' # )
 #' # gof
