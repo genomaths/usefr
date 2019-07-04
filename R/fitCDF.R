@@ -260,9 +260,6 @@ fitCDF <- function (varobj, distNames, plot = TRUE, plot.num = 1, start = NULL,
                log.p = log.p )
    }
 
-   # *** Definition of 3P Weibull *** #
-   pweibull3 <- function(q, shape, scale, mu) pweibull(q - mu, shape, scale)
-
    # *** Definition of Rayleigh distribution *** #
    prayleigh <- function(q, sigma )  1 - exp( -q^2/( 2 * sigma^2 ))
 
@@ -284,7 +281,7 @@ fitCDF <- function (varobj, distNames, plot = TRUE, plot.num = 1, start = NULL,
                "2P Exponential")
 
    funLIST <- list(pnorm, plnorm, phalfnorm, pgnorm, ptgnorm, plaplace, pgamma,
-                   pgamma3, pggamma4, pggamma3, pweibull, pweibull3, pbeta,
+                   pgamma3, pggamma4, pggamma3, pweibull, pweibull3p, pbeta,
                    pbeta3, pbeta4, pbweibull, pgbeta, prayleigh, pexp, pexp2 )
 
    parLIST <- list(norm = c( mean = MEAN, sd = SD ),
@@ -300,7 +297,7 @@ fitCDF <- function (varobj, distNames, plot = TRUE, plot.num = 1, start = NULL,
                                psi = 1 ),
                    ggamma3 = c( alpha = MEAN^2/VAR, scale = VAR/MEAN, psi = 1 ),
                    weibull = c( shape = log( 2 ), scale = Q ),
-                   weibull3 = c( mu = MIN, shape = log( 2 ), scale = Q ),
+                   weibull3p = c(shape = log( 2 ), scale = Q,  mu = MIN),
                    beta = c(shape1 = 1, shape2 = 2 ),
                    beta3 = c(shape1 = 1, shape2 = 2, a = MIN ),
                    beta4 = c(shape1 = 2, shape2 = 3, a=0.9 * MIN, b=1.1 * MAX),
