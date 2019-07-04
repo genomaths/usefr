@@ -56,7 +56,7 @@
 #'               hypothesis. Here, the discretization is done using function
 #'               the resources from function \code{\link[graphics]{hist}}.
 #'
-#'         \item Root Mean Square statistic (rmst). Limitation: the same
+#'         \item Root Mean Square statistic (rmse). Limitation: the same
 #'               as 'chisq'.
 #'     }
 #' @param varobj A a vector containing observations, the variable for which the
@@ -68,7 +68,7 @@
 #' @param pars CDF model parameters. A list of parameters to evaluate the CDF.
 #' @param stat One string denoting the statistic to used in the testing: "ks":
 #'     Kolmogorov–Smirnov, "ad": Anderson–Darling statistic, "chisq: Pearson's
-#'     Chi-squared, and "rmst": Root Mean Square statistic.
+#'     Chi-squared, and "rmse": Root Mean Square of the error.
 #' @param breaks Default is NULL. Basically, the it is same as in function
 #'     \code{\link[graphics]{hist}}. If \emph{breaks} = NULL, then function
 #'     'nclass.FD' (see \code{\link[grDevices]{nclass}} is applied to estimate
@@ -176,7 +176,7 @@
 #'         seed = 123)
 #'
 mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
-                   stat = c("ks", "ad", "rmst", "chisq"), breaks = NULL,
+                   stat = c("ks", "ad", "rmse", "chisq"), breaks = NULL,
                    parametric = TRUE, seed = 1, num.cores = 1, tasks = 0,
                    verbose = TRUE) {
    ## A starting permutation script for permutation test used the idea
@@ -219,7 +219,7 @@ mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
            switch(stat,
                ks = ks_stat(x = a, distr = distr, pars = pars)$stat,
                ad = ad_stat(x = a, distr = distr, pars = pars),
-               rmst = rmst(x = a, distr = distr, pars = pars, breaks = breaks),
+               rmse = rmse(x = a, distr = distr, pars = pars, breaks = breaks),
                chisq = chisq(x = a, distr = distr, pars = pars, breaks = breaks)
           )
        }
@@ -269,10 +269,10 @@ mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
                                                na.rm = TRUE),
                                sample.size = sample.size, num.sampl = num.sampl)
                         },
-                   rmst = {
-                           statis = rmst(x = x, distr = distr, pars = pars ,
+                   rmse = {
+                           statis = rmse(x = x, distr = distr, pars = pars ,
                                        breaks = breaks)
-                           c(rmst = statis,
+                           c(rmse = statis,
                              mc_p.value=mean(c(statis, pstats) >= statis,
                                              na.rm = TRUE),
                              sample.size = sample.size, num.sampl = num.sampl)
@@ -293,7 +293,7 @@ mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
    statis <- switch(stat,
           ks = "Kolmogorov-Smirnov",
           ad = "Anderson–Darling",
-          rmst = "Root Mean Square",
+          rmse = "Root Mean Square",
           chisq = "Pearson's Chi-squared"
    )
 
@@ -351,9 +351,9 @@ freqs <- function(x, distr, pars, breaks = NULL) {
 }
 
 # ===================== Root-Mean-Square statistic ========================== #
-rmst <- function(x, distr, pars, breaks = NULL) {
+rmse <- function(x, distr, pars, breaks = NULL) {
    freq <- freqs(x = x, distr = distr, pars = pars, breaks = breaks)
-   return(sqrt(mean((freq$obsf - freq$expf)^2)))
+   return(sqrt(sum((freq$obsf - freq$expf)^2))/length(freq$obsf))
 }
 
 # ================== Pearson's Chi-squared  statistic ======================= #

@@ -5,7 +5,7 @@
 \title{Bootstrap test for Goodness of fit (GoF)}
 \usage{
 mcgoftest(varobj, distr, pars, num.sampl = 999, sample.size,
-  stat = c("ks", "ad", "rmst", "chisq"), breaks = NULL,
+  stat = c("ks", "ad", "rmse", "chisq"), breaks = NULL,
   parametric = TRUE, seed = 1, num.cores = 1, tasks = 0,
   verbose = TRUE)
 }
@@ -26,7 +26,7 @@ any package or environment defined by user.}
 
 \item{stat}{One string denoting the statistic to used in the testing: "ks":
 Kolmogorov–Smirnov, "ad": Anderson–Darling statistic, "chisq: Pearson's
-Chi-squared, and "rmst": Root Mean Square statistic.}
+Chi-squared, and "rmse": Root Mean Square of the error.}
 
 \item{breaks}{Default is NULL. Basically, the it is same as in function
 \code{\link[graphics]{hist}}. If \emph{breaks} = NULL, then function
@@ -97,7 +97,7 @@ The test is intended for continuos distributions. If sampling size
               hypothesis. Here, the discretization is done using function
               the resources from function \code{\link[graphics]{hist}}.
 
-        \item Root Mean Square statistic (rmst). Limitation: the same
+        \item Root Mean Square statistic (rmse). Limitation: the same
               as 'chisq'.
     }
 }
