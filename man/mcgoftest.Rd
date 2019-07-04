@@ -6,7 +6,8 @@
 \usage{
 mcgoftest(varobj, distr, pars, num.sampl = 999, sample.size,
   stat = c("ks", "ad", "rmst", "chisq"), breaks = NULL,
-  parametric = TRUE, seed = 1, num.cores = 1, tasks = 0)
+  parametric = TRUE, seed = 1, num.cores = 1, tasks = 0,
+  verbose = TRUE)
 }
 \arguments{
 \item{varobj}{A a vector containing observations, the variable for which the
@@ -42,6 +43,8 @@ theoretical population described by \emph{distr}. Default: TRUE.}
 use, i.e. at most how many child processes will be run simultaneously
 (see \code{\link[BiocParallel]{bplapply}} and the number of tasks per job
 (only for Linux OS).}
+
+\item{verbose}{if verbose, comments and progress bar will be printed.}
 }
 \value{
 A numeric vector with the following data:
@@ -60,7 +63,7 @@ To accomplish the nonlinear fit of a probability distribution
     algorithm will return a different set of estimated parameter values. AIC
     and BIC are not useful (in this case) to decide which parameter set of
     values is the best. The goodness-of-fit tests (GOF) can help in this
-    case.
+    case. Please, see below the examples on how to use this function.
 }
 \details{
 The test is intended for continuos distributions. If sampling size
@@ -99,7 +102,7 @@ The test is intended for continuos distributions. If sampling size
     }
 }
 \examples{
-# Example 1
+## ======== Example 1 =======
 # Let us generate a random sample a from a specified Weibull distribution:
 # Set a seed
 set.seed( 1 )
@@ -109,10 +112,10 @@ x = rweibull(10000, shape = 0.5, scale = 1.2)
 # MC KS test accept the null hypothesis that variable x comes
 # from Weibull(x | shape = 0.5, scale = 1.2), while the standard
 # Kolmogorov-Smirnov test reject the Null Hypothesis.
-mcgoftest(x, distr = pweibull, pars = c( 0.5, 1.2 ), num.sampl = 500,
+mcgoftest(x, distr = "weibull", pars = c( 0.5, 1.2 ), num.sampl = 500,
         sample.size = 1000, num.cores = 4)
 
-# Example 2
+## ========= Example 2 ======
 # Let us generate a random sample a random sample from a specified Normal
 # distribution:
 # Set a seed
@@ -122,8 +125,48 @@ x = rnorm(10000, mean = 1.5, sd = 2)
 # MC KS test accept the null hypothesis that variable x comes
 # from N(x | mean = 0.5, sd = 1.2), while the standard
 # Kolmogorov-Smirnov test reject the Null Hypothesis.
-mcgoftest(x, distr = pnorm, pars = c(1.5, 2), num.sampl = 500,
+mcgoftest(x, distr = "norm", pars = c(1.5, 2), num.sampl = 500,
           sample.size = 1000, num.cores = 1)
+
+## ========= Example 3 ======
+## Define a Weibull 3-parameter distribution function
+pwdist <- function(x, pars) pweibull(x - pars[1], shape = pars[2],
+                   scale = pars[3])
+rwdist <- function(n, pars) rweibull(n, shape = pars[2],
+                    scale = pars[3]) + pars[1]
+
+## A random generation from Weibull-3P
+set.seed(123)
+pars <- c(mu = 0.9, shape = 1.4, scale = 3.7)
+w <- rwdist(200, pars = pars)
+
+## Testing GoF
+mcgoftest(varobj = w, distr = "wdist", pars = list(pars), num.sampl = 100,
+          sample.size =  199, stat = "chisq", num.cores = 4, breaks = 100,
+          seed = 123)
+
+## ========= Example 4 ======
+## ----- Testing GoF of a mixture distribution. ----
+## Define a mixure distribution to be avaluated with functions 'mixtdistr'
+## (see ?mixtdistr). In the current case, it will be mixture of a Log-Normal
+## and a Weibull distributions:
+
+phi = c( 0.37, 0.63) # Mixture proportions
+args <- list(lnorm = c(meanlog = 0.837, sdlog = 0.385),
+             weibull = c(shape = 2.7, scale = 5.8))
+##  Sampling from the specified mixture distribution
+set.seed(123)
+x <- rmixtdistr(n = 1e5, phi = phi , arg = args)
+hist(x, 100, freq = FALSE)
+x1 <- seq(0, 10, by = 0.001)
+lines(x1, dmixtdistr(x1, phi = phi, arg = args), col = "red")
+
+## The GoF for the simulated sample
+pars <- c(list(phi = phi), arg = list(args))
+mcgoftest(varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
+        sample.size =  999, stat = "chisq", num.cores = 4, breaks = 200,
+        seed = 123)
+
 }
 \references{
 \enumerate{

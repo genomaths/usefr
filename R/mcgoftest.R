@@ -24,7 +24,7 @@
 #'     algorithm will return a different set of estimated parameter values. AIC
 #'     and BIC are not useful (in this case) to decide which parameter set of
 #'     values is the best. The goodness-of-fit tests (GOF) can help in this
-#'     case.
+#'     case. Please, see below the examples on how to use this function.
 #' @details The test is intended for continuos distributions. If sampling size
 #'     is lesser the size of the sample, then the test becomes a Monte Carlo
 #'     test. The thes is based on the use of measures of goodness of fit,
@@ -83,6 +83,7 @@
 #'     use, i.e. at most how many child processes will be run simultaneously
 #'     (see \code{\link[BiocParallel]{bplapply}} and the number of tasks per job
 #'     (only for Linux OS).
+#' @param verbose if verbose, comments and progress bar will be printed.
 #' @importFrom BiocParallel MulticoreParam SnowParam bplapply
 #' @importFrom stats ks.test
 #' @return A numeric vector with the following data:
@@ -109,7 +110,7 @@
 #' @seealso Distribution fitting: \code{\link{fitMixDist}},
 #'     \code{\link[MASS]{fitdistr}}, \code{\link{fitCDF}}.
 #' @examples
-#' # Example 1
+#' ## ======== Example 1 =======
 #' # Let us generate a random sample a from a specified Weibull distribution:
 #' # Set a seed
 #' set.seed( 1 )
@@ -119,10 +120,10 @@
 #' # MC KS test accept the null hypothesis that variable x comes
 #' # from Weibull(x | shape = 0.5, scale = 1.2), while the standard
 #' # Kolmogorov-Smirnov test reject the Null Hypothesis.
-#' mcgoftest(x, distr = pweibull, pars = c( 0.5, 1.2 ), num.sampl = 500,
+#' mcgoftest(x, distr = "weibull", pars = c( 0.5, 1.2 ), num.sampl = 500,
 #'         sample.size = 1000, num.cores = 4)
 #'
-#' # Example 2
+#' ## ========= Example 2 ======
 #' # Let us generate a random sample a random sample from a specified Normal
 #' # distribution:
 #' # Set a seed
@@ -132,12 +133,52 @@
 #' # MC KS test accept the null hypothesis that variable x comes
 #' # from N(x | mean = 0.5, sd = 1.2), while the standard
 #' # Kolmogorov-Smirnov test reject the Null Hypothesis.
-#' mcgoftest(x, distr = pnorm, pars = c(1.5, 2), num.sampl = 500,
+#' mcgoftest(x, distr = "norm", pars = c(1.5, 2), num.sampl = 500,
 #'           sample.size = 1000, num.cores = 1)
-
+#'
+#' ## ========= Example 3 ======
+#' ## Define a Weibull 3-parameter distribution function
+#' pwdist <- function(x, pars) pweibull(x - pars[1], shape = pars[2],
+#'                    scale = pars[3])
+#' rwdist <- function(n, pars) rweibull(n, shape = pars[2],
+#'                     scale = pars[3]) + pars[1]
+#'
+#' ## A random generation from Weibull-3P
+#' set.seed(123)
+#' pars <- c(mu = 0.9, shape = 1.4, scale = 3.7)
+#' w <- rwdist(200, pars = pars)
+#'
+#' ## Testing GoF
+#' mcgoftest(varobj = w, distr = "wdist", pars = list(pars), num.sampl = 100,
+#'           sample.size =  199, stat = "chisq", num.cores = 4, breaks = 100,
+#'           seed = 123)
+#'
+#' ## ========= Example 4 ======
+#' ## ----- Testing GoF of a mixture distribution. ----
+#' ## Define a mixure distribution to be avaluated with functions 'mixtdistr'
+#' ## (see ?mixtdistr). In the current case, it will be mixture of a Log-Normal
+#' ## and a Weibull distributions:
+#'
+#' phi = c( 0.37, 0.63) # Mixture proportions
+#' args <- list(lnorm = c(meanlog = 0.837, sdlog = 0.385),
+#'              weibull = c(shape = 2.7, scale = 5.8))
+#' ##  Sampling from the specified mixture distribution
+#' set.seed(123)
+#' x <- rmixtdistr(n = 1e5, phi = phi , arg = args)
+#' hist(x, 100, freq = FALSE)
+#' x1 <- seq(0, 10, by = 0.001)
+#' lines(x1, dmixtdistr(x1, phi = phi, arg = args), col = "red")
+#'
+#' ## The GoF for the simulated sample
+#' pars <- c(list(phi = phi), arg = list(args))
+#' mcgoftest(varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
+#'         sample.size =  999, stat = "chisq", num.cores = 4, breaks = 200,
+#'         seed = 123)
+#'
 mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
                    stat = c("ks", "ad", "rmst", "chisq"), breaks = NULL,
-                   parametric = TRUE, seed = 1, num.cores = 1, tasks = 0) {
+                   parametric = TRUE, seed = 1, num.cores = 1, tasks = 0,
+                   verbose = TRUE) {
    ## A starting permutation script for permutation test used the idea
    ## published on \href{https://goo.gl/hfnNy8}{Alastair Sanderson}
    ## An idea presented in his post: \emph{Using R to analyse data statistical
@@ -199,9 +240,12 @@ mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
        # DoIt(1, distr=distr, pars=pars, stat=stat, breaks=breaks,
        #      parametric=parametric)
 
+       if (verbose) progressbar = TRUE else progressbar = FALSE
        if (Sys.info()['sysname'] == "Linux") {
-           bpparam <- MulticoreParam(workers=num.cores, tasks=tasks)
-       } else bpparam <- SnowParam(workers=num.cores, type = "SOCK")
+           bpparam <- MulticoreParam(workers=num.cores, tasks=tasks,
+                                       progressbar = progressbar)
+       } else bpparam <- SnowParam(workers=num.cores, type = "SOCK",
+                                   progressbar = progressbar)
 
        pstats <- unlist(bplapply(1:R, DoIt, distr = distr, pars = pars,
                                stat = stat, breaks = breaks,
@@ -253,15 +297,17 @@ mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
           chisq = "Pearson's Chi-squared"
    )
 
-   method <- ifelse(sample.size < length(varobj), "Monte Carlo GoF testing",
-                    "Permutation GoF testing")
+   if (verbose) {
+       method <- ifelse(sample.size < length(varobj), "Monte Carlo GoF testing",
+                       "Permutation GoF testing")
 
-   if (sample.size == length(varobj)) parametric <- FALSE
-   approach <- ifelse(parametric, "parametric approach",
-                       "non-parametric approach")
+       if (sample.size == length(varobj)) parametric <- FALSE
+       approach <- ifelse(parametric, "parametric approach",
+                           "non-parametric approach")
 
-   cat( "***", method,"based on" , statis,"statistic", "(", approach, ")",
-       " ...\n")
+       cat( "***", method,"based on" , statis,"statistic", "(", approach, ")",
+           " ...\n")
+   }
 
    if (stat == "ks" && !parametric && sample.size < length(varobj)) {
       warning("*** ", method," based on ", statis," statistic ",
@@ -330,11 +376,10 @@ ks_stat <- function(x, distr, pars) {
 
 
 # --------------------- Auxiliary function to get distribution --------------- #
-distfn <- function(x, dfn, type = "r", arg, log = FALSE,
-                   lower.tail = TRUE, log.p = FALSE) {
+distfn <- function(x, dfn, type = "r", arg) {
    switch(type,
           p = do.call(paste0(type, dfn),
-                      c(list(x), arg, lower.tail = lower.tail, log.p = log.p)),
+                      c(list(x), arg)),
           r = do.call(paste0(type, dfn), c(list(x), arg))
    )
 }
