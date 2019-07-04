@@ -4,7 +4,7 @@
 \alias{fitCDF}
 \title{Nonlinear fit of a commulative distribution function}
 \usage{
-fitCDF(varobj, distNames, plot = TRUE, plot.num = 1,
+fitCDF(varobj, distNames, plot = TRUE, plot.num = 1, start = NULL,
   only.info = FALSE, maxiter = 10^4, maxfev = 1e+05, ptol = 1e-12,
   verbose = TRUE)
 }
@@ -19,6 +19,35 @@ below in details section, e.g. c(1:10, 15)}
 fitted CDF.}
 
 \item{plot.num}{The number of distributions to be plotted.}
+
+\item{start}{A named numerical vector giving the parameters to be optimized
+    with initial values. This can be omitted for some of the named
+    distributions (see Details). This argument will be used if provided for
+    only one distribution. The default parameter values are:
+\itemize{
+    \item norm = c( mean = MEAN, sd = SD )
+    \item lnorm = c(meanlog = mean( log1p(X), na.rm = TRUE),
+            sdlog = sd( log1p( X ), na.rm = TRUE))
+    \item halfnorm = c(theta = sqrt(pi/2))
+    \item gnorm = c( mean = MEAN, sigma = SD, beta = 2)
+    \item tgnorm = c( mean = MEAN, sigma = SD, beta = 2)
+    \item laplace = c( mean = MEAN, sigma = sqrt( VAR))
+    \item gamma = c( shape = MEAN^2/VAR, rate = MEAN/VAR)
+    \item gamma3 = c( shape = MEAN^2/VAR, rate = MEAN/VAR, mu = 0),
+    \item ggamma4 = c(alpha = MEAN^2/VAR, scale = VAR/MEAN, mu = MIN,
+                        psi = 1)
+    \item ggamma3 = c( alpha = MEAN^2/VAR, scale = VAR/MEAN, psi = 1)
+    \item weibull = c( shape = log( 2 ), scale = Q)
+    \item weibull3 = c( mu = MIN, shape = log( 2 ), scale = Q)
+    \item beta = c(shape1 = 1, shape2 = 2)
+    \item beta3 = c(shape1 = 1, shape2 = 2, a = MIN)
+    \item beta4 = c(shape1 = 2, shape2 = 3, a=0.9 * MIN, b=1.1 * MAX)
+    \item bweibull = c(alpha=1, beta=2, shape = log( 2 ), scale = Q)
+    \item gbeta = c( shape1 = 1, shape2 = 2, lambda = 1)
+    \item rayleigh = c( sigma = SD )
+    \item exp = c( rate = 1)
+    \item exp2 = c( rate = 1, mu = 0)
+}}
 
 \item{only.info}{Logic. Default TRUE. If true, only information about the
 parameter estimation is returned.}

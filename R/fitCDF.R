@@ -28,6 +28,34 @@
 #'     CDF parameters will be estimated.
 #' @param distNames a vector of distribution numbers to select from the listed
 #'     below in details section, e.g. c(1:10, 15)
+#' @param start A named numerical vector giving the parameters to be optimized
+#'     with initial values. This can be omitted for some of the named
+#'     distributions (see Details). This argument will be used if provided for
+#'     only one distribution. The default parameter values are:
+#' \itemize{
+#'     \item norm = c( mean = MEAN, sd = SD )
+#'     \item lnorm = c(meanlog = mean( log1p(X), na.rm = TRUE),
+#'             sdlog = sd( log1p( X ), na.rm = TRUE))
+#'     \item halfnorm = c(theta = sqrt(pi/2))
+#'     \item gnorm = c( mean = MEAN, sigma = SD, beta = 2)
+#'     \item tgnorm = c( mean = MEAN, sigma = SD, beta = 2)
+#'     \item laplace = c( mean = MEAN, sigma = sqrt( VAR))
+#'     \item gamma = c( shape = MEAN^2/VAR, rate = MEAN/VAR)
+#'     \item gamma3 = c( shape = MEAN^2/VAR, rate = MEAN/VAR, mu = 0),
+#'     \item ggamma4 = c(alpha = MEAN^2/VAR, scale = VAR/MEAN, mu = MIN,
+#'                         psi = 1)
+#'     \item ggamma3 = c( alpha = MEAN^2/VAR, scale = VAR/MEAN, psi = 1)
+#'     \item weibull = c( shape = log( 2 ), scale = Q)
+#'     \item weibull3 = c( mu = MIN, shape = log( 2 ), scale = Q)
+#'     \item beta = c(shape1 = 1, shape2 = 2)
+#'     \item beta3 = c(shape1 = 1, shape2 = 2, a = MIN)
+#'     \item beta4 = c(shape1 = 2, shape2 = 3, a=0.9 * MIN, b=1.1 * MAX)
+#'     \item bweibull = c(alpha=1, beta=2, shape = log( 2 ), scale = Q)
+#'     \item gbeta = c( shape1 = 1, shape2 = 2, lambda = 1)
+#'     \item rayleigh = c( sigma = SD )
+#'     \item exp = c( rate = 1)
+#'     \item exp2 = c( rate = 1, mu = 0)
+#' }
 #' @param plot Logic. Default TRUE. Whether to produce the plots for the best
 #'     fitted CDF.
 #' @param plot.num The number of distributions to be plotted.
@@ -117,7 +145,7 @@
 #' cdfp <- fitCDF(x1, distNames = "Normal", plot = FALSE)
 #' summary(cdfp$bestfit)
 
-fitCDF <- function (varobj, distNames, plot = TRUE, plot.num = 1,
+fitCDF <- function (varobj, distNames, plot = TRUE, plot.num = 1, start = NULL,
                     only.info = FALSE, maxiter = 10^4, maxfev = 1e+5,
                     ptol = 1e-12, verbose = TRUE) {
 
@@ -134,7 +162,7 @@ fitCDF <- function (varobj, distNames, plot = TRUE, plot.num = 1,
        # R.S
        n = length( residuals )
        h = diag( grad %*% solve( crossprod( grad ) ) %*% t( grad ) )
-       s = sqrt( n*var( residuals, na.rm = T )/( n - num.par ) )
+       s = sqrt( n * var(residuals, na.rm = TRUE)/( n - num.par ) )
        residuals/( s * sqrt( 1 - h ) )
    }
 
@@ -291,7 +319,9 @@ fitCDF <- function (varobj, distNames, plot = TRUE, plot.num = 1,
            stop("At least one CDF is not found between the possible selections")
        distNAMES = distNAMES[ distNames ]
        funLIST = funLIST[ distNames ]
-       parLIST = parLIST[ distNames ]
+       if (!is.null(start)) {
+           parLIST = list(start)
+       } else parLIST = parLIST[ distNames ]
    }
 
    optFun <- function(par, probfun, quantiles, prob, eval = FALSE) {
