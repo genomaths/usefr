@@ -29,8 +29,10 @@
 #'     objects from class \code{\link[copula]{Mvdc}} (also called non-free
 #'     copulas).
 #' @details Notice that \code{\link[copula]{copula-package}} already have
-#'     function \code{\link[copula]{gofCopula}} to perform GOF. However,
-#'     its use can be computational expensive for big datasets.
+#'     function \code{\link[copula]{gofCopula}} to perform GOF. However, this
+#'     function does not support bivariate distributions constructed from copula
+#'     with known margins. In addition, its use can be computational expensive
+#'     for big datasets.
 #' @param x Numerical vector with the observations from the first margin
 #'     distribution.
 #' @param y Numerical vector with the observations from the second margin
@@ -375,11 +377,10 @@ ad_stat <- function(x, distr, pars = NULL) {
 # -------------------------- End auxiliary function -------------------------- #
 
 # =================== Auxiliary function to get distribution ================= #
-distfn <- function(x, dfn, type = "r", arg, log = FALSE,
-                   lower.tail = TRUE, log.p = FALSE) {
+distfn <- function(x, dfn, type = "r", arg) {
   switch(type,
          p = do.call(paste0(type, dfn),
-                     c(list(x), arg, lower.tail = lower.tail, log.p = log.p)),
+                     c(list(x), arg)),
          r = do.call(paste0(type, dfn), c(list(x), arg))
   )
 }

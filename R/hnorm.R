@@ -128,7 +128,7 @@ rhnorm <- function(n, theta = 1) {
 #' @details NULL
 #' @export
 theta2sigma <- function(theta) {
-  return(sqrt(pi/2)/theta)
+   return(sqrt(pi/2)/theta)
 }
 
 #' @name sigma2theta
@@ -138,10 +138,6 @@ theta2sigma <- function(theta) {
 #' @details NULL
 #' @export
 sigma2theta <- function(sigma) {
-  return(sqrt(pi/2)/sigma)
+   return(sqrt(pi/2)/sigma)
 }
-
-
-
-
 

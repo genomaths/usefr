@@ -2,7 +2,8 @@
 % Please edit documentation in R/bicopulaGOF.R
 \name{bicopulaGOF}
 \alias{bicopulaGOF}
-\title{Goodness of fit for Bidimensional Copula with Known Margins}
+\title{Goodness of Fit Boostrap Test for Bivariate distributions Constructed
+    from Copula with Known Margins.}
 \usage{
 bicopulaGOF(x, y, copula = NULL, margins = NULL, paramMargins = NULL,
   sample.size = NULL, nboots = 10, approach = c("adchisq", "adgamma",
@@ -49,8 +50,11 @@ approach generating random variates from the analytical expression for
 the margin CDFs, the test does not depend on the theoretical distribution
 of the Anderson–Darling statistic. Simulations suggest, so far, that the
 application of Rosenblatt transformation may not be needed in this case.
-SO, the desicion on whether to apply the Rosenblatt transformation
-(computational expensive for big datasets) is left to the users.}
+Hence, the desicion on whether to apply the Rosenblatt transformation
+(computational expensive for big datasets) is left to the users. Function
+\code{\link[copula]{cCopula}} is used to computes the Rosenblatt
+transform. So, the application of Rosenblatt transform is limited to
+those copulas for which \code{\link[copula]{cCopula}} is implemented.}
 
 \item{breaks}{A single number giving the number of bins for the computation
 of the Pearson's Chi-squared statistic as suggested in reference [1].
@@ -86,8 +90,10 @@ Goodness-of-fit (GOF) tests for a two-dimensional copula based,
 }
 \details{
 Notice that \code{\link[copula]{copula-package}} already have
-    function \code{\link[copula]{gofCopula}} to perform GOF. However,
-    its use can be computational expensive for big datasets.
+    function \code{\link[copula]{gofCopula}} to perform GOF. However, this
+    function does not support bivariate distributions constructed from copula
+    with known margins. In addition, its use can be computational expensive
+    for big datasets.
 }
 \examples{
 require(stats)
@@ -131,8 +137,7 @@ bicopulaGOF(x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
 # system.time(
 #   gof <- bicopulaGOF(x = X, y = Y, copula = "normalCopula",
 #               margins = margins, paramMargins = parMargins, nboots = 99,
-#               Rosenblatt = TRUE, approach = "Sn", seed = 123,
-#               num.cores = 2L)
+#               approach = "Sn", seed = 123, num.cores = 2L)
 # )
 # gof
 ## About
@@ -144,7 +149,7 @@ bicopulaGOF(x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
 # system.time(
 #   gof <- bicopulaGOF(x = X, y = Y, copula = "normalCopula",
 #               margins = margins, paramMargins = parMargins, nboots = 99,
-#               Rosenblatt = FALSE, approach = "Sn", seed = 123,
+#               approach = "Sn", seed = 123,
 #               num.cores = 2L)
 # )
 # gof

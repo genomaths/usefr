@@ -81,11 +81,11 @@ dmixtdistr <- function(x, phi, arg,  log = FALSE,
    dfn = names(arg)
    if (length(x) > 1) {
       d <- rowSums(vapply(1:k, function(i)
-                                   phi[i] * distfn(x, dfn = dfn[i], type = "d",
+                                   phi[i] * distF(x, dfn = dfn[i], type = "d",
                                                arg = arg[[i]], log = log), n))
    } else {
       d <- sum(sapply(1:k, function(i)
-                                   phi[i] * distfn(x, dfn = dfn[i], type = "d",
+                                   phi[i] * distF(x, dfn = dfn[i], type = "d",
                                                arg = arg[[i]], log = log)))
    }
    return(d)
@@ -103,13 +103,13 @@ pmixtdistr <- function(q, phi, arg,  lower.tail = TRUE, log.p = FALSE) {
    dfn = names(arg)
    if (length(q) > 1) {
       d <- rowSums(vapply(1:k, function(i)
-                                   phi[i] * distfn(q, dfn = dfn[i], type = "p",
+                                   phi[i] * distF(q, dfn = dfn[i], type = "p",
                                                    arg = arg[[i]],
                                                    lower.tail = lower.tail,
                                                    log.p = log.p), n))
    } else {
       d <- sum(sapply(1:k, function(i)
-                                   phi[i] * distfn(q, dfn = dfn[i], type = "p",
+                                   phi[i] * distF(q, dfn = dfn[i], type = "p",
                                                    arg = arg[[i]],
                                                    lower.tail = lower.tail,
                                                    log.p = log.p)))
@@ -151,13 +151,13 @@ rmixtdistr <- function(n, phi, arg) {
    dfn = names(arg)
    freqs <- sapply(1:k, function(i) sum(j == i))
    return(unlist(lapply(1:k, function(i)
-                   distfn(freqs[i], dfn = dfn[i], type = "r",
+                   distF(freqs[i], dfn = dfn[i], type = "r",
                            arg = arg[[i]]))))
 }
 
 
 # ---------------------------Auxiliary function ------------------------------- #
-distfn <- function(x, dfn, type = "d", arg, log = FALSE,
+distF <- function(x, dfn, type = "d", arg, log = FALSE,
                    lower.tail = TRUE, log.p = FALSE) {
   switch(type,
          d = do.call(paste0(type, dfn), c(list(x), arg, log = log)),
