@@ -265,7 +265,8 @@ bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
                 },
                 rmse = {
                   fq <- freqs.(x = x, y = y, copula = copula, breaks = breaks)
-                  stat <- mean((fq$obsf - fq$expf)^2, na.rm = TRUE)
+                  l <- length(fq$obsf)
+                  stat <- sqrt(sum((fq$obsf - fq$expf)^2, na.rm = TRUE))/l
                   p.value <- mean(c(stat, pstats) >= stat, na.rm = TRUE)
                   c(RMSE.stat = stat, mc_p.value = p.value,
                     sample.size = sample.size, num.sampl = nboots)
@@ -355,7 +356,7 @@ statFun <- function(r, n, x = NULL, y = NULL, copula, d, approach,
            idx <- sample.int(n = length(x), size = n)
            fq <- freqs.(x = x[idx], y = y[idx], copula = copula,
                         breaks = breaks)
-           mean((fq$obsf - fq$expf)^2, na.rm = TRUE)
+           sqrt(sum((fq$obsf - fq$expf)^2, na.rm = TRUE))/length(fq$obsf)
          }
   )
 }
