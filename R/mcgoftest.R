@@ -353,7 +353,7 @@ freqs <- function(x, distr, pars, breaks = NULL) {
 # ===================== Root-Mean-Square statistic ========================== #
 rmse <- function(x, distr, pars, breaks = NULL) {
    freq <- freqs(x = x, distr = distr, pars = pars, breaks = breaks)
-   return(sqrt(sum((freq$obsf - freq$expf)^2))/length(freq$obsf))
+   return(sqrt(sum((freq$obsf - freq$expf)^2, na.rm = TRUE))/length(freq$obsf))
 }
 
 # ================== Pearson's Chi-squared  statistic ======================= #
