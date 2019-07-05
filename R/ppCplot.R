@@ -162,8 +162,8 @@ ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
        U <- cbind(u, v)
        copula = eval(parse(text=paste0("copula::",copula, "()")))
 
-       # U <- pobs(U, ties.method = ties.method)
-       fit <- fitCopula(copula, U, method = method)
+       V <- pobs(U, ties.method = ties.method)
+       fit <- fitCopula(copula, V, method = method)
        copula = mvdc(fit@copula, margins = margins, paramMargins = paramMargins)
    } else {
        if (class(copula) != "mvdc")
