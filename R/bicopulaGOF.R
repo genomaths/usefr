@@ -88,8 +88,8 @@
 #' @return The statistic value estimated for the observations, and the estimated
 #'     bootstrap p.value.
 #' @seealso \code{\link{ppCplot}}, \code{\link[copula]{gofCopula}},
-#'     \code{\link{fitCDF}}, \code{\link[MASS]{fitdistr}}, and
-#'     \code{\link{fitMixDist}}
+#'     \code{\link{mutualinf}}, \code{\link{fitCDF}},
+#'     \code{\link[MASS]{fitdistr}}, and \code{\link{fitMixDist}}.
 #' @references
 #' \enumerate{
 #'   \item Jaworski, P. Copulae in Mathematical and Quantitative Finance. 213,

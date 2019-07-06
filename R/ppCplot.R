@@ -108,7 +108,8 @@
 #'     information to build the graphic which can be assigned to a variable
 #'     to use in further plots or analyses.
 #' @seealso \code{\link{fitCDF}}, \code{\link[MASS]{fitdistr}},
-#'     \code{\link{fitMixDist}}, and \code{\link{bicopulaGOF}}.
+#'     \code{\link{fitMixDist}}, \code{\link{mutualinf}}, and
+#'     \code{\link{bicopulaGOF}}.
 #' @export
 #' @author Robersy Sanchez (\url{https://genomaths.com}).
 #'

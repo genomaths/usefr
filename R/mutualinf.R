@@ -62,15 +62,18 @@
 #' @return A list with a data frame carrying the estimated mutual information
 #'     for each (x, y) pair, the joint and marginal probabilities, and the
 #'     "mvdc" copula object.
+#' @seealso \code{\link{ppCplot}}, \code{\link{bicopulaGOF}},
+#'     \code{\link[copula]{gofCopula}}, \code{\link{fitCDF}},
+#'     \code{\link[MASS]{fitdistr}}, and \code{\link{fitMixDist}}.
 #' @export
 #'
 #' @examples
 #' require(stats)
 #' set.seed(12) # set a seed for random number generation
-#' ## Random generation of the Normal distributed marginal variate
+#' ## Random generation of a Normal distributed marginal variate
 #' X <- rnorm(2000, mean = 1, sd = 0.2)
 #'
-#' ## Random generation of the Weibull-3P distributed marginal variate
+#' ## Random generation of a Weibull-3P distributed marginal variate
 #' Y <- X + rweibull3p(2000, shape = 2, scale = 0.85, mu = 1)
 #'
 #' ## Correlation test
@@ -78,7 +81,7 @@
 #'
 #' ## Non-linear model fit for 'Y' distribution values
 #' fitY <- fitCDF(Y, distNames = 12) # 3P Weibull distribution model
-#' coefs <- coef(fitY$bestfit) # model coeficients
+#' coefs <- coef(fitY$bestfit) # model coefficients
 #'
 #' ## Goodness-of-fit test for the  Weibull-3P distribution model
 #' mcgoftest(varobj = Y, distr = "weibull3p", pars = coefs, num.sampl = 99,

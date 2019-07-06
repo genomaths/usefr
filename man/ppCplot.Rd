@@ -165,7 +165,8 @@ g <- ppCplot(X = X, Y = Y, copula = "normalCopula", margins = margins,
 }
 \seealso{
 \code{\link{fitCDF}}, \code{\link[MASS]{fitdistr}},
-    \code{\link{fitMixDist}}, and \code{\link{bicopulaGOF}}.
+    \code{\link{fitMixDist}}, \code{\link{mutualinf}}, and
+    \code{\link{bicopulaGOF}}.
 }
 \author{
 Robersy Sanchez (\url{https://genomaths.com}).

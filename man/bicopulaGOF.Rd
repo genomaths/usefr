@@ -165,8 +165,8 @@ bicopulaGOF(x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
 }
 \seealso{
 \code{\link{ppCplot}}, \code{\link[copula]{gofCopula}},
-    \code{\link{fitCDF}}, \code{\link[MASS]{fitdistr}}, and
-    \code{\link{fitMixDist}}
+    \code{\link{mutualinf}}, \code{\link{fitCDF}},
+    \code{\link[MASS]{fitdistr}}, and \code{\link{fitMixDist}}.
 }
 \author{
 Robersy Sanchez (\url{https://genomaths.com}).
