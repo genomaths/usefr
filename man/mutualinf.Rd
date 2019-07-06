@@ -85,7 +85,7 @@ margins = c("norm", "weibull3p")
 parMargins = list(list(mean = 1, sd = 0.2),
                 as.list(coefs))  # Notice "as.list" is used here, not "list"
 
-## Finally esitmation of the mutual information
+## Finally estimation of the mutual information
  mutual.Inf <- mutualinf(x = X, y = Y, copula = "normalCopula",
                         margins = margins,  paramMargins = parMargins )
 head(mutual.Inf$stat)

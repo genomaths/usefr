@@ -176,7 +176,7 @@ bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
        # Compute the pseudo-observations for the given data matrix through
        # the margin distributions
        u1 <- distfn(x, dfn = margins[1], type = "p", arg = paramMargins[[1]])
-       u2 <- distfn(y, dfn = margins[2], type = "p", arg = paramMargins[[1]])
+       u2 <- distfn(y, dfn = margins[2], type = "p", arg = paramMargins[[2]])
        U <- cbind(u1, u2)
        U <- pobs(U)
        copula = eval(parse(text=paste0("copula::", copula, "()")))
@@ -195,13 +195,14 @@ bicopulaGOF <- function(x, y, copula = NULL, margins = NULL,
    # ------------------ If not Chi-squared approach ----------- -
    l <- grepl("ad", approach)
    t <- ifelse(is.element(approach, c("Sn", "SnB", "SnC")), TRUE, FALSE)
-   if ((l || t) && !is.character(copula)) {
+
+   if (!is.character(copula)) {
        # Compute the pseudo-observations for the given data matrix through
        # the margin distributions
        u1 <- distfn(x, dfn = copula@margins[1], type = "p",
                    arg = copula@paramMargins[[1]])
        u2 <- distfn(y, dfn = copula@margins[2], type = "p",
-                   arg = copula@paramMargins[[1]])
+                   arg = copula@paramMargins[[2]])
        U <- cbind(u1, u2)
        U <- pobs(U)
    }
@@ -289,7 +290,7 @@ freqs. <- function(x, y, copula = NULL, breaks = NULL, unifnumb = 2 * 1e4) {
    u1 <- distfn(x = x, dfn = copula@margins[1], type = "p",
                arg = copula@paramMargins[[1]])
    u2 <- distfn(x = y, dfn = copula@margins[2], type = "p",
-               arg = copula@paramMargins[[1]])
+               arg = copula@paramMargins[[2]])
    U <- cbind(u1, u2)
    U <- pobs(U) # Compute the pseudo-observations for the given data matrix
 
