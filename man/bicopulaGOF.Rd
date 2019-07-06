@@ -12,7 +12,7 @@ bicopulaGOF(x, y, copula = NULL, margins = NULL, paramMargins = NULL,
   seed = 123, verbose = TRUE, ...)
 }
 \arguments{
-\item{x}{Numerical vector with the observations from the first margin
+\item{x}{Numerical vector with the observations from the first marginal
 distribution.}
 
 \item{y}{Numerical vector with the observations from the second margin
@@ -61,8 +61,8 @@ of the Pearson's Chi-squared statistic as suggested in reference [1].
 Bascally, it is used to split the unit square [0, 1]^2 into bins/regions.}
 
 \item{method}{A character string specifying the estimation method to be used
-to estimate the dependence parameter(s); see
-\code{\link[copula]{fitCopula}}.}
+to estimate the dependence parameter(s) (if the copula needs to be
+estimated) see \code{\link[copula]{fitCopula}}.}
 
 \item{num.cores, tasks}{Paramaters for parallele computation using package
 \code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to

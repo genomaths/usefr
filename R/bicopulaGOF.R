@@ -33,7 +33,7 @@
 #'     function does not support bivariate distributions constructed from copula
 #'     with known margins. In addition, its use can be computational expensive
 #'     for big datasets.
-#' @param x Numerical vector with the observations from the first margin
+#' @param x Numerical vector with the observations from the first marginal
 #'     distribution.
 #' @param y Numerical vector with the observations from the second margin
 #'     distribution.
@@ -72,8 +72,8 @@
 #'     of the Pearson's Chi-squared statistic as suggested in reference [1].
 #'     Bascally, it is used to split the unit square [0, 1]^2 into bins/regions.
 #' @param method A character string specifying the estimation method to be used
-#'     to estimate the dependence parameter(s); see
-#'     \code{\link[copula]{fitCopula}}.
+#'     to estimate the dependence parameter(s) (if the copula needs to be
+#'     estimated) see \code{\link[copula]{fitCopula}}.
 #' @param num.cores,tasks Paramaters for parallele computation using package
 #'     \code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to
 #'     use, i.e. at most how many child processes will be run simultaneously
