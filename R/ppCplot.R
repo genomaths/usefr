@@ -48,8 +48,8 @@
 #'     distributions. See details below.
 #' @param npoints Number of points used to build the P-P plot. The
 #' @param method A character string specifying the estimation method to be used
-#'     to estimate the dependence parameter(s); see
-#'     \code{\link[copula]{fitCopula}}.
+#'     to estimate the dependence parameter(s) (if the copula needs to be
+#'     estimated) see \code{\link[copula]{fitCopula}}.
 #' @param smoothing character string specifying whether the empirical
 #'     distribution function (for F.n()) or copula (for C.n()) is computed (if
 #'     smoothing = "none"), or whether the empirical beta copula (smoothing =
@@ -186,7 +186,9 @@ ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
    }
 
    emprob <- C.n(u = pobs(cbind(u, v), ties.method = ties.method), X = U)
-   thprob <- pMvdc(x = cbind(u, v), mvdc = copula)
+   thprob <- pCopula(u = pobs(cbind(u, v), ties.method = ties.method),
+                       copula = copula@copula)
+   # pMvdc(x = cbind(u, v), mvdc = copula)
 
    par(mar = mar, font = font, family = family)
    plot(x = emprob, y = thprob, pch = pch,

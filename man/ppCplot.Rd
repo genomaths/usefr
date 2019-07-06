@@ -38,8 +38,8 @@ distributions. See details below.}
 \item{npoints}{Number of points used to build the P-P plot. The}
 
 \item{method}{A character string specifying the estimation method to be used
-to estimate the dependence parameter(s); see
-\code{\link[copula]{fitCopula}}.}
+to estimate the dependence parameter(s) (if the copula needs to be
+estimated) see \code{\link[copula]{fitCopula}}.}
 
 \item{smoothing}{character string specifying whether the empirical
 distribution function (for F.n()) or copula (for C.n()) is computed (if

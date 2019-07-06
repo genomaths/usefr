@@ -33,12 +33,12 @@ fitted CDF.}
     \item tgnorm = c( mean = MEAN, sigma = SD, beta = 2)
     \item laplace = c( mean = MEAN, sigma = sqrt( VAR))
     \item gamma = c( shape = MEAN^2/VAR, rate = MEAN/VAR)
-    \item gamma3 = c( shape = MEAN^2/VAR, rate = MEAN/VAR, mu = 0),
+    \item gamma3p = c( shape = MEAN^2/VAR, rate = MEAN/VAR, mu = 0),
     \item ggamma4 = c(alpha = MEAN^2/VAR, scale = VAR/MEAN, mu = MIN,
                         psi = 1)
     \item ggamma3 = c( alpha = MEAN^2/VAR, scale = VAR/MEAN, psi = 1)
     \item weibull = c( shape = log( 2 ), scale = Q)
-    \item weibull3 = c( mu = MIN, shape = log( 2 ), scale = Q)
+    \item weibull3p = c( mu = MIN, shape = log( 2 ), scale = Q)
     \item beta = c(shape1 = 1, shape2 = 2)
     \item beta3 = c(shape1 = 1, shape2 = 2, a = MIN)
     \item beta4 = c(shape1 = 2, shape2 = 3, a=0.9 * MIN, b=1.1 * MAX)
