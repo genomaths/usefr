@@ -33,6 +33,20 @@
 #'     where P(x,y) is the multivariate distribution constructed from a
 #'     copula, and P_1(x) and P_2(y) are the marginal CDFs.
 #'
+#'     The values \eqn{I{x, y}} expresses a measurement of the relative
+#'     dependece/independece of x and y at the specified point value.
+#'
+#'     Notice that the above definition expresses the differences between two
+#'     uncertainty variations. So, for values \eqn{I{x, y} > 0}, we shall say
+#'     that at point (x, y) there is a gain of information for the association
+#'     of the subjacent stochastic processes generating x and y in respect to
+#'     the independent processes. Otherwise, for values \eqn{I{x, y} < 0} we
+#'     shall say that at point (x, y) there is a loss of information for the
+#'     association of the subjacent stochastic process generating x and y in
+#'     respect to the independent processes. Or, equivallently, there is a gain
+#'     of information for the independent processes in respect to
+#'     their association.
+#'
 #' @param x,y marginal variates
 #' @param copula A copula object from class \code{\link[copula]{Mvdc}} or
 #'     string specifying all the name for a copula from package
@@ -77,7 +91,7 @@
 #'                 as.list(coefs))  # Notice "as.list" is used here, not "list"
 #'
 #' ## Finally esitmation of the mutual information
-#'  nutual.Inf <- mutualinf(x = X, y = Y, copula = "normalCopula",
+#'  mutual.Inf <- mutualinf(x = X, y = Y, copula = "normalCopula",
 #'                         margins = margins,  paramMargins = parMargins )
 #' head(nutual.Inf$stat)
 #' ## The fitted copula is also returned, so, it can be used in downstream
