@@ -88,9 +88,9 @@ parMargins = list(list(mean = 1, sd = 0.2),
 ## Finally esitmation of the mutual information
  mutual.Inf <- mutualinf(x = X, y = Y, copula = "normalCopula",
                         margins = margins,  paramMargins = parMargins )
-head(nutual.Inf$stat)
+head(mutual.Inf$stat)
 ## The fitted copula is also returned, so, it can be used in downstream
 ## analyses
-nutual.Inf$copula@copula
+mutual.Inf$copula@copula
 
 }
