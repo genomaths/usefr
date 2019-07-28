@@ -125,11 +125,10 @@
 #'                    list(mean = 0, sd = 10))
 #'
 #' copula = "normalCopula"
-#' npoints = 100
 #'
 #' ## The information to build the graphic is stored in object 'g'.
 #' g <- ppCplot(X = X, Y = Y, copula = "normalCopula", margins = margins,
-#'              paramMargins = parMargins, npoints = 20)
+#'              paramMargins = parMargins, npoints = 100)
 #'
 ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
                npoints = 100, method = "ml",
