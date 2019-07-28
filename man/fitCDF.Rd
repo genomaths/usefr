@@ -24,7 +24,7 @@ fitted CDF.}
     with initial values. This can be omitted for some of the named
     distributions (see Details). This argument will be used if provided for
     only one distribution. The default parameter values are:
-\itemize{
+\enumerate{
     \item norm = c( mean = MEAN, sd = SD )
     \item lnorm = c(meanlog = mean( log1p(X), na.rm = TRUE),
             sdlog = sd( log1p( X ), na.rm = TRUE))
