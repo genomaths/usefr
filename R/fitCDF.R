@@ -27,7 +27,9 @@
 #' @param varobj A a vector containing observations, the variable for which the
 #'     CDF parameters will be estimated.
 #' @param distNames a vector of distribution numbers to select from the listed
-#'     below in details section, e.g. c(1:10, 15)
+#'     below in details section, e.g. c(1:10, 15). If 'distNames' is not any of
+#'     current 20 named distributions, then it can be any arbitrary character
+#'     string, but the argument 'distf' must be given (see below).
 #' @param start A named numerical vector giving the parameters to be optimized
 #'     with initial values. This can be omitted for some of the named
 #'     distributions (see Details). This argument will be used if provided for
@@ -59,6 +61,12 @@
 #' @param plot Logic. Default TRUE. Whether to produce the plots for the best
 #'     fitted CDF.
 #' @param plot.num The number of distributions to be plotted.
+#' @param distf A symbol naming a cumulative distribution function (CDF) present
+#'     in the R session environment (Not a character string!). For example,
+#'     \strong{pnorm}, \strong{pgamma}, etc. If the function is not present in
+#'     the environment, then an error will be returned. It must given only if
+#'     'distNames' is not any of current 20 named distributions (see  details
+#'     below). Default is NULL.
 #' @param only.info Logic. Default TRUE. If true, only information about the
 #'     parameter estimation is returned.
 #' @param maxiter,maxfev,ptol Parameters to ontrol of various aspects of the
@@ -145,9 +153,15 @@
 #' cdfp <- fitCDF(x1, distNames = "Normal", plot = FALSE)
 #' summary(cdfp$bestfit)
 
-fitCDF <- function (varobj, distNames, plot = TRUE, plot.num = 1, start = NULL,
-                    only.info = FALSE, maxiter = 10^4, maxfev = 1e+5,
-                    ptol = 1e-12, verbose = TRUE) {
+fitCDF <- function(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
+                    start = NULL, only.info = FALSE, maxiter = 10^4,
+                    maxfev = 1e+5, ptol = 1e-12, verbose = TRUE) {
+
+   if (is.numeric(distNames)) {
+       distNames <- as.integer(distNames)
+       if (distNames > 20)
+           stop("*** 'distNames' must be a string or a number < 21")
+   }
 
    # "count" function from "propagate"
    counter <- function (i) {
@@ -308,17 +322,38 @@ fitCDF <- function (varobj, distNames, plot = TRUE, plot.num = 1, start = NULL,
                    exp2 = c( rate = 1, mu = 0 )
    )
 
-   if( missing( distNames ) ) distNames = 1:length(distNAMES)
-   if( length( distNames ) != length( distNAMES ) ) {
+   if (is.character(distNames)) elemt <- is.element(distNames, distNAMES)
+   else if (is.numeric(distNames)) elemt <- is.element(distNames, 1:20)
+
+   if( missing( distNames ) ) distNames = 1:20
+   if( length( distNames ) < 20 && elemt) {
        if (is.character(distNames))
-           distNames = as.numeric(na.omit(match(distNames, distNAMES)))
+           distNames <- as.numeric(na.omit(match(distNames, distNAMES)))
        if (sum(!is.element(distNames, 1:length(distNAMES))) > 0)
-           stop("At least one CDF is not found between the possible selections")
-       distNAMES = distNAMES[ distNames ]
-       funLIST = funLIST[ distNames ]
-       if (!is.null(start)) {
-           parLIST = list(start)
-       } else parLIST = parLIST[ distNames ]
+           stop("At least one CDF is not found between the",
+               " possible selections \n")
+       if (is.integer(distNames)) {
+           distNAMES <- distNAMES[ distNames ]
+           funLIST <- funLIST[ distNames ]
+           if (!is.null(start)) {
+               parLIST <- list(start)
+           } else parLIST <- parLIST[ distNames ]
+       }
+   }
+
+   if (is.character(distNames) && !elemt) {
+       if (is.null(distf))
+           stop("*** A user defined distribution function must be given")
+       distf <- try(match.fun(distf), silent = TRUE)
+       if (inherits(distf, "try-error"))
+           stop("*** 'distf' must a symbol to call a commulative distribution",
+               "function e.g, pnorm, pgamma")
+
+       funLIST <- list(distf)
+       if (is.null(start))
+           stop("*** 'start' parameter values must be provided")
+       else parLIST <- list(start)
+       distNAMES <- distNames
    }
 
    optFun <- function(par, probfun, quantiles, prob, eval = FALSE) {
@@ -383,13 +418,13 @@ fitCDF <- function (varobj, distNames, plot = TRUE, plot.num = 1, start = NULL,
    aicDAT <- data.frame( Distribution = distNAMES, AIC = AICS)
    aicDAT <- aicDAT[ ORDER, ]
 
-   distNAMES = distNAMES[ ORDER ]
-   fitLIST = fitLIST[ ORDER ]
-   bestFIT = fitLIST[[ 1 ]]
-   bestFIT$info = distNAMES[ 1 ]
+   distNAMES <- distNAMES[ ORDER ]
+   fitLIST <- fitLIST[ ORDER ]
+   bestFIT <- fitLIST[[ 1 ]]
+   bestFIT$info <- distNAMES[ 1 ]
 
    if( only.info ){
-       return(list(Distribution = bestFIT, aicDAT))
+       return(list(bestfit = bestFIT, AIC = aicDAT))
    } else {
        if( plot ) {
            opar <- par()

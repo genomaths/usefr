@@ -4,21 +4,30 @@
 \alias{fitCDF}
 \title{Nonlinear fit of a commulative distribution function}
 \usage{
-fitCDF(varobj, distNames, plot = TRUE, plot.num = 1, start = NULL,
-  only.info = FALSE, maxiter = 10^4, maxfev = 1e+05, ptol = 1e-12,
-  verbose = TRUE)
+fitCDF(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
+  start = NULL, only.info = FALSE, maxiter = 10^4, maxfev = 1e+05,
+  ptol = 1e-12, verbose = TRUE)
 }
 \arguments{
 \item{varobj}{A a vector containing observations, the variable for which the
 CDF parameters will be estimated.}
 
 \item{distNames}{a vector of distribution numbers to select from the listed
-below in details section, e.g. c(1:10, 15)}
+below in details section, e.g. c(1:10, 15). If 'distNames' is not any of
+current 20 named distributions, then it can be any arbitrary character
+string, but the argument 'distf' must be given (see below).}
 
 \item{plot}{Logic. Default TRUE. Whether to produce the plots for the best
 fitted CDF.}
 
 \item{plot.num}{The number of distributions to be plotted.}
+
+\item{distf}{A symbol naming a cumulative distribution function (CDF) present
+in the R session environment (Not a character string!). For example,
+\strong{pnorm}, \strong{pgamma}, etc. If the function is not present in
+the environment, then an error will be returned. It must given only if
+'distNames' is not any of current 20 named distributions (see  details
+below). Default is NULL.}
 
 \item{start}{A named numerical vector giving the parameters to be optimized
     with initial values. This can be omitted for some of the named
