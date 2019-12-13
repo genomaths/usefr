@@ -21,5 +21,6 @@ Imports:
    numDeriv,
    utils,
    stats,
-   graphics
+   graphics,
+   copula
 VignetteBuilder: knitr
