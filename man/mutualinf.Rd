@@ -5,8 +5,15 @@
 \title{Mutual information Based on Multivariate Distributions Constructed
     from Copulas}
 \usage{
-mutualinf(x, y, copula = NULL, margins = NULL, paramMargins = NULL,
-  method = "ml", ties.method = "max")
+mutualinf(
+  x,
+  y,
+  copula = NULL,
+  margins = NULL,
+  paramMargins = NULL,
+  method = "ml",
+  ties.method = "max"
+)
 }
 \arguments{
 \item{x, y}{marginal variates}

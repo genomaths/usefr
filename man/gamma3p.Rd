@@ -8,14 +8,27 @@
 \alias{rgamma3p}
 \title{Gamma Distribution with Three Parameters}
 \usage{
-dgamma3p(x, shape = 1, rate = 1, scale = 1/rate, mu = 0,
-  log = FALSE)
+dgamma3p(x, shape = 1, rate = 1, scale = 1/rate, mu = 0, log = FALSE)
 
-pgamma3p(q, shape = 1, rate = 1, scale = 1/rate, mu = 0,
-  lower.tail = TRUE, log.p = FALSE)
+pgamma3p(
+  q,
+  shape = 1,
+  rate = 1,
+  scale = 1/rate,
+  mu = 0,
+  lower.tail = TRUE,
+  log.p = FALSE
+)
 
-qgamma3p(p, shape = 1, rate = 1, scale = 1/rate, mu = 0,
-  lower.tail = TRUE, log.p = FALSE)
+qgamma3p(
+  p,
+  shape = 1,
+  rate = 1,
+  scale = 1/rate,
+  mu = 0,
+  lower.tail = TRUE,
+  log.p = FALSE
+)
 
 rgamma3p(n, shape = 1, rate = 1, scale = 1/rate, mu = 0)
 }

@@ -3,23 +3,37 @@
 \name{ggamma}
 \alias{ggamma}
 \alias{dggamma}
+\alias{rggamma}
 \alias{pggamma}
 \alias{qggamma}
-\alias{rggamma}
 \title{Generalized Gamma distribution}
 \usage{
 dggamma(q, alpha = 1, scale = 1, mu = 0, psi = 1, log.p = FALSE)
 
-pggamma(q, alpha = 1, scale = 1, mu = 0, psi = 1,
-  lower.tail = TRUE, log.p = FALSE)
+pggamma(
+  q,
+  alpha = 1,
+  scale = 1,
+  mu = 0,
+  psi = 1,
+  lower.tail = TRUE,
+  log.p = FALSE
+)
 
-qggamma(p, alpha = 1, scale = 1, mu = 0, psi = 1,
-  lower.tail = TRUE, log.p = FALSE)
+qggamma(
+  p,
+  alpha = 1,
+  scale = 1,
+  mu = 0,
+  psi = 1,
+  lower.tail = TRUE,
+  log.p = FALSE
+)
 
 rggamma(n, alpha = 1, scale = 1, mu = 0, psi = 1)
 }
 \arguments{
-\item{q}{numeric vector}
+\item{q}{numeric vector.}
 
 \item{alpha}{numerical parameter, strictly positive (default 1). The
 generalized gamma becomes the gamma distribution for alpha = 1.}
@@ -33,10 +47,12 @@ distribution. These are numerical and strictly positives; default 1.
 \item{log.p}{logical; if TRUE, probabilities/densities p are returned as
 log(p).}
 
-\item{lower.tail}{logical; if TRUE (default), probabilities are P[X<=x],
-otherwise, P[X > x]}
+\item{lower.tail}{logical; if TRUE (default), probabilities are
+\eqn{P(X<=x)}, otherwise, \eqn{P(X > x)}}
 
-\item{n}{number of observations}
+\item{p}{vector of probabilities.}
+
+\item{n}{number of observations.}
 }
 \value{
 GG PDF values (3-parameters or 4-parameters) for dggamma,
@@ -44,7 +60,7 @@ GG PDF values (3-parameters or 4-parameters) for dggamma,
     rggamma.
 }
 \description{
-Probability density function (PDF), cummulative density function
+Probability density function (PDF), cumulative density function
     (CDF), quantile function and random generation for the Generalized Gamma
     (GG) distribution with 3 or 4 parameters: alpha, scale, mu, and psi. The
     function is reduced to GGamma distribution with 3 parameters by setting
@@ -52,17 +68,17 @@ Probability density function (PDF), cummulative density function
 }
 \details{
 Details about these function can be found in references 1 to 3. You
-    may also see section Note at ?pgamma or ?rgamma. Herein, we are using
-    Stacy' s formula (references 2 to 3) with the parametrization given in
-    reference 4 (equation 6, page 12). As in the case of gamma distribution
-    function, the cumulative distribution function (as given in equation 12,
-    page 13 from reference 4) is expressed in terms of the lower incomplete
-    gamma function (see ?pgamma).
+may also see section Note at ?pgamma or ?rgamma. Herein, we are using Stacy'
+s formula (references 2 to 3) with the parametrization given in reference 4
+(equation 6, page 12). As in the case of gamma distribution function, the
+cumulative distribution function (as given in equation 12, page 13 from
+reference 4) is expressed in terms of the lower incomplete gamma function
+(see ?pgamma).
 
-    The GG distribution with parameters \eqn{\alpha}, \eqn{\beta} (scale),
-    \eqn{\psi}, and \eqn{\mu} has density:
+The GG distribution with parameters \eqn{\alpha}, \eqn{\beta} (scale),
+\eqn{\psi}, and \eqn{\mu} has density:
 
-    \deqn{f(x | \alpha, \beta, \mu, \psi) = \alpha exp(-((x-\mu)/
+\deqn{f(x | \alpha, \beta, \mu, \psi) = \alpha exp(-((x-\mu)/
     \beta)^\alpha) ((x-\mu)/\beta)^(\alpha * \psi - 1)/(\beta Gamma(\psi))}
 }
 \examples{
@@ -71,8 +87,8 @@ pggamma(q, alpha = 1, scale = 1, mu = 0,
         psi = 1, lower.tail = TRUE, log.p = FALSE)
 
 ## To fit random generated numbers
-set.seed(126)
-x <- rggamma(1000, alpha = 1.03, psi = 0.75, scale = 2.1)
+set.seed(123)
+x <- rggamma(2000, alpha = 1.03, psi = 0.75, scale = 2.1)
 fitGGammaDist(x)
 
 }

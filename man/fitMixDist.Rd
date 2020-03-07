@@ -4,11 +4,25 @@
 \alias{fitMixDist}
 \title{Nonlinear fit of Mixture distributions}
 \usage{
-fitMixDist(X, args = list(norm = c(mean = NA, sd = NA), weibull = c(shape
-  = NA, scale = NA)), npoints = 100, maxiter = 1024,
-  prior = priorControl(), ftol = 1e-14, ptol = 1e-14,
-  maxfev = 1e+05, equalPro = FALSE, eps, tol, usepoints, seed = 123,
-  dens = TRUE, kmean = FALSE, verbose = TRUE, ...)
+fitMixDist(
+  X,
+  args = list(norm = c(mean = NA, sd = NA), weibull = c(shape = NA, scale = NA)),
+  npoints = 100,
+  maxiter = 1024,
+  prior = priorControl(),
+  ftol = 1e-14,
+  ptol = 1e-14,
+  maxfev = 1e+05,
+  equalPro = FALSE,
+  eps,
+  tol,
+  usepoints,
+  seed = 123,
+  dens = TRUE,
+  kmean = FALSE,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{X}{numerical vector}

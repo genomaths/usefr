@@ -64,11 +64,10 @@
 #' x4 <- dhnorm(x, theta = sigma2theta(2), log = FALSE)
 #' all(round(x3, 8) == round(log(x4), 8))
 #' @author Robersy Sanchez (\url{https://genomaths.com}).
-#' @name dhnorm
+#'
+#' @aliases dhnorm
 #' @rdname hnorm
 #' @title Half-Normal distribution
-#' @description NULL
-#' @details NULL
 #' @export
 dhnorm <- function(x, theta = 1, log = FALSE) {
    x <- x * theta * sqrt(2/pi)
@@ -82,8 +81,6 @@ dhnorm <- function(x, theta = 1, log = FALSE) {
 #' @name phnorm
 #' @rdname hnorm
 #' @title Half-Normal distribution
-#' @description NULL
-#' @details NULL
 #' @export
 phnorm <- function(q, theta = 1, lower.tail = TRUE, log.p = FALSE) {
    q <- q * theta * sqrt(2/pi)
@@ -98,8 +95,6 @@ phnorm <- function(q, theta = 1, lower.tail = TRUE, log.p = FALSE) {
 #' @name qhnorm
 #' @rdname hnorm
 #' @title Half-Normal distribution
-#' @description NULL
-#' @details NULL
 #' @export
 qhnorm <- function(p, theta = 1, sigma = NULL, lower.tail=TRUE, log.p=FALSE) {
    if (log.p) p = exp(p)
@@ -113,8 +108,6 @@ qhnorm <- function(p, theta = 1, sigma = NULL, lower.tail=TRUE, log.p=FALSE) {
 #' @name rhnorm
 #' @rdname hnorm
 #' @title Half-Normal distribution
-#' @description NULL
-#' @details NULL
 #' @export
 rhnorm <- function(n, theta = 1) {
    r <- abs(rnorm(n, sd = theta2sigma(theta)))
@@ -124,8 +117,6 @@ rhnorm <- function(n, theta = 1) {
 #' @name theta2sigma
 #' @rdname hnorm
 #' @title Half-Normal distribution
-#' @description NULL
-#' @details NULL
 #' @export
 theta2sigma <- function(theta) {
    return(sqrt(pi/2)/theta)
@@ -134,8 +125,6 @@ theta2sigma <- function(theta) {
 #' @name sigma2theta
 #' @rdname hnorm
 #' @title Half-Normal distribution
-#' @description NULL
-#' @details NULL
 #' @export
 sigma2theta <- function(sigma) {
    return(sqrt(pi/2)/sigma)

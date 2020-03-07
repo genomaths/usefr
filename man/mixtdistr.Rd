@@ -8,13 +8,18 @@
 \alias{qmixtdistr}
 \title{Mixture of Distribution Functions}
 \usage{
-dmixtdistr(x, phi, arg, log = FALSE, lower.tail = TRUE,
-  log.p = FALSE)
+dmixtdistr(x, phi, arg, log = FALSE, lower.tail = TRUE, log.p = FALSE)
 
 pmixtdistr(q, phi, arg, lower.tail = TRUE, log.p = FALSE)
 
-qmixtdistr(p, interval = c(0, 1000), phi, arg, lower.tail = TRUE,
-  log.p = FALSE)
+qmixtdistr(
+  p,
+  interval = c(0, 1000),
+  phi,
+  arg,
+  lower.tail = TRUE,
+  log.p = FALSE
+)
 
 rmixtdistr(n, phi, arg)
 }

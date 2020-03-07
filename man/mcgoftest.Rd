@@ -4,10 +4,20 @@
 \alias{mcgoftest}
 \title{Bootstrap test for Goodness of fit (GoF)}
 \usage{
-mcgoftest(varobj, distr, pars, num.sampl = 999, sample.size,
-  stat = c("ks", "ad", "rmse", "chisq"), breaks = NULL,
-  parametric = TRUE, seed = 1, num.cores = 1, tasks = 0,
-  verbose = TRUE)
+mcgoftest(
+  varobj,
+  distr,
+  pars,
+  num.sampl = 999,
+  sample.size,
+  stat = c("ks", "ad", "rmse", "chisq"),
+  breaks = NULL,
+  parametric = TRUE,
+  seed = 1,
+  num.cores = 1,
+  tasks = 0,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{varobj}{A a vector containing observations, the variable for which the

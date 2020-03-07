@@ -4,9 +4,19 @@
 \alias{fitCDF}
 \title{Nonlinear fit of a commulative distribution function}
 \usage{
-fitCDF(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
-  start = NULL, only.info = FALSE, maxiter = 10^4, maxfev = 1e+05,
-  ptol = 1e-12, verbose = TRUE)
+fitCDF(
+  varobj,
+  distNames,
+  plot = TRUE,
+  plot.num = 1,
+  distf = NULL,
+  start = NULL,
+  only.info = FALSE,
+  maxiter = 10^4,
+  maxfev = 1e+05,
+  ptol = 1e-12,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{varobj}{A a vector containing observations, the variable for which the

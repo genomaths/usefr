@@ -17,13 +17,12 @@
 ## You should have received a copy of the GNU General Public License along with
 ## this program; if not, see <http://www.gnu.org/licenses/>.
 
-#' @rdname gamma3p
 #' @name gamma3p
 #' @aliases gamma3p
-#' @aliases rgamma3p
-#' @aliases pgamma3p
 #' @aliases dgamma3p
+#' @aliases pgamma3p
 #' @aliases qgamma3p
+#' @aliases rgamma3p
 #'
 #' @title Gamma Distribution with Three Parameters
 #' @description Probability density function (PDF), cummulative density function
@@ -57,24 +56,19 @@
 #' lines(r1, dgamma3p(r1, shape = 1.4, scale = 3.7, mu = 0.9),
 #'     col = "red")
 #'
-
-#' @name dgamma3p
+#' @aliases dgamma3p
 #' @rdname gamma3p
 #' @title Gamma Distribution with Three Parameters
-#' @description NULL
-#' @details NULL
 #' @export
 dgamma3p <- function(x, shape = 1, rate = 1, scale = 1/rate, mu = 0, log = FALSE) {
   d <- dgamma(x = x - mu, shape = shape, scale = scale, log = log)
   return(d)
 }
 
-
-#' @name pgamma3p
+#' @aliases pgamma3p
 #' @rdname gamma3p
 #' @title Gamma Distribution with Three Parameters
-#' @description NULL
-#' @details NULL
+#' @importFrom stats pgamma
 #' @export
 pgamma3p <- function(q, shape = 1,  rate = 1, scale = 1/rate, mu = 0, lower.tail = TRUE,
                       log.p = FALSE) {
@@ -86,8 +80,6 @@ pgamma3p <- function(q, shape = 1,  rate = 1, scale = 1/rate, mu = 0, lower.tail
 #' @name qgamma3p
 #' @rdname gamma3p
 #' @title Gamma Distribution with Three Parameters
-#' @description NULL
-#' @details NULL
 #' @export
 qgamma3p <- function(p, shape = 1, rate = 1, scale = 1/rate, mu = 0, lower.tail = TRUE,
                       log.p = FALSE) {
@@ -99,8 +91,7 @@ qgamma3p <- function(p, shape = 1, rate = 1, scale = 1/rate, mu = 0, lower.tail 
 #' @name rgamma3p
 #' @rdname gamma3p
 #' @title Gamma Distribution with Three Parameters
-#' @description NULL
-#' @details NULL
+#' @importFrom stats qgamma
 #' @export
 rgamma3p <- function(n, shape = 1, rate = 1, scale = 1/rate, mu = 0) {
    r <- rgamma(n = n, shape = shape, scale = scale) + mu

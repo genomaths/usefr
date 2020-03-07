@@ -17,7 +17,6 @@
 ## You should have received a copy of the GNU General Public License along with
 ## this program; if not, see <http://www.gnu.org/licenses/>.
 
-#' @rdname weibull3p
 #' @name weibull3p
 #' @aliases weibull3p
 #' @aliases rweibull3p
@@ -58,11 +57,9 @@
 #'     col = "red")
 #'
 
-#' @name dweibull3p
+#' @aliases dweibull3p
 #' @rdname weibull3p
 #' @title Weibull Distribution with Three Parameters
-#' @description NULL
-#' @details NULL
 #' @export
 dweibull3p <- function(x, shape = 1, scale = 1, mu = 0, log = FALSE) {
   d <- dweibull(x = x - mu, shape = shape, scale = scale, log = log)
@@ -73,8 +70,6 @@ dweibull3p <- function(x, shape = 1, scale = 1, mu = 0, log = FALSE) {
 #' @name pweibull3p
 #' @rdname weibull3p
 #' @title Weibull Distribution with Three Parameters
-#' @description NULL
-#' @details NULL
 #' @export
 pweibull3p <- function(q, shape = 1, scale = 1, mu = 0, lower.tail = TRUE,
                       log.p = FALSE) {
@@ -86,8 +81,6 @@ pweibull3p <- function(q, shape = 1, scale = 1, mu = 0, lower.tail = TRUE,
 #' @name qweibull3p
 #' @rdname weibull3p
 #' @title Weibull Distribution with Three Parameters
-#' @description NULL
-#' @details NULL
 #' @export
 qweibull3p <- function(p, shape = 1, scale = 1, mu = 0, lower.tail = TRUE,
                       log.p = FALSE) {
@@ -99,8 +92,6 @@ qweibull3p <- function(p, shape = 1, scale = 1, mu = 0, lower.tail = TRUE,
 #' @name rweibull3p
 #' @rdname weibull3p
 #' @title Weibull Distribution with Three Parameters
-#' @description NULL
-#' @details NULL
 #' @export
 rweibull3p <- function(n, shape = 1, scale = 1, mu = 0) {
    r <- rweibull(n = n, shape = shape, scale = scale) + mu

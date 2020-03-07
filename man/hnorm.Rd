@@ -3,9 +3,9 @@
 \name{hnorm}
 \alias{hnorm}
 \alias{dhnorm}
+\alias{rhnorm}
 \alias{phnorm}
 \alias{qhnorm}
-\alias{rhnorm}
 \alias{theta2sigma}
 \alias{sigma2theta}
 \title{Half-Normal distribution}
@@ -14,8 +14,7 @@ dhnorm(x, theta = 1, log = FALSE)
 
 phnorm(q, theta = 1, lower.tail = TRUE, log.p = FALSE)
 
-qhnorm(p, theta = 1, sigma = NULL, lower.tail = TRUE,
-  log.p = FALSE)
+qhnorm(p, theta = 1, sigma = NULL, lower.tail = TRUE, log.p = FALSE)
 
 rhnorm(n, theta = 1)
 

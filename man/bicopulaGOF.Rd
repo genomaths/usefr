@@ -5,11 +5,24 @@
 \title{Goodness of Fit Boostrap Test for Bivariate distributions Constructed
     from Copula with Known Margins.}
 \usage{
-bicopulaGOF(x, y, copula = NULL, margins = NULL, paramMargins = NULL,
-  sample.size = NULL, nboots = 10, approach = c("adchisq", "adgamma",
-  "chisq", "rmse", "Sn", "SnB", "SnC"), Rosenblatt = FALSE,
-  breaks = 12, method = "ml", num.cores = 1L, tasks = 0,
-  seed = 123, verbose = TRUE, ...)
+bicopulaGOF(
+  x,
+  y,
+  copula = NULL,
+  margins = NULL,
+  paramMargins = NULL,
+  sample.size = NULL,
+  nboots = 10,
+  approach = c("adchisq", "adgamma", "chisq", "rmse", "Sn", "SnB", "SnC"),
+  Rosenblatt = FALSE,
+  breaks = 12,
+  method = "ml",
+  num.cores = 1L,
+  tasks = 0,
+  seed = 123,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{Numerical vector with the observations from the first marginal

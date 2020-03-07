@@ -3,18 +3,16 @@
 \name{weibull3p}
 \alias{weibull3p}
 \alias{dweibull3p}
+\alias{rweibull3p}
 \alias{pweibull3p}
 \alias{qweibull3p}
-\alias{rweibull3p}
 \title{Weibull Distribution with Three Parameters}
 \usage{
 dweibull3p(x, shape = 1, scale = 1, mu = 0, log = FALSE)
 
-pweibull3p(q, shape = 1, scale = 1, mu = 0, lower.tail = TRUE,
-  log.p = FALSE)
+pweibull3p(q, shape = 1, scale = 1, mu = 0, lower.tail = TRUE, log.p = FALSE)
 
-qweibull3p(p, shape = 1, scale = 1, mu = 0, lower.tail = TRUE,
-  log.p = FALSE)
+qweibull3p(p, shape = 1, scale = 1, mu = 0, lower.tail = TRUE, log.p = FALSE)
 
 rweibull3p(n, shape = 1, scale = 1, mu = 0)
 }
