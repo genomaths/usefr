@@ -17,6 +17,7 @@
 ## You should have received a copy of the GNU General Public License along with
 ## this program; if not, see <http://www.gnu.org/licenses/>.
 
+#' @rdname mixtdistr
 #' @name mixtdistr
 #' @aliases rmixtdistr
 #' @aliases pmixtdistr
@@ -65,9 +66,8 @@
 #' x1 <- seq(0, 10, by = 0.001)
 #' lines(x1, dmixtdistr(x1, phi = phi, arg = args), col = "red")
 #' @author Robersy Sanchez (\url{https://genomaths.com}).
-
+#'
 #' @aliases dmixtdistr
-#' @rdname mixtdistr
 #' @title Mixture of Distribution Functions
 #' @export
 #'
@@ -88,7 +88,7 @@ dmixtdistr <- function(x, phi, arg,  log = FALSE,
    return(d)
 }
 
-#' @name pmixtdistr
+#' @aliases pmixtdistr
 #' @rdname mixtdistr
 #' @title Mixture of Distribution Functions
 #' @export
@@ -112,7 +112,7 @@ pmixtdistr <- function(q, phi, arg,  lower.tail = TRUE, log.p = FALSE) {
    return(d)
 }
 
-#' @name qmixtdistr
+#' @aliases qmixtdistr
 #' @rdname mixtdistr
 #' @title Mixture of Distribution Functions
 #' @export
@@ -132,7 +132,7 @@ qmixtdistr <- function(p, interval = c(0, 1000),
    return(qmixtfn(p))
 }
 
-#' @name rmixtdistr
+#' @aliases rmixtdistr
 #' @rdname mixtdistr
 #' @title Mixture of Distribution Functions
 #' @export

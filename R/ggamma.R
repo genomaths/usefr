@@ -1,3 +1,22 @@
+## Copyright (C) 2019 Robersy Sanchez <https://genomaths.com/>
+##
+## Author: Robersy Sanchez
+#
+## This file is part of the R package "usefr".
+##
+## 'usefr' is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful, but WITHOUT
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+## details.
+##
+## You should have received a copy of the GNU General Public License along with
+## this program; if not, see <http://www.gnu.org/licenses/>.
+
 #' @name ggamma
 #' @aliases ggamma
 #' @aliases rggamma
@@ -67,19 +86,21 @@
 #' fitGGammaDist(x)
 #'
 #' @importFrom stats pgamma rgamma
-#' @author Robersy Sanchez (\url{https://genomaths.com}).
 #'
 #' @aliases dggamma
 #' @rdname ggamma
 #' @title Generalized Gamma distribution
 #' @export
-dggamma <- function(q, alpha=1, scale=1, mu=0, psi=1, log.p=FALSE) {
-  if (scale > 0 && alpha > 0 && psi > 0) {
-    y <- (q - mu)/scale
-    d <- exp(-y^alpha) * alpha * y^(alpha * psi - 1)/(scale * gamma(psi))
-    if (log.p) return(log(d)) else return(d)
-  } else d <- NaN
-  return(d)
+dggamma <- function(q, alpha = 1, scale = 1, mu = 0,
+    psi = 1, log.p = FALSE) {
+    if (scale > 0 && alpha > 0 && psi > 0) {
+        y <- (q - mu)/scale
+        d <- exp(-y^alpha) * alpha * y^(alpha * psi -
+            1)/(scale * gamma(psi))
+        if (log.p)
+            return(log(d)) else return(d)
+    } else d <- NaN
+    return(d)
 }
 #'
 #' @name pggamma
@@ -87,13 +108,14 @@ dggamma <- function(q, alpha=1, scale=1, mu=0, psi=1, log.p=FALSE) {
 #' @title Generalized Gamma distribution
 #' @importFrom stats pgamma
 #' @export
-pggamma <- function(q, alpha=1, scale=1, mu=0,
-                    psi=1, lower.tail=TRUE, log.p=FALSE) {
-  if (scale > 0 && alpha > 0 && psi > 0) {
-    y <- ((q - mu) / scale ) ^ alpha
-    p <- pgamma(y, shape=psi, lower.tail = lower.tail, log.p = log.p)
-  } else p <- NaN
-  return(p)
+pggamma <- function(q, alpha = 1, scale = 1, mu = 0,
+    psi = 1, lower.tail = TRUE, log.p = FALSE) {
+    if (scale > 0 && alpha > 0 && psi > 0) {
+        y <- ((q - mu)/scale)^alpha
+        p <- pgamma(y, shape = psi, lower.tail = lower.tail,
+            log.p = log.p)
+    } else p <- NaN
+    return(p)
 }
 
 #' @name qggamma
@@ -101,13 +123,14 @@ pggamma <- function(q, alpha=1, scale=1, mu=0,
 #' @title Generalized Gamma distribution
 #' @importFrom stats qgamma
 #' @export
-qggamma <- function(p, alpha=1, scale=1, mu=0,
-                    psi=1, lower.tail=TRUE, log.p=FALSE) {
-  if (scale > 0 && alpha > 0 && psi > 0) {
-    q <- qgamma(p, shape=psi, lower.tail = lower.tail, log.p = log.p)
-    q <- scale * q^(1/alpha) + mu
-  } else q <- NaN
-  return(q)
+qggamma <- function(p, alpha = 1, scale = 1, mu = 0,
+    psi = 1, lower.tail = TRUE, log.p = FALSE) {
+    if (scale > 0 && alpha > 0 && psi > 0) {
+        q <- qgamma(p, shape = psi, lower.tail = lower.tail,
+            log.p = log.p)
+        q <- scale * q^(1/alpha) + mu
+    } else q <- NaN
+    return(q)
 }
 
 #' @name rggamma
@@ -115,11 +138,15 @@ qggamma <- function(p, alpha=1, scale=1, mu=0,
 #' @title Generalized Gamma distribution
 #' @importFrom stats rgamma
 #' @export
-rggamma <- function(n, alpha=1, scale=1, mu=0, psi=1) {
-  if (scale <= 0) stop("'scale' parameter must be positive")
-  if (alpha <= 0) stop("'alpha' parameter must be positive")
-  if (psi <= 0) stop("'psi' parameter must be positive")
+rggamma <- function(n, alpha = 1, scale = 1, mu = 0,
+    psi = 1) {
+    if (scale <= 0)
+        stop("'scale' parameter must be positive")
+    if (alpha <= 0)
+        stop("'alpha' parameter must be positive")
+    if (psi <= 0)
+        stop("'psi' parameter must be positive")
 
-  r <- scale * (rgamma(n, psi*alpha) ^ (1/alpha))
-  return(r)
+    r <- scale * (rgamma(n, psi * alpha)^(1/alpha))
+    return(r)
 }

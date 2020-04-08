@@ -3,9 +3,9 @@
 \name{gamma3p}
 \alias{gamma3p}
 \alias{dgamma3p}
+\alias{rgamma3p}
 \alias{pgamma3p}
 \alias{qgamma3p}
-\alias{rgamma3p}
 \title{Gamma Distribution with Three Parameters}
 \usage{
 dgamma3p(x, shape = 1, rate = 1, scale = 1/rate, mu = 0, log = FALSE)

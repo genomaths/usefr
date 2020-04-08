@@ -19,10 +19,10 @@
 
 #' @name gamma3p
 #' @aliases gamma3p
-#' @aliases dgamma3p
-#' @aliases pgamma3p
-#' @aliases qgamma3p
 #' @aliases rgamma3p
+#' @aliases pgamma3p
+#' @aliases dgamma3p
+#' @aliases qgamma3p
 #'
 #' @title Gamma Distribution with Three Parameters
 #' @description Probability density function (PDF), cummulative density function
@@ -56,8 +56,8 @@
 #' lines(r1, dgamma3p(r1, shape = 1.4, scale = 3.7, mu = 0.9),
 #'     col = "red")
 #'
-#' @aliases dgamma3p
 #' @rdname gamma3p
+#' @aliases dgamma3p
 #' @title Gamma Distribution with Three Parameters
 #' @export
 dgamma3p <- function(x, shape = 1, rate = 1, scale = 1/rate, mu = 0, log = FALSE) {
@@ -65,10 +65,10 @@ dgamma3p <- function(x, shape = 1, rate = 1, scale = 1/rate, mu = 0, log = FALSE
   return(d)
 }
 
+
 #' @aliases pgamma3p
 #' @rdname gamma3p
 #' @title Gamma Distribution with Three Parameters
-#' @importFrom stats pgamma
 #' @export
 pgamma3p <- function(q, shape = 1,  rate = 1, scale = 1/rate, mu = 0, lower.tail = TRUE,
                       log.p = FALSE) {
@@ -77,7 +77,7 @@ pgamma3p <- function(q, shape = 1,  rate = 1, scale = 1/rate, mu = 0, lower.tail
    return(p)
 }
 
-#' @name qgamma3p
+#' @aliases qgamma3p
 #' @rdname gamma3p
 #' @title Gamma Distribution with Three Parameters
 #' @export
@@ -88,10 +88,9 @@ qgamma3p <- function(p, shape = 1, rate = 1, scale = 1/rate, mu = 0, lower.tail 
    return(q)
 }
 
-#' @name rgamma3p
+#' @aliases rgamma3p
 #' @rdname gamma3p
 #' @title Gamma Distribution with Three Parameters
-#' @importFrom stats qgamma
 #' @export
 rgamma3p <- function(n, shape = 1, rate = 1, scale = 1/rate, mu = 0) {
    r <- rgamma(n = n, shape = shape, scale = scale) + mu

@@ -66,8 +66,7 @@ dweibull3p <- function(x, shape = 1, scale = 1, mu = 0, log = FALSE) {
   return(d)
 }
 
-
-#' @name pweibull3p
+#' @aliases pweibull3p
 #' @rdname weibull3p
 #' @title Weibull Distribution with Three Parameters
 #' @export
@@ -78,7 +77,7 @@ pweibull3p <- function(q, shape = 1, scale = 1, mu = 0, lower.tail = TRUE,
    return(p)
 }
 
-#' @name qweibull3p
+#' @aliases qweibull3p
 #' @rdname weibull3p
 #' @title Weibull Distribution with Three Parameters
 #' @export
@@ -89,7 +88,7 @@ qweibull3p <- function(p, shape = 1, scale = 1, mu = 0, lower.tail = TRUE,
    return(q)
 }
 
-#' @name rweibull3p
+#' @aliases rweibull3p
 #' @rdname weibull3p
 #' @title Weibull Distribution with Three Parameters
 #' @export

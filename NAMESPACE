@@ -2,6 +2,7 @@
 
 export(AICmodel)
 export(BICmodel)
+export(MANOVA)
 export(bicopulaGOF)
 export(dgamma3p)
 export(dggamma)

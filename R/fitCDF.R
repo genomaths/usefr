@@ -159,7 +159,7 @@ fitCDF <- function(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
 
    if (is.numeric(distNames)) {
        distNames <- as.integer(distNames)
-       if (distNames > 20)
+       if (any(distNames > 20))
            stop("*** 'distNames' must be a string or a number < 21")
    }
 

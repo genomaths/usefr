@@ -64,7 +64,6 @@
 #' x4 <- dhnorm(x, theta = sigma2theta(2), log = FALSE)
 #' all(round(x3, 8) == round(log(x4), 8))
 #' @author Robersy Sanchez (\url{https://genomaths.com}).
-#'
 #' @aliases dhnorm
 #' @rdname hnorm
 #' @title Half-Normal distribution
@@ -78,7 +77,7 @@ dhnorm <- function(x, theta = 1, log = FALSE) {
    return(d)
 }
 #'
-#' @name phnorm
+#' @aliases phnorm
 #' @rdname hnorm
 #' @title Half-Normal distribution
 #' @export
@@ -92,7 +91,7 @@ phnorm <- function(q, theta = 1, lower.tail = TRUE, log.p = FALSE) {
    return(p)
 }
 
-#' @name qhnorm
+#' @aliases qhnorm
 #' @rdname hnorm
 #' @title Half-Normal distribution
 #' @export
@@ -105,7 +104,7 @@ qhnorm <- function(p, theta = 1, sigma = NULL, lower.tail=TRUE, log.p=FALSE) {
    return(q)
 }
 
-#' @name rhnorm
+#' @aliases rhnorm
 #' @rdname hnorm
 #' @title Half-Normal distribution
 #' @export
@@ -114,7 +113,7 @@ rhnorm <- function(n, theta = 1) {
    return(r)
 }
 
-#' @name theta2sigma
+#' @aliases theta2sigma
 #' @rdname hnorm
 #' @title Half-Normal distribution
 #' @export
@@ -122,7 +121,7 @@ theta2sigma <- function(theta) {
    return(sqrt(pi/2)/theta)
 }
 
-#' @name sigma2theta
+#' @aliases sigma2theta
 #' @rdname hnorm
 #' @title Half-Normal distribution
 #' @export
