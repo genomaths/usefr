@@ -12,7 +12,7 @@ fitCDF(
   distf = NULL,
   start = NULL,
   only.info = FALSE,
-  maxiter = 10^4,
+  maxiter = 1024,
   maxfev = 1e+05,
   ptol = 1e-12,
   verbose = TRUE
@@ -71,7 +71,7 @@ below). Default is NULL.}
 \item{only.info}{Logic. Default TRUE. If true, only information about the
 parameter estimation is returned.}
 
-\item{maxiter, maxfev, ptol}{Parameters to ontrol of various aspects of the
+\item{maxiter, maxfev, ptol}{Parameters to control of various aspects of the
 Levenberg-Marquardt algorithm through function
 \code{\link[minpack.lm]{nls.lm.control}} from *minpack.lm* package.}
 

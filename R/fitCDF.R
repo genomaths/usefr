@@ -69,7 +69,7 @@
 #'     below). Default is NULL.
 #' @param only.info Logic. Default TRUE. If true, only information about the
 #'     parameter estimation is returned.
-#' @param maxiter,maxfev,ptol Parameters to ontrol of various aspects of the
+#' @param maxiter,maxfev,ptol Parameters to control of various aspects of the
 #'     Levenberg-Marquardt algorithm through function
 #'     \code{\link[minpack.lm]{nls.lm.control}} from *minpack.lm* package.
 #' @param verbose Logic. If TRUE, prints the function log to stdout
@@ -154,7 +154,7 @@
 #' summary(cdfp$bestfit)
 
 fitCDF <- function(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
-                    start = NULL, only.info = FALSE, maxiter = 10^4,
+                    start = NULL, only.info = FALSE, maxiter = 1024,
                     maxfev = 1e+5, ptol = 1e-12, verbose = TRUE) {
 
    if (is.numeric(distNames)) {
