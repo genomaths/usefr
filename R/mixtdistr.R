@@ -77,11 +77,11 @@ dmixtdistr <- function(x, phi, arg,  log = FALSE,
    n <- numeric(length(x))
    dfn = names(arg)
    if (length(x) > 1) {
-      d <- rowSums(vapply(1:k, function(i)
+      d <- rowSums(vapply(seq_len(k), function(i)
                                    phi[i] * distF(x, dfn = dfn[i], type = "d",
                                                arg = arg[[i]], log = log), n))
    } else {
-      d <- sum(sapply(1:k, function(i)
+      d <- sum(sapply(seq_len(k), function(i)
                                    phi[i] * distF(x, dfn = dfn[i], type = "d",
                                                arg = arg[[i]], log = log)))
    }
@@ -97,13 +97,13 @@ pmixtdistr <- function(q, phi, arg,  lower.tail = TRUE, log.p = FALSE) {
    n <- numeric(length(q))
    dfn = names(arg)
    if (length(q) > 1) {
-      d <- rowSums(vapply(1:k, function(i)
+      d <- rowSums(vapply(seq_len(k), function(i)
                                    phi[i] * distF(q, dfn = dfn[i], type = "p",
                                                    arg = arg[[i]],
                                                    lower.tail = lower.tail,
                                                    log.p = log.p), n))
    } else {
-      d <- sum(sapply(1:k, function(i)
+      d <- sum(sapply(seq_len(k), function(i)
                                    phi[i] * distF(q, dfn = dfn[i], type = "p",
                                                    arg = arg[[i]],
                                                    lower.tail = lower.tail,
@@ -137,11 +137,14 @@ qmixtdistr <- function(p, interval = c(0, 1000),
 #' @title Mixture of Distribution Functions
 #' @export
 rmixtdistr <- function(n, phi, arg) {
+   idx <- order(phi, decreasing = TRUE)
+   phi <- phi[idx]
+   arg <- arg[idx]
    j <- sample.int(length(phi), n, replace = TRUE, prob = phi)
    k <- length(phi)
    dfn = names(arg)
-   freqs <- sapply(1:k, function(i) sum(j == i))
-   return(unlist(lapply(1:k, function(i)
+   freqs <- sapply(seq_len(k), function(i) sum(j == i))
+   return(unlist(lapply(seq_len(k), function(i)
                    distF(freqs[i], dfn = dfn[i], type = "r",
                            arg = arg[[i]]))))
 }

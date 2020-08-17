@@ -7,25 +7,32 @@
 fitMixDist(
   X,
   args = list(norm = c(mean = NA, sd = NA), weibull = c(shape = NA, scale = NA)),
+  dens = TRUE,
   npoints = 100,
+  kmean = FALSE,
   maxiter = 1024,
   prior = priorControl(),
   ftol = 1e-14,
   ptol = 1e-14,
   maxfev = 1e+05,
   equalPro = FALSE,
-  eps,
-  tol,
+  eps = .Machine$double.eps,
+  tol = c(1e-05, sqrt(.Machine$double.eps)),
   usepoints,
+  iter.max = 10,
+  nstart = 1,
+  algorithm = c("Hartigan-Wong", "Lloyd", "Forgy", "MacQueen"),
   seed = 123,
-  dens = TRUE,
-  kmean = FALSE,
   verbose = TRUE,
   ...
 )
 }
 \arguments{
-\item{X}{numerical vector}
+\item{X}{numerical vector. It is user responsability to provide `X` values
+that belong the definition domain of the functions from mixture
+distribution.}
+
+\item{dens}{Logic. Whether to use fit the 'PDF' or 'CDF'. Default is TRUE.}
 
 \item{npoints}{number of points used in the fit of the density function or
 NULL. These are used as histogram break points to estimate the empirical
@@ -33,6 +40,10 @@ density values. If \emph{npoints} = NULL and \emph{dens} = TRUE, then.
 Kernel Density Estimation function \code{\link[stats]{density}} from
 \emph{stats} package is used to estimate the empirical density. Default
 value is 100.}
+
+\item{kmean}{Logic. Whether to use \code{\link[stats]{kmeans}} algorithm to
+perform the estimation in place of \code{\link[mclust]{Mclust}}. Deafult
+is FALSE.}
 
 \item{maxiter}{positive integer. Termination occurs when the number of
 iterations reaches maxiter. Default value: 1024.}
@@ -65,13 +76,9 @@ proportions are equal in the model. Default: equalPro = FALSE.}
 about >= 10000. This number can be used to extract a random sample of
 size 'usepoints' and to do the estimation with it.}
 
+\item{iter.max, nstart, algorithm}{Same as in \code{\link[stats]{kmeans}}.}
+
 \item{seed}{Seed for random number generation.}
-
-\item{dens}{Logic. Whether to use fit the 'PDF' or 'CDF'. Default is TRUE.}
-
-\item{kmean}{Logic. Whether to use \code{\link[stats]{kmeans}} algorithm to
-perform the estimation in place of \code{\link[mclust]{Mclust}}. Deafult
-is FALSE.}
 
 \item{verbose}{if TRUE, prints the function log to stdout and a progress bar}
 
@@ -79,27 +86,38 @@ is FALSE.}
 \code{\link[mclust]{Mclust}} and \code{\link[stats]{density}}.}
 
 \item{arg}{A list of named vectors with the corresponding named distribution
-parameters values. The names of the vector of parameters and the
-parameter names must correspond to defined functions. For example, if
-one of the involved distributions is the gamma density (see
-\code{\link[stats]{GammaDist}}), then the corresponding vector of
-parameters must be gamma = c(shape = 'some value', scale = 'some value').
-For the following distributions, the arguments can be provided with NULL
-values:
-\itemize{
-    \item "norm" \href{https://goo.gl/xaEAdT}{(Wikipedia)}
-    \item "halfnorm" \href{https://goo.gl/yxMF6T}{(Wikipedia)}.
-    \item "gnorm" \href{https://goo.gl/EPk8mH}{(Wikipedia)}
-    \item "gamma" \href{https://goo.gl/cYkvar}{(Wikipedia)}
-    \item "beta" \href{https://goo.gl/893wzR}{(Wikipedia)}
-    \item "laplace" \href{https://goo.gl/fCykV9}{(Wikipedia)}
-    \item "weibull" \href{https://goo.gl/WMXmQP}{(Wikipedia)}
-    \item "rayleigh" \href{https://goo.gl/d9b3zv}{(Wikipedia)}
-    \item "exp" \href{https://goo.gl/stVsi7}{(Wikipedia)}
-}
+    parameters values. The names of the vector of parameters and the
+    parameter names must correspond to defined functions. For example, if
+    one of the involved distributions is the gamma density (see
+    \code{\link[stats]{GammaDist}}), then the corresponding vector of
+    parameters must be gamma = c(shape = 'some value', scale = 'some value').
+    For the following distributions, the arguments can be provided with NULL
+    values:
+    \itemize{
+        \item "norm" \href{https://goo.gl/xaEAdT}{(Wikipedia)}
+        \item "halfnorm" \href{https://goo.gl/yxMF6T}{(Wikipedia)}.
+        \item "lnorm" \href{https://is.gd/A5EJFi}{(Wikipedia)}
+        \item "gnorm" \href{https://goo.gl/EPk8mH}{(Wikipedia)}
+        \item "gamma" \href{https://goo.gl/cYkvar}{(Wikipedia)}
+        \item "ggamma" \href{https://is.gd/oPHfX7}{(Wikipedia)}
+        \item "beta" \href{https://goo.gl/893wzR}{(Wikipedia)}
+        \item "beta" \href{https://goo.gl/893wzR}{(Wikipedia)}
+        \item "laplace" \href{https://goo.gl/fCykV9}{(Wikipedia)}
+        \item "weibull" \href{https://goo.gl/WMXmQP}{(Wikipedia)}
+        \item "rayleigh" \href{https://goo.gl/d9b3zv}{(Wikipedia)}
+        \item "exp" \href{https://goo.gl/stVsi7}{(Wikipedia)}
+    }
+
 Notice that the distribution given names correspond to the root-names as
 given for R functions. For example, 'gamma' is the root-name for
-functions \code{\link[stats]{GammaDist}}. See example, for more details.}
+functions \code{\link[stats]{GammaDist}}. See example, for more details. It
+is necessary that any the root-name provided corresponds to a defined PDF
+(if dens = TRUE) or to a defined CDF (if dens = FALSE) found in the session
+`environment` (see ?environment).}
+
+\item{fit.comp}{Logical. If FALSE, then starting parameter values for each
+mixture component will be estimated suing function \code{\link{fitCDF}},
+which could use more computational time. Default is FALSE}
 }
 \value{
 A list with the model table with coefficients and goodness-of-fit
@@ -121,17 +139,21 @@ The approch tries to fit the proposed mixture distributions using a
     addition, Stein's formula for adjusted R squared (rho) was used as an
     estimator of the average cross-validation predictive power [1]. Notice
     that the parameter values must be given in way \emph{understandable}
-    by the set of functions \code{\link{mixtdistr}} (see the example below)
+    by the set of functions \code{\link{mixtdistr}} (see the example below).
+    It is user responsability to provide `X` values that belong the
+    definition domain of the functions from mixture distribution.
 }
 \examples{
-set.seed(123) # set a seed for random generation
+#'
+set.seed(1) # set a seed for random generation
 ## ========= A mixture of three distributions =========
-phi = c(3/10, 7/10) #' Mixture proportions
+phi = c(6/10, 4/10) #' Mixture proportions
 ## ---------------------------------------------------------
 
 ## === Named vector of the corresponding distribution function parameters
 ## must be provided
-args <- list(gamma = c(shape = 2, scale = 0.1), weibull = c(shape = 3, scale = 0.5))
+args <- list(gamma = c(shape = 2, scale = 0.1),
+             weibull = c(shape = 3, scale = 0.5))
 ## ------------------------------------------------------------
 
 ## ===== Sampling from the specified mixture distribution ====
@@ -140,19 +162,38 @@ X <- rmixtdistr(n = 1e5, phi = phi , arg = args)
 
 ## ===== Nonlinear fit of the specified mixture distribution ====
 FIT <- fitMixDist(X, args = list(gamma = c(shape = NA, scale = NA),
-                                 weibull = c(shape = NA, scale = NA)),
-                  npoints = 200, usepoints = 1000)
+                                 weibull = c(shape = NA, scale = NA)))
 
-## === The graphics for the simulated dataset and the corresponding theoretical
-## mixture distribution
+## === The graphics for the simulated dataset and the corresponding
+## theoretical mixture distribution.
 par(bg = "gray98",  mar = c(3, 4, 2, 1) )
-hist(X, 90, freq = FALSE, las = 1, family = "serif", col = rgb(0, 0, 1, 0.),
+hist(X, 90, freq = FALSE, las = 1, ylim = c(0, 5), xlim = c(0, 1),
+     panel.first={points(0, 0, pch=16, cex=1e6, col="grey95")
+       grid(col="white", lty = 1)},
+     family = "serif", col = rgb(0, 0, 1, 0.),
      border = "deepskyblue", main = "Histogram of Mixture Distribution")
 x1 <- seq(-4, 10, by = 0.001)
 lines(x1, dmixtdistr(x1, phi = phi, arg = args), col = "red")
 lines(x1, dmixtdistr(x1, phi = FIT$phi, arg = FIT$args), col = "blue")
-legend(1, 1.5, legend=c("Theoretical Mixture PDF", "Estimated Mixture PDF"),
-       col=c("red", "blue"), lty=1, cex=0.8)
+legend(0.5, 4, legend = c("Theoretical Mixture PDF",
+                          "Estimated Mixture PDF",
+                          "Gamma distribution component",
+                          "Weibull distribution component"),
+       col=c("red", "blue", "magenta", "brown"), lty=1, cex=0.8)
+
+## The standard definition of dgamma function (see ?dgamma)
+lines(x1, dgamma(x1, shape = FIT$args$gamma[1],
+                 scale = FIT$args$gamma[2]), col = "magenta")
+## The standard definition of dgamma function (see ?dgamma)
+lines(x1, dgamma(x1, shape = args$gamma[1],
+                   scale = args$gamma[2]), col = "brown")
+
+## The accuracy of the fitting depends on the the starting values
+FIT <- fitMixDist(X, args = list(gamma = c(shape = 2.3, scale = 0.12),
+                                 weibull = c(shape = 2.5, scale = 0.4)))
+FIT$args
+FIT$phi
+
 }
 \references{
 1. Stevens JP. Applied Multivariate Statistics for the Social
