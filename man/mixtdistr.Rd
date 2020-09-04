@@ -18,7 +18,9 @@ qmixtdistr(
   phi,
   arg,
   lower.tail = TRUE,
-  log.p = FALSE
+  log.p = FALSE,
+  tol = 1e-10,
+  ...
 )
 
 rmixtdistr(n, phi, arg)

@@ -116,17 +116,22 @@ pmixtdistr <- function(q, phi, arg,  lower.tail = TRUE, log.p = FALSE) {
 #' @rdname mixtdistr
 #' @title Mixture of Distribution Functions
 #' @export
-qmixtdistr <- function(p, interval = c(0, 1000),
-                       phi, arg, lower.tail = TRUE, log.p = FALSE) {
+qmixtdistr <- function(p,
+                       interval = c(0, 1000),
+                       phi,
+                       arg,
+                       lower.tail = TRUE,
+                       log.p = FALSE,
+                       tol = 1e-10, ...) {
    k <- length(phi)
    n <- numeric(length(p))
    dfn = names(arg)
    qmixtfn <- function(p) {
        uniroot(function(q) {
-           ifelse(p <= 0, 0, pmixtdistr(q, phi = phi, arg = arg,
+           ifelse(p <= 0 || p > 1, 0, pmixtdistr(q, phi = phi, arg = arg,
                                        lower.tail = lower.tail,
                                        log.p = log.p) - p)
-       }, interval, tol = 1e-10)$root
+       }, interval, tol = tol, ...)$root
    }
    qmixtfn <- Vectorize(qmixtfn)
    return(qmixtfn(p))
