@@ -21,7 +21,8 @@ This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_, _c
     BiocManager::install()
     
     BiocManager::install('BiocParallel')
-    install.packages(c("minpack.lm", "numDeriv", "copula"), dependencies=TRUE)
+    install.packages(c("minpack.lm", "numDeriv", "copula", "mclust",
+                        "nls2", "cubature"), dependencies=TRUE)
 ```
 
 ------------
