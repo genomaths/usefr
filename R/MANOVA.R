@@ -67,24 +67,6 @@
 #'    statistics "Hotelling T^2", "Wilks lambda" and their corresponding
 #'    p-values.
 #' @export
-#' @references
-#' \enumerate{
-#'     \item CARL J. HUBERTY, STEPHEN OLEJNIK.2006. Applied MANOVA and
-#'         Discriminant Analysis. Second Edition. John Wiley & Sons, Inc.,
-#'         Hoboken, New Jersey.
-#'     \item Muller KE, Lavange LM, Ramey SL, Ramey CT. Power Calculations for
-#'         General Linear Multivariate Models Including Repeated Measures
-#'         Applications. J Am Stat Assoc. 1992;87: 1209 - 1226.
-#'         doi:10.1080/01621459.1992.10476281.
-#'     \item Finch H, French B (2013) A Monte Carlo Comparison of Robust MANOVA
-#'        Test Statistics. J Mod Appl Stat Methods 12. Available:
-#'        http://digitalcommons.wayne.edu/jmasm/vol12/iss2/4.
-#'     \item Fouladi RT (1998) Type I Error Control of Two-Group Multivariate
-#'        Tests on Means under Conditions of Heterogeneous Correlation
-#'        Structure. Annual Meeting of the American Educational Research
-#'        Association. San Diego, CA,. pp. 1 - 28. Available:
-#'        http://files.eric.ed.gov/fulltext/ED420716.pdf.
-#' }
 #' @author Robersy Sanchez (\url{https://genomaths.com}).
 #' @examples
 #' ## =========== Example 1 ============
@@ -126,6 +108,26 @@
 #' ## Manova result
 #' MANOVA(list(model1 = fit1, model2 = fit2))
 #'
+#' @references
+#' \enumerate{
+#'     \item CARL J. HUBERTY, STEPHEN OLEJNIK.2006. Applied MANOVA and
+#'         Discriminant Analysis. Second Edition. John Wiley & Sons, Inc.,
+#'         Hoboken, New Jersey.
+#'     \item Muller KE, Lavange LM, Ramey SL, Ramey CT. Power Calculations for
+#'         General Linear Multivariate Models Including Repeated Measures
+#'         Applications. J Am Stat Assoc. 1992;87: 1209 - 1226.
+#'         doi:10.1080/01621459.1992.10476281.
+#'     \item Finch H, French B (2013) A Monte Carlo Comparison of Robust MANOVA
+#'        Test Statistics. J Mod Appl Stat Methods 12. Available:
+#'        http://digitalcommons.wayne.edu/jmasm/vol12/iss2/4.
+#'     \item Fouladi RT (1998) Type I Error Control of Two-Group Multivariate
+#'        Tests on Means under Conditions of Heterogeneous Correlation
+#'        Structure. Annual Meeting of the American Educational Research
+#'        Association. San Diego, CA,. pp. 1 - 28. Available:
+#'        http://files.eric.ed.gov/fulltext/ED420716.pdf.
+#' }
+#'
+
 MANOVA <- function(obj, par.mat = NULL, cov.mat = NULL, sample.size = NULL,
                    groups = NULL, boxM = TRUE) {
 
