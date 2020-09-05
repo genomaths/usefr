@@ -203,6 +203,25 @@ mcgoftest(varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
         sample.size =  999, stat = "chisq", num.cores = 4, breaks = 200,
         seed = 123)
 
+### Let's generate two 'observed' sets of frequencies derived from the
+### same population (same discrete probability distribution). Beta
+### distribution is used to generate the set of data and, next, they are
+### rounded to get integer frequencies.
+set.seed(12)
+n = 100
+r1 = round(rbeta(n, shape1 = 2.1, shape2 = 0.3) * 100)
+r2 = round(rbeta(n, shape1 = 2.1, shape2 = 0.3) * 100)
+head(cbind(r1, r2), 20)
+
+mcgoftest(varobj = r1, distr = r2, num.sampl = 100,
+          stat = "rmse", num.cores = 1)
+
+mcgoftest(varobj = r1, distr = r2, num.sampl = 100,
+          stat = "hd", num.cores = 1)
+
+mcgoftest(varobj = r1, distr = r2, num.sampl = 100,
+          stat = "chisq", num.cores = 1)
+
 }
 \references{
 \enumerate{
