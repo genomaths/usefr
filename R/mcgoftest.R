@@ -20,15 +20,16 @@
 #' @rdname mcgoftest
 #' @title Bootstrap test for Goodness of fit (GoF)
 #' @description To accomplish the nonlinear fit of a probability distribution
-#'     function (*PDF*), dIfferent optimization algorithms can be used. Each
-#'     algorithm will return a different set of estimated parameter values. AIC
-#'     and BIC are not useful (in this case) to decide which parameter set of
-#'     values is the best. The goodness-of-fit tests (GOF) can help in this
-#'     case. Please, see below the examples on how to use this function.
-#' @details The test is intended for continuos distributions. If sampling size
-#'     is lesser the size of the sample, then the test becomes a Monte Carlo
-#'     test. The thes is based on the use of measures of goodness of fit,
-#'     statistics. The following statistics are availible:
+#' function \emph{(PDF)}, different optimization algorithms can be used. Each
+#' algorithm will return a different set of estimated parameter values. AIC and
+#' BIC are not useful (in this case) to decide which parameter set of values is
+#' the best. The goodness-of-fit tests \emph{(GOF)} can help in this case.
+#' Please, see below the examples on how to use this function.
+#' @details The test is intended for mostly continuous distributions.
+#' If sampling size is lesser the size of the sample, then the test becomes a
+#' Monte Carlo test. The test is based on the use of measures of goodness of
+#' fit, statistics. The following statistics are available (and some
+#' limitations for their application to continuous variables are given):
 #'
 #'     \itemize{
 #'         \item Kolmogorov- Smirnov statistic (ks). Limitations: sensitive to
@@ -58,31 +59,57 @@
 #'
 #'         \item Root Mean Square statistic (rmse). Limitation: the same
 #'               as 'chisq'.
-#'     }
+#'         \item Hellinger Divergence statistic (hd). Limitation: the same
+#'               as 'chisq'.
+#'        }
+#' Notice that 'chisq', 'rmse', and 'hd' tests can be applied to testing two
+#' discrete probability distributions as well. However, the application
+#' chi-square test is mostly intended to compare the observed and (theoretical)
+#' expected frequencies from the same population. If the frequencies comes from
+#' different populations, then the application of 'hd' to compare the observed
+#' frequencies has a well established theoretical in reference [4].
+#'
+#' If the argument of \strong{\emph{distr}} is a named CDF, then it must be
+#' defined in environment-namespace from any package or the environment defined
+#' by the user. if  \eqn{missing( sample.size )} or
+#' \eqn{sample.size > length(varobj)}, then
+#' \eqn{sample.size <- length(varobj) - 1}.
+
 #' @param varobj A a vector containing observations, the variable for which the
-#'     CDF parameters was estimated.
-#' @param distr The name of the cummulative distribution function (CDF) or a
-#'     concrete CDF from where estimate the cummulative probabilities.
-#'     Distribution \emph{distr} must be defined in environment-namespace from
-#'     any package or environment defined by user.
+#' CDF parameters was estimated or the discrete absolute frequencies of each
+#' observation category.
+#' @param distr The possible options are:
+#' \enumerate{
+#'    \item The name of the cumulative distribution function (CDF).
+#'    \item A concrete CDF from where estimate the cumulative probabilities.
+#'    \item The expected relative frequencies, i.e., \eqn{sum(distr) == 1},
+#'          with the same length of 'varobj'.
+#'    \item The discrete absolute frequencies from a different population.
+#'          This is intended for testing with Hellinger divergence statistic.
+#' }
 #' @param pars CDF model parameters. A list of parameters to evaluate the CDF.
-#' @param stat One string denoting the statistic to used in the testing: "ks":
-#'     Kolmogorov–Smirnov, "ad": Anderson–Darling statistic, "chisq: Pearson's
-#'     Chi-squared, and "rmse": Root Mean Square of the error.
+#' @param stat One string denoting the statistic to used in the testing:
+#' \enumerate{
+#'    \item "ks": Kolmogorov–Smirnov.
+#'    \item "ad": Anderson–Darling statistic.
+#'    \item "chisq: Pearson's Chi-squared.
+#'    \item "rmse": Root Mean Square of the error.
+#'    \item "hd": Hellinger Divergence statistics.
+#' }
 #' @param breaks Default is NULL. Basically, the it is same as in function
-#'     \code{\link[graphics]{hist}}. If \emph{breaks} = NULL, then function
-#'     'nclass.FD' (see \code{\link[grDevices]{nclass}} is applied to estimate
-#'     the breaks.
+#' \code{\link[graphics]{hist}}. If \emph{breaks} = NULL, then function
+#' 'nclass.FD' (see \code{\link[grDevices]{nclass}} is applied to estimate
+#' the breaks.
 #' @param parametric Logical object. If TRUE, then samples are drawn from the
-#'     theoretical population described by \emph{distr}. Default: TRUE.
+#' theoretical population described by \emph{distr}. Default: TRUE.
 #' @param num.sampl Number of resamplings.
 #' @param sample.size Size of the samples used for each sampling.
 #' @param seed An integer used to set a 'seed' for random number generation.
-#' @param num.cores,tasks Paramaters for parallele computation using package
-#'     \code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to
-#'     use, i.e. at most how many child processes will be run simultaneously
-#'     (see \code{\link[BiocParallel]{bplapply}} and the number of tasks per job
-#'     (only for Linux OS).
+#' @param num.cores,tasks Parameters for parallel computation using package
+#' \code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to use,
+#' i.e. at most how many child processes will be run simultaneously (see
+#' \code{\link[BiocParallel]{bplapply}} and the number of tasks per job (only
+#' for Linux OS).
 #' @param verbose if verbose, comments and progress bar will be printed.
 #' @importFrom BiocParallel MulticoreParam SnowParam bplapply
 #' @importFrom stats ks.test
@@ -106,6 +133,9 @@
 #'         \item Watson, G. S. On Chi-Square Goodness-Of-Fit Tests for
 #'             Continuous Distributions. J. R. Stat. Soc. Ser. B Stat.
 #'             Methodol. 20, 44–72 (1958).
+#'         \item A. Basu, A. Mandal, L. Pardo, Hypothesis testing for two
+#'             discrete populations based on the Hellinger distance. Stat.
+#'             Probab. Lett. 80, 206–214 (2010).
 #'     }
 #' @seealso Distribution fitting: \code{\link{fitMixDist}},
 #'     \code{\link[MASS]{fitdistr}}, \code{\link{fitCDF}}.
@@ -175,52 +205,76 @@
 #'         sample.size =  999, stat = "chisq", num.cores = 4, breaks = 200,
 #'         seed = 123)
 #'
-mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
-                   stat = c("ks", "ad", "rmse", "chisq"), breaks = NULL,
-                   parametric = TRUE, seed = 1, num.cores = 1, tasks = 0,
-                   verbose = TRUE) {
+mcgoftest <- function(
+                    varobj,
+                    distr,
+                    pars = NULL,
+                    num.sampl = 999,
+                    sample.size,
+                    stat = c("ks", "ad", "rmse", "chisq", "hd"),
+                    breaks = NULL,
+                    parametric = TRUE,
+                    seed = 1,
+                    num.cores = 1,
+                    tasks = 0,
+                    verbose = TRUE) {
    ## A starting permutation script for permutation test used the idea
    ## published on \href{https://goo.gl/hfnNy8}{Alastair Sanderson}
    ## An idea presented in his post: \emph{Using R to analyse data statistical
    ## and numerical data analysis with R}. Herein, it is modified and extended.
    set.seed( seed )
    stat <- match.arg(stat)
-   if (!is.character(distr))
-       stop("*** 'distr' must be a characterstring naming a distribution ",
-            "function e.g, 'norm' will permit accessing ",
-            "functions 'pnorm' and 'rnorm'")
+   if (!is.character(distr) &&
+       !(is.numeric(distr) && length(distr) == length(varobj)))
+       stop("\n*** 'distr' must be a character string naming a distribution ",
+            "function e.g.,\n that 'norm' will permit accessing ",
+            "functions 'pnorm' and 'rnorm', or a numeric vector\n",
+            " for which length(distr) == length(varobj).")
+
+   if(is.numeric(distr)) parametric <- FALSE
 
    if (is.character(distr)) {
-       pdistr <- paste0("p", distr)
-       pdistr <- get(pdistr, mode = "function", envir = parent.frame())
-       if (!is.function(pdistr))
-          stop("*** 'distr' must be a characterstring naming a distribution ",
-               "function e.g, 'norm' will permit accessing ",
-               "functions 'pnorm' and 'rnorm'")
+      pdistr <- paste0("p", distr)
+      pdistr <-
+         get(pdistr, mode = "function", envir = parent.frame())
+      if (!is.function(pdistr))
+         stop(
+            "*** 'distr' must be a characterstring naming a distribution ",
+            "function e.g, 'norm' will permit accessing ",
+            "functions 'pnorm' and 'rnorm'"
+         )
 
-       if (parametric) {
-           rdistr <- paste0("r", distr)
-           rdistr <- get(rdistr, mode = "function", envir = parent.frame())
-           if (!is.function(rdistr))
-              stop("*** 'distr' must be a characterstring naming a ",
-                   "distribution function e.g, 'norm' will permit accessing ",
-                   "functions 'pnorm' and 'rnorm'")
-       }
+      if (parametric) {
+         rdistr <- paste0("r", distr)
+         rdistr <-
+            get(rdistr, mode = "function", envir = parent.frame())
+         if (!is.function(rdistr))
+            stop(
+               "*** 'distr' must be a characterstring naming a ",
+               "distribution function e.g, 'norm' will permit accessing ",
+               "functions 'pnorm' and 'rnorm'"
+            )
+      }
    }
 
 
-   if (missing( sample.size ) || sample.size > round(length(varobj)))
-       sample.size = round(length(varobj)/3)
+   if (missing( sample.size ) || sample.size > length(varobj))
+       sample.size = length(varobj) - 1
 
-   GoFtest <- function(x, R, szise, distr, pars, stat, breaks, parametric,
+    GoFtest <- function(x, R, szise, distr, pars, stat, breaks, parametric,
                        mc.cores) {
+       if (length( x ) < szise) replace <- TRUE
+       else replace <- FALSE
 
        myfun <- function(a, distr, pars, stat, breaks, parametric) {
            switch(stat,
-               ks = ks_stat(x = a, distr = distr, pars = pars)$stat,
-               ad = ad_stat(x = a, distr = distr, pars = pars),
-               rmse = rmse(x = a, distr = distr, pars = pars, breaks = breaks),
-               chisq = chisq(x = a, distr = distr, pars = pars, breaks = breaks)
+                ks = ks_stat(x = a, distr = distr, pars = pars)$stat,
+                ad = ad_stat(x = a, distr = distr, pars = pars),
+                rmse = rmse(x = a, distr = distr, pars = pars,
+                            breaks = breaks),
+                chisq = chisq(x = a, distr = distr, pars = pars,
+                            breaks = breaks),
+                hd = hdiv(x = a, distr = distr, pars = pars, breaks = breaks)
           )
        }
 
@@ -228,8 +282,9 @@ mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
            if (parametric) a <- distfn(x = szise, dfn = distr,
                                        type = "r", arg = pars)
            else {
-               i <- sample( length( x ), szise )
+               i <- sample( length( x ), szise, replace = replace )
                a = x[ i ]
+               if (is.numeric(distr)) distr <- distr[i]
            }
 
            # to test empirical versus theoretical values
@@ -240,6 +295,7 @@ mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
        # DoIt(1, distr=distr, pars=pars, stat=stat, breaks=breaks,
        #      parametric=parametric)
 
+
        if (verbose) progressbar = TRUE else progressbar = FALSE
        if (Sys.info()['sysname'] == "Linux") {
            bpparam <- MulticoreParam(workers=num.cores, tasks=tasks,
@@ -247,11 +303,15 @@ mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
        } else bpparam <- SnowParam(workers=num.cores, type = "SOCK",
                                    progressbar = progressbar)
 
-       pstats <- unlist(bplapply(1:R, DoIt, distr = distr, pars = pars,
+        pstats <- unlist(bplapply(1:R, DoIt, distr = distr, pars = pars,
                                stat = stat, breaks = breaks,
                                parametric = parametric, BPPARAM=bpparam))
 
-       res <- switch(stat,
+        if (is.element(stat, c("ks", "ad")) && is.numeric(distr))
+            stop("\n*** 'ks' and 'ad' are only available for continuous",
+                 " distribution")
+
+        res <- switch(stat,
                    ks = {
                            statis = ks_stat(x = x, distr = distr, pars = pars)
                            p.value = statis$p.value
@@ -261,31 +321,39 @@ mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
                                                na.rm = TRUE),
                                KS.stat.p.value = p.value,
                                sample.size = sample.size, num.sampl = num.sampl)
-                        },
+                   },
                    ad = {
                            statis = ad_stat(x = x, distr = distr, pars = pars)
                            c(AD.stat = statis,
                                mc_p.value=mean(c(statis, pstats) >= statis,
                                                na.rm = TRUE),
                                sample.size = sample.size, num.sampl = num.sampl)
-                        },
-                   rmse = {
-                           statis = rmse(x = x, distr = distr, pars = pars ,
-                                       breaks = breaks)
-                           c(rmse = statis,
-                             mc_p.value=mean(c(statis, pstats) >= statis,
-                                             na.rm = TRUE),
-                             sample.size = sample.size, num.sampl = num.sampl)
-                          },
-                   chisq = {
+                    },
+                    rmse = {
+                            statis = rmse(x = x, distr = distr, pars = pars ,
+                                            breaks = breaks)
+                            c(rmse = statis,
+                                mc_p.value=mean(c(statis, pstats) >= statis,
+                                                na.rm = TRUE),
+                              sample.size = sample.size, num.sampl = num.sampl)
+                    },
+                    chisq = {
                                statis = chisq(x = x, distr = distr, pars=pars,
                                             breaks = breaks)
                                c(Chisq = statis,
-                                   mc_p.value=mean(c(statis, pstats) >= statis,
-                                                   na.rm = TRUE),
-                                   sample.size = sample.size,
-                                   num.sampl = num.sampl)
-                           }
+                                mc_p.value = mean(c(statis, pstats) >= statis,
+                                                na.rm = TRUE),
+                                sample.size = sample.size,
+                                num.sampl = num.sampl)
+                    },
+                    hd = {
+                            statis = hdiv(x = x, distr = distr, pars = pars,
+                                            breaks = breaks)
+                            c(hd = statis,
+                              mc_p.value = mean(c(statis, pstats) >= statis,
+                                                na.rm = TRUE),
+                            sample.size = sample.size, num.sampl = num.sampl)
+                    }
                )
        return(res)
    }
@@ -294,7 +362,8 @@ mcgoftest <- function(varobj, distr, pars, num.sampl = 999, sample.size,
           ks = "Kolmogorov-Smirnov",
           ad = "Anderson–Darling",
           rmse = "Root Mean Square",
-          chisq = "Pearson's Chi-squared"
+          chisq = "Pearson's Chi-squared",
+          hd = "Hellinger test"
    )
 
    if (verbose) {
@@ -334,19 +403,35 @@ ad_stat <- function(x, distr, pars = NULL) {
    return(-n - mean(h))
 }
 
-# ================ Auxiliary funciton to compute the frequencies ============= #
-freqs <- function(x, distr, pars, breaks = NULL) {
+# ================ Auxiliary function to compute the frequencies ============= #
+freqs <- function(x, distr, pars = NULL, breaks = NULL) {
    n <- length(x)
-   if (is.null(breaks)) breaks <- nclass.FD(x)
-   DENS <- hist(x, breaks = breaks, plot = FALSE)
-   freq0 <- DENS$counts
-   bounds <- data.frame(lower = DENS$breaks[ -length(DENS$breaks)],
-                        upper = DENS$breaks[ -1 ])
 
-   up_val <- distfn(x = bounds$upper, dfn = distr, type = "p", arg = pars)
-   low_val <- distfn(x = bounds$lower, dfn = distr, type = "p", arg = pars)
+   if (is.character(distr)) {
+      if (is.null(breaks))
+           breaks <- nclass.FD(x)
+      DENS <- hist(x, breaks = breaks, plot = FALSE)
+      freq0 <- DENS$counts
+      bounds <- data.frame(lower = DENS$breaks[ -length(DENS$breaks)],
+                           upper = DENS$breaks[ -1 ])
+      up_val <- distfn( x = bounds$upper, dfn = distr,
+                        type = "p", arg = pars)
+      low_val <- distfn(x = bounds$lower, dfn = distr,
+                        type = "p", arg = pars)
+      freq <- round(n * (up_val - low_val))
+   }
+   else {
+      if (is.numeric(distr) && length(distr) == length(x)) {
+         if (sum(distr, na.rm = TRUE) > 1)
+            freq <- distr
+         else
+            freq <- round(n * distr)
+         freq0 <- x
+      }
+      else
+         stop("\n*** The argument of 'distr' is incorrect.")
+   }
 
-   freq <- round(n * (up_val - low_val))
    return(data.frame(obsf = freq0, expf = freq))
 }
 
@@ -360,8 +445,8 @@ rmse <- function(x, distr, pars, breaks = NULL) {
 chisq <- function(x, distr, pars, breaks = NULL) {
    freq <- freqs(x = x, distr = distr, pars = pars, breaks = breaks)
    if (any(freq$expf == 0)) {
-      freq$expf <- freq$expf + 1
-      freq$obsf <- freq$obsf + 1
+      freq$expf <- freq$expf + 0.5
+      freq$obsf <- freq$obsf + 0.5
    }
    return(sum((freq$obsf - freq$expf)^2/freq$expf))
 }
@@ -383,6 +468,33 @@ distfn <- function(x, dfn, type = "r", arg) {
           r = do.call(paste0(type, dfn), c(list(x), arg))
    )
 }
-# -------------------------- End auxiliar function --------------------------- #
+
+# ================== Hellinger divergence  statistic ======================= #
+
+hdiv <- function(x, distr, pars, breaks = NULL) {
+
+   p <- freqs(x = x, distr = distr, pars = pars, breaks = breaks)
+   n1 <- sum(p$obsf, na.rm = TRUE)
+   n2 <- sum(p$expf, na.rm = TRUE)
+   n <- c(n1, n2)
+
+   if (any(p$expf == 0)) {
+      p$obsf <- (p$obsf + 1) / (n1 + length(p$obsf))
+      p$expf <- (p$expf + 1) / (n2 + length(p$expf))
+   }
+   else {
+      p$expf <- p$expf / n1
+      p$obsf <- p$obsf / n2
+   }
+
+   w <- (2 * n[1] * n[2]) / (n[1] + n[2])
+   sum_hd <- sapply(seq_along(x),
+                    function(k) (sqrt(p[k, 1]) - sqrt(p[k, 2]))^2)
+
+   return(w * sum(sum_hd, na.rm = TRUE))
+}
+
+
+# -------------------------- End auxiliary function ------------------------ #
 
 

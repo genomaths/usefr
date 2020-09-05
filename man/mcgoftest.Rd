@@ -7,10 +7,10 @@
 mcgoftest(
   varobj,
   distr,
-  pars,
+  pars = NULL,
   num.sampl = 999,
   sample.size,
-  stat = c("ks", "ad", "rmse", "chisq"),
+  stat = c("ks", "ad", "rmse", "chisq", "hd"),
   breaks = NULL,
   parametric = TRUE,
   seed = 1,
@@ -21,12 +21,18 @@ mcgoftest(
 }
 \arguments{
 \item{varobj}{A a vector containing observations, the variable for which the
-CDF parameters was estimated.}
+CDF parameters was estimated or the discrete absolute frequencies of each
+observation category.}
 
-\item{distr}{The name of the cummulative distribution function (CDF) or a
-concrete CDF from where estimate the cummulative probabilities.
-Distribution \emph{distr} must be defined in environment-namespace from
-any package or environment defined by user.}
+\item{distr}{The possible options are:
+\enumerate{
+   \item The name of the cumulative distribution function (CDF).
+   \item A concrete CDF from where estimate the cumulative probabilities.
+   \item The expected relative frequencies, i.e., \eqn{sum(distr) == 1},
+         with the same length of 'varobj'.
+   \item The discrete absolute frequencies from a different population.
+         This is intended for testing with Hellinger divergence statistic.
+}}
 
 \item{pars}{CDF model parameters. A list of parameters to evaluate the CDF.}
 
@@ -34,9 +40,14 @@ any package or environment defined by user.}
 
 \item{sample.size}{Size of the samples used for each sampling.}
 
-\item{stat}{One string denoting the statistic to used in the testing: "ks":
-Kolmogorov–Smirnov, "ad": Anderson–Darling statistic, "chisq: Pearson's
-Chi-squared, and "rmse": Root Mean Square of the error.}
+\item{stat}{One string denoting the statistic to used in the testing:
+\enumerate{
+   \item "ks": Kolmogorov–Smirnov.
+   \item "ad": Anderson–Darling statistic.
+   \item "chisq: Pearson's Chi-squared.
+   \item "rmse": Root Mean Square of the error.
+   \item "hd": Hellinger Divergence statistics.
+}}
 
 \item{breaks}{Default is NULL. Basically, the it is same as in function
 \code{\link[graphics]{hist}}. If \emph{breaks} = NULL, then function
@@ -48,11 +59,11 @@ theoretical population described by \emph{distr}. Default: TRUE.}
 
 \item{seed}{An integer used to set a 'seed' for random number generation.}
 
-\item{num.cores, tasks}{Paramaters for parallele computation using package
-\code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to
-use, i.e. at most how many child processes will be run simultaneously
-(see \code{\link[BiocParallel]{bplapply}} and the number of tasks per job
-(only for Linux OS).}
+\item{num.cores, tasks}{Parameters for parallel computation using package
+\code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to use,
+i.e. at most how many child processes will be run simultaneously (see
+\code{\link[BiocParallel]{bplapply}} and the number of tasks per job (only
+for Linux OS).}
 
 \item{verbose}{if verbose, comments and progress bar will be printed.}
 }
@@ -69,17 +80,18 @@ A numeric vector with the following data:
 }
 \description{
 To accomplish the nonlinear fit of a probability distribution
-    function (*PDF*), dIfferent optimization algorithms can be used. Each
-    algorithm will return a different set of estimated parameter values. AIC
-    and BIC are not useful (in this case) to decide which parameter set of
-    values is the best. The goodness-of-fit tests (GOF) can help in this
-    case. Please, see below the examples on how to use this function.
+function \emph{(PDF)}, different optimization algorithms can be used. Each
+algorithm will return a different set of estimated parameter values. AIC and
+BIC are not useful (in this case) to decide which parameter set of values is
+the best. The goodness-of-fit tests \emph{(GOF)} can help in this case.
+Please, see below the examples on how to use this function.
 }
 \details{
-The test is intended for continuos distributions. If sampling size
-    is lesser the size of the sample, then the test becomes a Monte Carlo
-    test. The thes is based on the use of measures of goodness of fit,
-    statistics. The following statistics are availible:
+The test is intended for mostly continuous distributions.
+If sampling size is lesser the size of the sample, then the test becomes a
+Monte Carlo test. The test is based on the use of measures of goodness of
+fit, statistics. The following statistics are available (and some
+limitations for their application to continuous variables are given):
 
     \itemize{
         \item Kolmogorov- Smirnov statistic (ks). Limitations: sensitive to
@@ -109,7 +121,21 @@ The test is intended for continuos distributions. If sampling size
 
         \item Root Mean Square statistic (rmse). Limitation: the same
               as 'chisq'.
-    }
+        \item Hellinger Divergence statistic (hd). Limitation: the same
+              as 'chisq'.
+       }
+Notice that 'chisq', 'rmse', and 'hd' tests can be applied to testing two
+discrete probability distributions as well. However, the application
+chi-square test is mostly intended to compare the observed and (theoretical)
+expected frequencies from the same population. If the frequencies comes from
+different populations, then the application of 'hd' to compare the observed
+frequencies has a well established theoretical in reference [4].
+
+If the argument of \strong{\emph{distr}} is a named CDF, then it must be
+defined in environment-namespace from any package or the environment defined
+by the user. if  \eqn{missing( sample.size )} or
+\eqn{sample.size > length(varobj)}, then
+\eqn{sample.size <- length(varobj) - 1}.
 }
 \examples{
 ## ======== Example 1 =======
@@ -187,6 +213,9 @@ mcgoftest(varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
         \item Watson, G. S. On Chi-Square Goodness-Of-Fit Tests for
             Continuous Distributions. J. R. Stat. Soc. Ser. B Stat.
             Methodol. 20, 44–72 (1958).
+        \item A. Basu, A. Mandal, L. Pardo, Hypothesis testing for two
+            discrete populations based on the Hellinger distance. Stat.
+            Probab. Lett. 80, 206–214 (2010).
     }
 }
 \seealso{
