@@ -518,11 +518,14 @@ fitMixDist <- function(X,
            }
        }
        gaps <- rep(NA, length(coef(FIT)) - 1)
-       sumario <- try(summary(FIT)$coefficients, silent = TRUE)
+       fit_summary <- try(summary(FIT)$coefficients, silent = TRUE)
        # if (!kmean) bic <- fit$bic else bic <- NA
 
-       if (inherits(sumario, "try-error")) {
+       if (inherits(fit_summary, "try-error")) {
            stats <- data.frame(Estimate = c("Choleski Decomposition fail", NA),
+                               Std.Error = c(NA, NA),
+                               t_value = c(NA, NA),
+                               'Pr(>|t|)' = c(NA, NA),
                                Adj.R.Square = c(Adj.R.Square, NA),
                                rho = c(rho, NA),
                                R.Cross.val = c(R.cross.FIT, NA),
@@ -530,13 +533,14 @@ fitMixDist <- function(X,
                                AIC = c(NA, NA),
                                BIC = c(NA, NA),
                                n = c(N , n))
+
        } else {
            aic <- try(AICmodel(FIT), silent = TRUE)
            bic <- try(BICmodel(FIT), silent = TRUE)
            if (inherits(aic, "try-error")) aic <- NA
            if (inherits(bic, "try-error")) bic <- NA
 
-           stats <- data.frame(sumario,
+           stats <- data.frame(fit_summary,
                                Adj.R.Square=c(Adj.R.Square, gaps),
                                rho=c(rho, gaps),
                                R.Cross.val=c(R.cross.FIT, gaps),
