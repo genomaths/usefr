@@ -12,6 +12,7 @@ mcgoftest(
   sample.size,
   stat = c("ks", "ad", "rmse", "chisq", "hd"),
   breaks = NULL,
+  arg.names = NULL,
   parametric = TRUE,
   seed = 1,
   num.cores = 1,
@@ -28,10 +29,6 @@ observation category.}
 \enumerate{
    \item The name of the cumulative distribution function (CDF).
    \item A concrete CDF from where estimate the cumulative probabilities.
-   \item The expected relative frequencies, i.e., \eqn{sum(distr) == 1},
-         with the same length of 'varobj'.
-   \item The discrete absolute frequencies from a different population.
-         This is intended for testing with Hellinger divergence statistic.
 }}
 
 \item{pars}{CDF model parameters. A list of parameters to evaluate the CDF.}
@@ -53,6 +50,9 @@ observation category.}
 \code{\link[graphics]{hist}}. If \emph{breaks} = NULL, then function
 'nclass.FD' (see \code{\link[grDevices]{nclass}} is applied to estimate
 the breaks.}
+
+\item{arg.names}{(Optional) The names of the arguments from function
+\strong{\emph{distr}}.}
 
 \item{parametric}{Logical object. If TRUE, then samples are drawn from the
 theoretical population described by \emph{distr}. Default: TRUE.}
@@ -124,18 +124,16 @@ limitations for their application to continuous variables are given):
         \item Hellinger Divergence statistic (hd). Limitation: the same
               as 'chisq'.
        }
-Notice that 'chisq', 'rmse', and 'hd' tests can be applied to testing two
-discrete probability distributions as well. However, the application
-chi-square test is mostly intended to compare the observed and (theoretical)
-expected frequencies from the same population. If the frequencies comes from
-different populations, then the application of 'hd' to compare the observed
-frequencies has a well established theoretical in reference [4].
-
-If the argument of \strong{\emph{distr}} is a named CDF, then it must be
-defined in environment-namespace from any package or the environment defined
-by the user. if  \eqn{missing( sample.size )} or
+If the argument \strong{\emph{distr}} must be defined in
+environment-namespace from any package or the environment defined by the
+user. if  \eqn{missing( sample.size )} or
 \eqn{sample.size > length(varobj)}, then
 \eqn{sample.size <- length(varobj) - 1}.
+
+Notice that 'chisq', 'rmse', and 'hd' tests can be applied to testing two
+discrete probability distributions as well. However, here,
+\strong{\emph{mcgoftest}} function is limited to continuous probability
+distributions.
 }
 \examples{
 ## ======== Example 1 =======
@@ -203,24 +201,6 @@ mcgoftest(varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
         sample.size =  999, stat = "chisq", num.cores = 4, breaks = 200,
         seed = 123)
 
-### Let's generate two 'observed' sets of frequencies derived from the
-### same population (same discrete probability distribution). Beta
-### distribution is used to generate the set of data and, next, they are
-### rounded to get integer frequencies.
-set.seed(12)
-n = 100
-r1 = round(rbeta(n, shape1 = 2.1, shape2 = 0.3) * 100)
-r2 = round(rbeta(n, shape1 = 2.1, shape2 = 0.3) * 100)
-head(cbind(r1, r2), 20)
-
-mcgoftest(varobj = r1, distr = r2, num.sampl = 100,
-          stat = "rmse", num.cores = 1)
-
-mcgoftest(varobj = r1, distr = r2, num.sampl = 100,
-          stat = "hd", num.cores = 1)
-
-mcgoftest(varobj = r1, distr = r2, num.sampl = 100,
-          stat = "chisq", num.cores = 1)
 
 }
 \references{

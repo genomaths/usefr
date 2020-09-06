@@ -82,7 +82,7 @@
 #' ## are relatively expensive (still in 2020) and some researcher is willing
 #' ## to accept a site coverage (total) of 4 read-counts as threshold for a
 #' ## site to be included in the analysis. Let's suppose that at a given site
-#' ## we have the following contigency table:
+#' ## we have the following contingency table:
 #'
 #' site_res <- matrix(c(3, 1, 1, 3), nrow = 2,
 #'                    dimnames = list(status = c("ctrl", "treat"),
@@ -117,7 +117,40 @@
 #' chisq.test(site_res)$p.value
 #' chisq.test(site_res, simulate.p.value = TRUE)$p.value
 #'
-
+#' ## Now, let's suppose that we want to test whether methylation status from
+#' ## two DNA sites the same differentially methylated region (DMR)
+#' ## are independent, i.e. whether the treatment affected the methylation
+#' ## status of the two sites. In this case, the counts grouped into four
+#' ## categories.
+#' set.seed(1)
+#' site_res <- matrix(c(3, 1, 1, 3, 3, 0, 1, 4), nrow = 2, byrow = FALSE,
+#'                    dimnames = list(status = c("ctrl", "treat"),
+#'                                    treat = c("meth.1", "unmeth.1",
+#'                                              "meth.2", "unmeth.2")))
+#' site_res
+#'
+#' ## Chi-squared from the R package 'stats'
+#' chisq.test(site_res)$p.bvalue
+#' chisq.test(site_res, simulate.p.value = TRUE, B = 2e3)$p.value
+#'
+#' tableBoots( site_res, stat = 'all', num.permut = 1e3 )
+#'
+#' ## Results above are in border. If we include, third site,
+#' ## then sinces would different.
+#' site_res <- matrix(c(3, 1, 1, 3, 3, 0, 1, 4,  4, 0, 1, 4),
+#'                    nrow = 2, byrow = FALSE,
+#'                    dimnames = list(status = c("ctrl", "treat"),
+#'                                    treat = c("meth.1", "unmeth.1",
+#'                                              "meth.2", "unmeth.2",
+#'                                              "meth.3", "unmeth.3")))
+#' site_res
+#'
+#' ## That is, we have not reason to believe that the observed methylation
+#' ## levels in the treatment are not independent
+#' chisq.test(site_res)$p.value
+#' chisq.test(site_res, simulate.p.value = TRUE, B = 2e3)$p.value
+#' tableBoots( site_res, stat = 'all', num.permut = 1e3 )
+#'
 tableBoots <- function(x, stat = c("rmst", "hd", "chisq", "all"),
                        num.permut = 100) {
 

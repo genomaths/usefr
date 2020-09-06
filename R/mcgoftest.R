@@ -62,19 +62,17 @@
 #'         \item Hellinger Divergence statistic (hd). Limitation: the same
 #'               as 'chisq'.
 #'        }
-#' Notice that 'chisq', 'rmse', and 'hd' tests can be applied to testing two
-#' discrete probability distributions as well. However, the application
-#' chi-square test is mostly intended to compare the observed and (theoretical)
-#' expected frequencies from the same population. If the frequencies comes from
-#' different populations, then the application of 'hd' to compare the observed
-#' frequencies has a well established theoretical in reference [4].
-#'
-#' If the argument of \strong{\emph{distr}} is a named CDF, then it must be
-#' defined in environment-namespace from any package or the environment defined
-#' by the user. if  \eqn{missing( sample.size )} or
+#' If the argument \strong{\emph{distr}} must be defined in
+#' environment-namespace from any package or the environment defined by the
+#' user. if  \eqn{missing( sample.size )} or
 #' \eqn{sample.size > length(varobj)}, then
 #' \eqn{sample.size <- length(varobj) - 1}.
-
+#'
+#' Notice that 'chisq', 'rmse', and 'hd' tests can be applied to testing two
+#' discrete probability distributions as well. However, here,
+#' \strong{\emph{mcgoftest}} function is limited to continuous probability
+#' distributions.
+#'
 #' @param varobj A a vector containing observations, the variable for which the
 #' CDF parameters was estimated or the discrete absolute frequencies of each
 #' observation category.
@@ -82,11 +80,8 @@
 #' \enumerate{
 #'    \item The name of the cumulative distribution function (CDF).
 #'    \item A concrete CDF from where estimate the cumulative probabilities.
-#'    \item The expected relative frequencies, i.e., \eqn{sum(distr) == 1},
-#'          with the same length of 'varobj'.
-#'    \item The discrete absolute frequencies from a different population.
-#'          This is intended for testing with Hellinger divergence statistic.
 #' }
+#'
 #' @param pars CDF model parameters. A list of parameters to evaluate the CDF.
 #' @param stat One string denoting the statistic to used in the testing:
 #' \enumerate{
@@ -100,6 +95,8 @@
 #' \code{\link[graphics]{hist}}. If \emph{breaks} = NULL, then function
 #' 'nclass.FD' (see \code{\link[grDevices]{nclass}} is applied to estimate
 #' the breaks.
+#' @param par.names (Optional) The names of the parameters from
+#' \strong{\emph{distr}} function.
 #' @param parametric Logical object. If TRUE, then samples are drawn from the
 #' theoretical population described by \emph{distr}. Default: TRUE.
 #' @param num.sampl Number of resamplings.
@@ -205,24 +202,6 @@
 #'         sample.size =  999, stat = "chisq", num.cores = 4, breaks = 200,
 #'         seed = 123)
 #'
-#' ### Let's generate two 'observed' sets of frequencies derived from the
-#' ### same population (same discrete probability distribution). Beta
-#' ### distribution is used to generate the set of data and, next, they are
-#' ### rounded to get integer frequencies.
-#' set.seed(12)
-#' n = 100
-#' r1 = round(rbeta(n, shape1 = 2.1, shape2 = 0.3) * 100)
-#' r2 = round(rbeta(n, shape1 = 2.1, shape2 = 0.3) * 100)
-#' head(cbind(r1, r2), 20)
-#'
-#' mcgoftest(varobj = r1, distr = r2, num.sampl = 100,
-#'           stat = "rmse", num.cores = 1)
-#'
-#' mcgoftest(varobj = r1, distr = r2, num.sampl = 100,
-#'           stat = "hd", num.cores = 1)
-#'
-#' mcgoftest(varobj = r1, distr = r2, num.sampl = 100,
-#'           stat = "chisq", num.cores = 1)
 #'
 mcgoftest <- function(
                     varobj,
@@ -232,6 +211,7 @@ mcgoftest <- function(
                     sample.size,
                     stat = c("ks", "ad", "rmse", "chisq", "hd"),
                     breaks = NULL,
+                    par.names = NULL,
                     parametric = TRUE,
                     seed = 1,
                     num.cores = 1,
@@ -243,19 +223,15 @@ mcgoftest <- function(
    ## and numerical data analysis with R}. Herein, it is modified and extended.
    set.seed( seed )
    stat <- match.arg(stat)
-   if (!is.character(distr) &&
-       !(is.numeric(distr) && length(distr) == length(varobj)))
+   if (!is.character(distr))
        stop("\n*** 'distr' must be a character string naming a distribution ",
             "function e.g.,\n that 'norm' will permit accessing ",
-            "functions 'pnorm' and 'rnorm', or a numeric vector\n",
-            " for which length(distr) == length(varobj).")
-
-   if(is.numeric(distr)) parametric <- FALSE
+            "functions 'pnorm' and 'rnorm'")
 
    if (is.character(distr)) {
       pdistr <- paste0("p", distr)
-      pdistr <-
-         get(pdistr, mode = "function", envir = parent.frame())
+      pdistr <- get(pdistr, mode = "function",
+                     envir = parent.frame())
       if (!is.function(pdistr))
          stop(
             "*** 'distr' must be a characterstring naming a distribution ",
@@ -276,30 +252,37 @@ mcgoftest <- function(
       }
    }
 
-
    if (missing( sample.size ) || sample.size > length(varobj))
        sample.size = length(varobj) - 1
 
-    GoFtest <- function(x, R, szise, distr, pars, stat, breaks, parametric,
-                       mc.cores) {
+    GoFtest <- function(x, R, szise, distr, pars, stat, breaks,
+                        parametric, par.names, mc.cores) {
        if (length( x ) < szise) replace <- TRUE
        else replace <- FALSE
 
-       myfun <- function(a, distr, pars, stat, breaks, parametric) {
+       myfun <- function(a, distr, pars, stat, breaks, parametric,
+                         par.names) {
            switch(stat,
-                ks = ks_stat(x = a, distr = distr, pars = pars)$stat,
-                ad = ad_stat(x = a, distr = distr, pars = pars),
+                ks = ks_stat(x = a, distr = distr, pars = pars,
+                             par.names = par.names)$stat,
+                ad = ad_stat(x = a, distr = distr, pars = pars,
+                             par.names = par.names),
                 rmse = rmse(x = a, distr = distr, pars = pars,
+                            par.names = par.names,
                             breaks = breaks),
                 chisq = chisq(x = a, distr = distr, pars = pars,
-                            breaks = breaks),
-                hd = hdiv(x = a, distr = distr, pars = pars, breaks = breaks)
+                            par.names = par.names, breaks = breaks),
+                hd = hdiv(x = a, distr = distr, pars = pars,
+                           par.names = par.names,
+                           breaks = breaks)
           )
        }
 
-       DoIt <- function(r, distr, pars, stat, breaks, parametric) {
+       DoIt <- function(r, distr, pars, stat, breaks, parametric,
+                        par.names) {
            if (parametric) a <- distfn(x = szise, dfn = distr,
-                                       type = "r", arg = pars)
+                                       type = "r", arg = pars,
+                                       par.names = par.names)
            else {
                i <- sample( length( x ), szise, replace = replace )
                a = x[ i ]
@@ -308,11 +291,12 @@ mcgoftest <- function(
 
            # to test empirical versus theoretical values
            myfun(a = a, distr = distr, pars = pars, stat = stat,
-                   breaks = breaks, parametric = parametric)
+                   breaks = breaks, parametric = parametric,
+                   par.names = par.names)
        }
 
-       # DoIt(1, distr=distr, pars=pars, stat=stat, breaks=breaks,
-       #      parametric=parametric)
+       # DoIt(1, distr= distr, pars=pars, stat=stat, breaks=breaks,
+       #      parametric=parametric, par.names= par.names)
 
        if (verbose) progressbar = TRUE else progressbar = FALSE
        if (Sys.info()['sysname'] == "Linux") {
@@ -322,8 +306,10 @@ mcgoftest <- function(
                                    progressbar = progressbar)
 
         pstats <- unlist(bplapply(1:R, DoIt, distr = distr, pars = pars,
-                               stat = stat, breaks = breaks,
-                               parametric = parametric, BPPARAM=bpparam))
+                                 stat = stat, breaks = breaks,
+                                 parametric = parametric,
+                                 par.names = par.names,
+                                 BPPARAM = bpparam))
 
         if (is.element(stat, c("ks", "ad")) && is.numeric(distr))
             stop("\n*** 'ks' and 'ad' are only available for continuous",
@@ -331,32 +317,40 @@ mcgoftest <- function(
 
         res <- switch(stat,
                    ks = {
-                           statis = ks_stat(x = x, distr = distr, pars = pars)
+                           statis = ks_stat(x = x, distr = distr, pars = pars,
+                                            par.names = par.names)
                            p.value = statis$p.value
                            statis = statis$stat
                            c(KS.stat.D = statis,
                                mc_p.value = mean(c(statis, pstats) >= statis,
                                                na.rm = TRUE),
                                KS.stat.p.value = p.value,
-                               sample.size = sample.size, num.sampl = num.sampl)
+                               sample.size = sample.size,
+                               num.sampl = num.sampl)
                    },
                    ad = {
-                           statis = ad_stat(x = x, distr = distr, pars = pars)
+                           statis = ad_stat(x = x, distr = distr, pars = pars,
+                                            par.names = par.names)
                            c(AD.stat = statis,
                                mc_p.value=mean(c(statis, pstats) >= statis,
                                                na.rm = TRUE),
-                               sample.size = sample.size, num.sampl = num.sampl)
+                               sample.size = sample.size,
+                               num.sampl = num.sampl)
                     },
                     rmse = {
-                            statis = rmse(x = x, distr = distr, pars = pars ,
+                            statis = rmse(x = x, distr = distr,
+                                            pars = pars ,
+                                            par.names = par.names,
                                             breaks = breaks)
                             c(rmse = statis,
                                 mc_p.value=mean(c(statis, pstats) >= statis,
                                                 na.rm = TRUE),
-                              sample.size = sample.size, num.sampl = num.sampl)
+                              sample.size = sample.size,
+                              num.sampl = num.sampl)
                     },
                     chisq = {
                                statis = chisq(x = x, distr = distr, pars=pars,
+                                            par.names = par.names,
                                             breaks = breaks)
                                c(Chisq = statis,
                                 mc_p.value = mean(c(statis, pstats) >= statis,
@@ -366,6 +360,7 @@ mcgoftest <- function(
                     },
                     hd = {
                             statis = hdiv(x = x, distr = distr, pars = pars,
+                                            par.names = par.names,
                                             breaks = breaks)
                             c(hd = statis,
                               mc_p.value = mean(c(statis, pstats) >= statis,
@@ -403,14 +398,16 @@ mcgoftest <- function(
    }
 
    GoFtest(x = varobj, R = num.sampl, szise = sample.size, distr = distr,
-           pars=pars, stat = stat, breaks = breaks, parametric = parametric,
-           mc.cores = num.cores)
+        pars=pars, stat = stat, breaks = breaks, parametric = parametric,
+        par.names = par.names, mc.cores = num.cores)
 }
 
 # ======================= Anderson–Darling statistic ========================= #
-ad_stat <- function(x, distr, pars = NULL) {
+ad_stat <- function(x, distr, pars = NULL, par.names = NULL) {
    x <- sort(x[complete.cases(x)])
-   if (!missing(distr))  x <- distfn(x = x, dfn = distr, type = "p", arg = pars)
+   if (!missing(distr))  x <- distfn(x = x, dfn = distr,
+                                     type = "p", arg = pars,
+                                     par.names = par.names)
 
    n <- length(x)
    if (n < 8)
@@ -422,46 +419,38 @@ ad_stat <- function(x, distr, pars = NULL) {
 }
 
 # ================ Auxiliary function to compute the frequencies ============= #
-freqs <- function(x, distr, pars = NULL, breaks = NULL) {
+freqs <- function(x, distr, pars = NULL, breaks = NULL,
+                    par.names = NULL) {
    n <- length(x)
 
-   if (is.character(distr)) {
-      if (is.null(breaks))
-           breaks <- nclass.FD(x)
-      DENS <- hist(x, breaks = breaks, plot = FALSE)
-      freq0 <- DENS$counts
-      bounds <- data.frame(lower = DENS$breaks[ -length(DENS$breaks)],
-                           upper = DENS$breaks[ -1 ])
-      up_val <- distfn( x = bounds$upper, dfn = distr,
-                        type = "p", arg = pars)
-      low_val <- distfn(x = bounds$lower, dfn = distr,
-                        type = "p", arg = pars)
-      freq <- round(n * (up_val - low_val))
-   }
-   else {
-      if (is.numeric(distr) && length(distr) == length(x)) {
-         if (sum(distr, na.rm = TRUE) > 1)
-            freq <- distr
-         else
-            freq <- round(n * distr)
-         freq0 <- x
-      }
-      else
-         stop("\n*** The argument of 'distr' is incorrect.")
-   }
+   if (is.null(breaks))
+      breaks <- nclass.FD(x)
+   DENS <- hist(x, breaks = breaks, plot = FALSE)
+   freq0 <- DENS$counts
+   bounds <- data.frame(lower = DENS$breaks[ -length(DENS$breaks)],
+                        upper = DENS$breaks[ -1 ])
+   up_val <- distfn( x = bounds$upper, dfn = distr,
+                     type = "p", arg = pars,
+                     par.names = par.names)
+   low_val <- distfn(x = bounds$lower, dfn = distr,
+                     type = "p", arg = pars,
+                     par.names = par.names)
+   freq <- round(n * (up_val - low_val))
 
    return(data.frame(obsf = freq0, expf = freq))
 }
 
-# ===================== Root-Mean-Square statistic ========================== #
-rmse <- function(x, distr, pars, breaks = NULL) {
-   freq <- freqs(x = x, distr = distr, pars = pars, breaks = breaks)
+# ====================== Root-Mean-Square statistic ========================== #
+rmse <- function(x, distr, pars, breaks = NULL, par.names) {
+   freq <- freqs(x = x, distr = distr, pars = pars,
+                    breaks = breaks, par.names = par.names)
    return(sqrt(sum((freq$obsf - freq$expf)^2, na.rm = TRUE))/length(freq$obsf))
 }
 
-# ================== Pearson's Chi-squared  statistic ======================= #
-chisq <- function(x, distr, pars, breaks = NULL) {
-   freq <- freqs(x = x, distr = distr, pars = pars, breaks = breaks)
+# =================== Pearson's Chi-squared  statistic ======================= #
+chisq <- function(x, distr, pars, breaks = NULL, par.names) {
+   freq <- freqs(x = x, distr = distr, pars = pars,
+                breaks = breaks, par.names = par.names)
    if (any(freq$expf == 0)) {
       freq$expf <- freq$expf + 0.5
       freq$obsf <- freq$obsf + 0.5
@@ -469,29 +458,34 @@ chisq <- function(x, distr, pars, breaks = NULL) {
    return(sum((freq$obsf - freq$expf)^2/freq$expf))
 }
 
-# ================== Kolmogorov-Smirnov  statistic ======================= #
+# ====================== Kolmogorov-Smirnov  statistic ======================= #
 
-ks_stat <- function(x, distr, pars) {
-   cdf <- function(x, pars) distfn(x = x, dfn = distr, type = "p", arg = pars)
+ks_stat <- function(x, distr, pars, par.names) {
+   cdf <- function(x, pars) distfn(x = x, dfn = distr, type = "p",
+                                   arg = pars, par.names = par.names)
    res <- suppressWarnings(ks.test(x = x, y = cdf, pars))
    return(list(stat = unname(res$statistic), p.value = res$p.value))
 }
 
-
 # --------------------- Auxiliary function to get distribution --------------- #
-distfn <- function(x, dfn, type = "r", arg) {
-   switch(type,
-          p = do.call(paste0(type, dfn),
-                      c(list(x), arg)),
-          r = do.call(paste0(type, dfn), c(list(x), arg))
-   )
+distfn <- function(x, dfn, type = "r", arg, par.names = NULL) {
+    if (!is.null(par.names))  {
+       args <- list(x, arg)
+       if (type == "r")
+          names(args) <- c("n", par.names)
+       else
+          names(args) <- c("q", par.names)
+    } else
+       args <-  c(list(x), arg)
+    do.call(paste0(type, dfn), args)
 }
 
-# ================== Hellinger divergence  statistic ======================= #
+# ==================== Hellinger divergence  statistic ======================= #
 
-hdiv <- function(x, distr, pars, breaks = NULL) {
+hdiv <- function(x, distr, pars, breaks = NULL, par.names) {
 
-   p <- freqs(x = x, distr = distr, pars = pars, breaks = breaks)
+   p <- freqs(x = x, distr = distr, pars = pars,
+            breaks = breaks, par.names = par.names)
    n1 <- sum(p$obsf, na.rm = TRUE)
    n2 <- sum(p$expf, na.rm = TRUE)
    n <- c(n1, n2)
@@ -513,6 +507,6 @@ hdiv <- function(x, distr, pars, breaks = NULL) {
 }
 
 
-# -------------------------- End auxiliary function ------------------------ #
+# --------------------------- End auxiliary function ------------------------- #
 
 
