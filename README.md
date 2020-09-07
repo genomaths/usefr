@@ -35,10 +35,10 @@ After that, still some error message can be returned, like this:
 "/lib64/libstdc++.so.6: version `GLIBCXX_3.4.20' not found (required by ...
 cubature.so"
 
-In the above situation, just check one of the following alternatives:
+In the above situation, just proceed with one of the following alternatives:
   
-  1. Download the binary of 'cubature' R package from here: <https://is.gd/WZI32A> 
-     and then the binary of 'usefr' R package from here: <https://is.gd/4BKQQN>.
+  1. Download the binary of 'cubature' R package from here: <https://is.gd/WZI32A>
+     and install it.
      
   2. Or follow the link: <https://github.com/cdr/code-server/issues/347>  
   
@@ -50,6 +50,16 @@ In the above situation, just check one of the following alternatives:
 
 ```install.p
    devtools::install_git("https://github.com/genomaths/usefr.git")
+
+```
+
+Or download the binary of 'usefr' R package from here: <https://is.gd/4BKQQN>
+and in the R console type:
+
+```install.usefr
+
+install.packages("usefr_0.1.0_R_x86_64-pc-linux-gnu.tar.gz", 
+                 repos = NULL, type = "source")
 
 ```
 
