@@ -25,7 +25,24 @@ This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_, _c
                         "nls2", "cubature"), dependencies=TRUE)
 ```
 
+### Issue installing "cubature" R package on CenOS
+
+The installation of "cubature" R package on CenOS (required for 'usefr') from 
+the source, would produce some error when trying to compile the C++ code from
+the package source. Use instead the binary package, which is already compiled.
+After that, still some error message can be returned, like: 
+
+"/lib64/libstdc++.so.6: version `GLIBCXX_3.4.20' not found (required by ...
+cubature.so"
+
+In the above situation, in the system console/terminal (not in R!) just type
+
+```intall_lib
+sudo yum install libstdc++.so.6
+```
+
 ------------
+
 ### You can install _*usefr*_ package from GitHub
 
 ```install.p
