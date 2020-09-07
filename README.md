@@ -41,7 +41,7 @@ In the above situation, just check the link:
 
 Alternatively, just install
 [Anaconda](https://docs.anaconda.com/anaconda/install/linux/) in your CentOS and 
-then [install R on Annaconda](https://docs.anaconda.com/anaconda/user-guide/tasks/using-r-language/) and all the nightmare with R in CentOS will passaway!
+then [install R on Annaconda](https://docs.anaconda.com/anaconda/user-guide/tasks/using-r-language/) and all the nightmares with R on CentOS will pass away!
 
 ------------
 
