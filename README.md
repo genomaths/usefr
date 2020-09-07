@@ -25,7 +25,7 @@ This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_, _c
                         "nls2", "cubature"), dependencies=TRUE)
 ```
 
-### Issue installing "cubature" R package on CentOS
+### Installing issues with the R package "cubature" on CentOS
 
 The installation of "cubature" R package on CenOS (required for 'usefr') from 
 the source, would produce some error when trying to compile the C++ code from
