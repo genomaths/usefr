@@ -35,11 +35,13 @@ After that, still some error message can be returned, like this:
 "/lib64/libstdc++.so.6: version `GLIBCXX_3.4.20' not found (required by ...
 cubature.so"
 
-In the above situation, in the system console/terminal (not in R!) just type
+In the above situation, just check the link:
 
-```intall_lib
-sudo yum install libstdc++.so.6
-```
+<https://github.com/cdr/code-server/issues/347>
+
+Alternatively, just install
+[Anaconda](https://docs.anaconda.com/anaconda/install/linux/) in your CentOS and 
+then [install R on Annaconda](https://docs.anaconda.com/anaconda/user-guide/tasks/using-r-language/) and all the nightmare with R in CentOS will passaway!
 
 ------------
 
