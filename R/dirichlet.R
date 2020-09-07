@@ -35,7 +35,7 @@
 #' @details The computation of the function 'pdirichlet' is accomplished
 #' using Monte Carlo integration of the density 'dirichlet'. The estimation are
 #' based on the fact that if a variable \eqn{x = (x_1, x_2, ...x_n)} follows
-#' Dirichlet Distribution with parameters \eqn{\apha = \alpha_1, ... ,
+#' Dirichlet Distribution with parameters \eqn{\alpha = \alpha_1, ... ,
 #' \alpha_n} (all positive reals), in short, \eqn{x ~ Dir(\alpha)}, then
 #' \eqn{x_i ~ Beta(\alpha_i, \alpha_0 - \alpha_i)}, where Beta(.) stands for the
 #' Beta distribution and \eqn{\alpha_0 = \sum \alpha_i}.

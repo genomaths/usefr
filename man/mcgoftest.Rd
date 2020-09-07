@@ -139,10 +139,11 @@ distributions.
 Additionally, the only supported n-dimensional probability distribution is
 Dirichlet Distribution (\emph{Dir}). The GOF for Dir is based on the fact
 that if a variable \eqn{x = (x_1, x_2, ...x_n)} follows Dirichlet
-Distribution with parameters \eqn{\apha = \alpha_1, ... , \alpha_n} (all
+Distribution with parameters \eqn{\alpha = \alpha_1, ... , \alpha_n} (all
 positive reals), in short, \eqn{x ~ Dir(\alpha)}, then \eqn{x_i ~
 Beta(\alpha_i, \alpha_0 - \alpha_i)}, where Beta(.) stands for the Beta
-distribution and \eqn{\alpha_0 = \sum \alpha_i}.
+distribution and \eqn{\alpha_0 = \sum \alpha_i} (see Detail section,
+\code{\link{dirichlet}} function, and the last example).
 }
 \examples{
 ## ======== Example 1 =======
@@ -213,6 +214,15 @@ mcgoftest(varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
 
 ## ========= Example 5 ======
 ## GoF for Dirichlet Distribution
+alpha = c(2.1, 3.2, 3.3)
+x <- rdirichlet(n = 100, alpha = alpha)
+
+mcgoftest(varobj = x, distr = "dirichlet",
+          pars = alpha, num.sampl = 999,
+          sample.size =  100, stat = "rmse",
+          par.names = "alpha",
+          num.cores = 4, breaks = 50,
+          seed = 123)
 }
 \references{
 \enumerate{
@@ -230,7 +240,8 @@ mcgoftest(varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
 }
 \seealso{
 Distribution fitting: \code{\link{fitMixDist}},
-    \code{\link[MASS]{fitdistr}}, \code{\link{fitCDF}}.
+    \code{\link[MASS]{fitdistr}}, \code{\link{fitCDF}}, and
+    \code{\link{bicopulaGOF}}.
 }
 \author{
 Robersy Sanchez (\url{https://genomaths.com}).

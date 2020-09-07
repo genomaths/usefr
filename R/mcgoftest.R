@@ -76,10 +76,11 @@
 #' Additionally, the only supported n-dimensional probability distribution is
 #' Dirichlet Distribution (\emph{Dir}). The GOF for Dir is based on the fact
 #' that if a variable \eqn{x = (x_1, x_2, ...x_n)} follows Dirichlet
-#' Distribution with parameters \eqn{\apha = \alpha_1, ... , \alpha_n} (all
+#' Distribution with parameters \eqn{\alpha = \alpha_1, ... , \alpha_n} (all
 #' positive reals), in short, \eqn{x ~ Dir(\alpha)}, then \eqn{x_i ~
 #' Beta(\alpha_i, \alpha_0 - \alpha_i)}, where Beta(.) stands for the Beta
-#' distribution and \eqn{\alpha_0 = \sum \alpha_i}.
+#' distribution and \eqn{\alpha_0 = \sum \alpha_i} (see Detail section,
+#' \code{\link{dirichlet}} function, and the last example).
 #'
 #' @param varobj A a vector containing observations, the variable for which the
 #' CDF parameters was estimated or the discrete absolute frequencies of each
@@ -144,7 +145,8 @@
 #'             Probab. Lett. 80, 206–214 (2010).
 #'     }
 #' @seealso Distribution fitting: \code{\link{fitMixDist}},
-#'     \code{\link[MASS]{fitdistr}}, \code{\link{fitCDF}}.
+#'     \code{\link[MASS]{fitdistr}}, \code{\link{fitCDF}}, and
+#'     \code{\link{bicopulaGOF}}.
 #' @examples
 #' ## ======== Example 1 =======
 #' # Let us generate a random sample a from a specified Weibull distribution:
@@ -214,15 +216,15 @@
 #'
 #' ## ========= Example 5 ======
 #' ## GoF for Dirichlet Distribution
-# alpha = c(2.1, 3.2, 3.3)
-# x <- rdirichlet(n = 100, alpha = alpha)
-#
-# mcgoftest(varobj = x, distr = "dirichlet",
-#           pars = alpha, num.sampl = 999,
-#           sample.size =  100, stat = "chisq",
-#           par.names = "alpha",
-#           num.cores = 4, breaks = 50,
-#           seed = 123)
+#' alpha = c(2.1, 3.2, 3.3)
+#' x <- rdirichlet(n = 100, alpha = alpha)
+#'
+#' mcgoftest(varobj = x, distr = "dirichlet",
+#'           pars = alpha, num.sampl = 999,
+#'           sample.size =  100, stat = "rmse",
+#'           par.names = "alpha",
+#'           num.cores = 4, breaks = 50,
+#'           seed = 123)
 
 mcgoftest <- function(
                     varobj,
