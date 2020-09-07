@@ -27,10 +27,10 @@ This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_, _c
 
 ### Installing issues with the R package "cubature" on CentOS
 
-The installation of "cubature" R package on CenOS (required for 'usefr') from 
+The installation of "cubature" R package on CenOS (required by 'usefr') from 
 the source, would produce some error when trying to compile the C++ code from
 the package source. Use instead the binary package, which is already compiled.
-After that, still some error message can be returned, like: 
+After that, still some error message can be returned, like this: 
 
 "/lib64/libstdc++.so.6: version `GLIBCXX_3.4.20' not found (required by ...
 cubature.so"
