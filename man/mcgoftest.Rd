@@ -12,7 +12,7 @@ mcgoftest(
   sample.size,
   stat = c("ks", "ad", "rmse", "chisq", "hd"),
   breaks = NULL,
-  arg.names = NULL,
+  par.names = NULL,
   parametric = TRUE,
   seed = 1,
   num.cores = 1,
@@ -51,8 +51,9 @@ observation category.}
 'nclass.FD' (see \code{\link[grDevices]{nclass}} is applied to estimate
 the breaks.}
 
-\item{arg.names}{(Optional) The names of the arguments from function
-\strong{\emph{distr}}.}
+\item{par.names}{(Optional) The names of the parameters from
+\strong{\emph{distr}} function. Some distribution functions would require to
+provide the names of their parameters.}
 
 \item{parametric}{Logical object. If TRUE, then samples are drawn from the
 theoretical population described by \emph{distr}. Default: TRUE.}
@@ -134,6 +135,14 @@ Notice that 'chisq', 'rmse', and 'hd' tests can be applied to testing two
 discrete probability distributions as well. However, here,
 \strong{\emph{mcgoftest}} function is limited to continuous probability
 distributions.
+
+Additionally, the only supported n-dimensional probability distribution is
+Dirichlet Distribution (\emph{Dir}). The GOF for Dir is based on the fact
+that if a variable \eqn{x = (x_1, x_2, ...x_n)} follows Dirichlet
+Distribution with parameters \eqn{\apha = \alpha_1, ... , \alpha_n} (all
+positive reals), in short, \eqn{x ~ Dir(\alpha)}, then \eqn{x_i ~
+Beta(\alpha_i, \alpha_0 - \alpha_i)}, where Beta(.) stands for the Beta
+distribution and \eqn{\alpha_0 = \sum \alpha_i}.
 }
 \examples{
 ## ======== Example 1 =======
@@ -181,13 +190,14 @@ mcgoftest(varobj = w, distr = "wdist", pars = list(pars), num.sampl = 100,
 
 ## ========= Example 4 ======
 ## ----- Testing GoF of a mixture distribution. ----
-## Define a mixure distribution to be avaluated with functions 'mixtdistr'
+## Define a mixture distribution to be evaluated with functions 'mixtdistr'
 ## (see ?mixtdistr). In the current case, it will be mixture of a Log-Normal
 ## and a Weibull distributions:
 
 phi = c( 0.37, 0.63) # Mixture proportions
 args <- list(lnorm = c(meanlog = 0.837, sdlog = 0.385),
              weibull = c(shape = 2.7, scale = 5.8))
+
 ##  Sampling from the specified mixture distribution
 set.seed(123)
 x <- rmixtdistr(n = 1e5, phi = phi , arg = args)
@@ -201,7 +211,8 @@ mcgoftest(varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
         sample.size =  999, stat = "chisq", num.cores = 4, breaks = 200,
         seed = 123)
 
-
+## ========= Example 5 ======
+## GoF for Dirichlet Distribution
 }
 \references{
 \enumerate{

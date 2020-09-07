@@ -73,6 +73,14 @@
 #' \strong{\emph{mcgoftest}} function is limited to continuous probability
 #' distributions.
 #'
+#' Additionally, the only supported n-dimensional probability distribution is
+#' Dirichlet Distribution (\emph{Dir}). The GOF for Dir is based on the fact
+#' that if a variable \eqn{x = (x_1, x_2, ...x_n)} follows Dirichlet
+#' Distribution with parameters \eqn{\apha = \alpha_1, ... , \alpha_n} (all
+#' positive reals), in short, \eqn{x ~ Dir(\alpha)}, then \eqn{x_i ~
+#' Beta(\alpha_i, \alpha_0 - \alpha_i)}, where Beta(.) stands for the Beta
+#' distribution and \eqn{\alpha_0 = \sum \alpha_i}.
+#'
 #' @param varobj A a vector containing observations, the variable for which the
 #' CDF parameters was estimated or the discrete absolute frequencies of each
 #' observation category.
@@ -96,7 +104,8 @@
 #' 'nclass.FD' (see \code{\link[grDevices]{nclass}} is applied to estimate
 #' the breaks.
 #' @param par.names (Optional) The names of the parameters from
-#' \strong{\emph{distr}} function.
+#' \strong{\emph{distr}} function. Some distribution functions would require to
+#' provide the names of their parameters.
 #' @param parametric Logical object. If TRUE, then samples are drawn from the
 #' theoretical population described by \emph{distr}. Default: TRUE.
 #' @param num.sampl Number of resamplings.
@@ -182,13 +191,14 @@
 #'
 #' ## ========= Example 4 ======
 #' ## ----- Testing GoF of a mixture distribution. ----
-#' ## Define a mixure distribution to be avaluated with functions 'mixtdistr'
+#' ## Define a mixture distribution to be evaluated with functions 'mixtdistr'
 #' ## (see ?mixtdistr). In the current case, it will be mixture of a Log-Normal
 #' ## and a Weibull distributions:
 #'
 #' phi = c( 0.37, 0.63) # Mixture proportions
 #' args <- list(lnorm = c(meanlog = 0.837, sdlog = 0.385),
 #'              weibull = c(shape = 2.7, scale = 5.8))
+#'
 #' ##  Sampling from the specified mixture distribution
 #' set.seed(123)
 #' x <- rmixtdistr(n = 1e5, phi = phi , arg = args)
@@ -202,7 +212,18 @@
 #'         sample.size =  999, stat = "chisq", num.cores = 4, breaks = 200,
 #'         seed = 123)
 #'
-#'
+#' ## ========= Example 5 ======
+#' ## GoF for Dirichlet Distribution
+# alpha = c(2.1, 3.2, 3.3)
+# x <- rdirichlet(n = 100, alpha = alpha)
+#
+# mcgoftest(varobj = x, distr = "dirichlet",
+#           pars = alpha, num.sampl = 999,
+#           sample.size =  100, stat = "chisq",
+#           par.names = "alpha",
+#           num.cores = 4, breaks = 50,
+#           seed = 123)
+
 mcgoftest <- function(
                     varobj,
                     distr,
@@ -228,6 +249,10 @@ mcgoftest <- function(
             "function e.g.,\n that 'norm' will permit accessing ",
             "functions 'pnorm' and 'rnorm'")
 
+   if (distr == "dirichlet" && is.element(stat, c("ks", "ad")))
+      stop("\n*** 'ks' and 'ad' approaches are not available for ",
+           "n-dimensional distributions")
+
    if (is.character(distr)) {
       pdistr <- paste0("p", distr)
       pdistr <- get(pdistr, mode = "function",
@@ -241,8 +266,8 @@ mcgoftest <- function(
 
       if (parametric) {
          rdistr <- paste0("r", distr)
-         rdistr <-
-            get(rdistr, mode = "function", envir = parent.frame())
+         rdistr <- get(rdistr, mode = "function",
+                        envir = parent.frame())
          if (!is.function(rdistr))
             stop(
                "*** 'distr' must be a characterstring naming a ",
@@ -260,44 +285,6 @@ mcgoftest <- function(
        if (length( x ) < szise) replace <- TRUE
        else replace <- FALSE
 
-       myfun <- function(a, distr, pars, stat, breaks, parametric,
-                         par.names) {
-           switch(stat,
-                ks = ks_stat(x = a, distr = distr, pars = pars,
-                             par.names = par.names)$stat,
-                ad = ad_stat(x = a, distr = distr, pars = pars,
-                             par.names = par.names),
-                rmse = rmse(x = a, distr = distr, pars = pars,
-                            par.names = par.names,
-                            breaks = breaks),
-                chisq = chisq(x = a, distr = distr, pars = pars,
-                            par.names = par.names, breaks = breaks),
-                hd = hdiv(x = a, distr = distr, pars = pars,
-                           par.names = par.names,
-                           breaks = breaks)
-          )
-       }
-
-       DoIt <- function(r, distr, pars, stat, breaks, parametric,
-                        par.names) {
-           if (parametric) a <- distfn(x = szise, dfn = distr,
-                                       type = "r", arg = pars,
-                                       par.names = par.names)
-           else {
-               i <- sample( length( x ), szise, replace = replace )
-               a = x[ i ]
-               if (is.numeric(distr)) distr <- distr[i]
-           }
-
-           # to test empirical versus theoretical values
-           myfun(a = a, distr = distr, pars = pars, stat = stat,
-                   breaks = breaks, parametric = parametric,
-                   par.names = par.names)
-       }
-
-       # DoIt(1, distr= distr, pars=pars, stat=stat, breaks=breaks,
-       #      parametric=parametric, par.names= par.names)
-
        if (verbose) progressbar = TRUE else progressbar = FALSE
        if (Sys.info()['sysname'] == "Linux") {
            bpparam <- MulticoreParam(workers=num.cores, tasks=tasks,
@@ -305,8 +292,9 @@ mcgoftest <- function(
        } else bpparam <- SnowParam(workers=num.cores, type = "SOCK",
                                    progressbar = progressbar)
 
-        pstats <- unlist(bplapply(1:R, DoIt, distr = distr, pars = pars,
-                                 stat = stat, breaks = breaks,
+        pstats <- unlist(bplapply(1:R, DoIt, x, distr = distr,
+                                 pars = pars, stat = stat,
+                                 breaks = breaks, szise = szise,
                                  parametric = parametric,
                                  par.names = par.names,
                                  BPPARAM = bpparam))
@@ -418,7 +406,58 @@ ad_stat <- function(x, distr, pars = NULL, par.names = NULL) {
    return(-n - mean(h))
 }
 
+
+# ============================================================================ #
+# ======================= Auxiliary functions ================================ #
+# ============================================================================ #
+
+
+# ======================= To compute the statistic ========================== #
+
+# ------- To compute the statistic
+
+stat_fun <- function(a, distr, pars, stat, breaks, parametric,
+                  par.names) {
+   switch(stat,
+          ks = ks_stat(x = a, distr = distr, pars = pars,
+                       par.names = par.names)$stat,
+          ad = ad_stat(x = a, distr = distr, pars = pars,
+                       par.names = par.names),
+          rmse = rmse(x = a, distr = distr, pars = pars,
+                      par.names = par.names,
+                      breaks = breaks),
+          chisq = chisq(x = a, distr = distr, pars = pars,
+                        par.names = par.names, breaks = breaks),
+          hd = hdiv(x = a, distr = distr, pars = pars,
+                    par.names = par.names,
+                    breaks = breaks)
+   )
+}
+
+
+# ------- To iterate the statistic computation
+
+DoIt <- function(r, x, distr, pars, stat, breaks, szise,
+                parametric, par.names) {
+   if (parametric) a <- distfn(x = szise, dfn = distr,
+                            type = "r", arg = pars,
+                            par.names = par.names)
+   else {
+      i <- sample( length( x ), szise, replace = replace )
+      a = x[ i ]
+   }
+
+   # to test empirical versus theoretical values
+   stat_fun(a = a, distr = distr, pars = pars, stat = stat,
+            breaks = breaks, parametric = parametric,
+            par.names = par.names)
+}
+
+# DoIt(1, distr= distr, pars=pars, stat=stat, breaks=breaks,
+#      parametric=parametric, par.names= par.names)
+
 # ================ Auxiliary function to compute the frequencies ============= #
+
 freqs <- function(x, distr, pars = NULL, breaks = NULL,
                     par.names = NULL) {
    n <- length(x)
@@ -440,16 +479,48 @@ freqs <- function(x, distr, pars = NULL, breaks = NULL,
    return(data.frame(obsf = freq0, expf = freq))
 }
 
+# ------------- n-dimensional frequency based on marginals
+# So far, only for Dirichlet distribution
+
+freqnd <- function(x, distr = "beta", breaks, pars,
+                   par.names = NULL) {
+
+   alfa <- sum(pars)
+   fq <- lapply(seq_len(ncol(x)),
+                function(k) freqs(x = x[, k], distr = distr,
+                                  pars = list(shape1 = pars[k],
+                                              shape2 = alfa - pars[k]),
+                                  breaks = breaks,
+                                  par.names = par.names))
+
+   fq <- do.call(rbind, fq)
+   rownames(fq) <- NULL
+   return(fq)
+}
+
+FREQs <- function(x, distr, pars = NULL, breaks = NULL,
+                  par.names = NULL) {
+   if (distr == "dirichlet")
+      fq <- freqnd(x = x, distr = "beta", breaks = breaks, pars = pars,
+                   par.names = NULL)
+   else
+      fq <- freqs(x = x, distr, breaks = breaks,
+                  pars = pars, par.names = NULL)
+   return(fq)
+}
+
 # ====================== Root-Mean-Square statistic ========================== #
+
 rmse <- function(x, distr, pars, breaks = NULL, par.names) {
-   freq <- freqs(x = x, distr = distr, pars = pars,
+   freq <- FREQs(x = x, distr = distr, pars = pars,
                     breaks = breaks, par.names = par.names)
    return(sqrt(sum((freq$obsf - freq$expf)^2, na.rm = TRUE))/length(freq$obsf))
 }
 
 # =================== Pearson's Chi-squared  statistic ======================= #
+
 chisq <- function(x, distr, pars, breaks = NULL, par.names) {
-   freq <- freqs(x = x, distr = distr, pars = pars,
+   freq <- FREQs(x = x, distr = distr, pars = pars,
                 breaks = breaks, par.names = par.names)
    if (any(freq$expf == 0)) {
       freq$expf <- freq$expf + 0.5
@@ -468,6 +539,7 @@ ks_stat <- function(x, distr, pars, par.names) {
 }
 
 # --------------------- Auxiliary function to get distribution --------------- #
+
 distfn <- function(x, dfn, type = "r", arg, par.names = NULL) {
     if (!is.null(par.names))  {
        args <- list(x, arg)
@@ -484,7 +556,7 @@ distfn <- function(x, dfn, type = "r", arg, par.names = NULL) {
 
 hdiv <- function(x, distr, pars, breaks = NULL, par.names) {
 
-   p <- freqs(x = x, distr = distr, pars = pars,
+   p <- FREQs(x = x, distr = distr, pars = pars,
             breaks = breaks, par.names = par.names)
    n1 <- sum(p$obsf, na.rm = TRUE)
    n2 <- sum(p$expf, na.rm = TRUE)
