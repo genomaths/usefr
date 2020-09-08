@@ -25,14 +25,19 @@
 #' BIC are not useful (in this case) to decide which parameter set of values is
 #' the best. The goodness-of-fit tests \emph{(GOF)} can help in this case.
 #' Please, see below the examples on how to use this function.
+#'
 #' @details The test is intended for mostly continuous distributions. Basically,
 #' given the set of parameter values \strong{\emph{pars}} from distribution
-#' \strong{\emph{distr}}, \strong{\emph{num.sampl}} sets of random values will
-#' be generated, each one of them with strong{\emph{sample.size}} element. The
+#' \strong{\emph{distr}}, \strong{\emph{num.sampl}} sets of random samples will
+#' be generated, each one of them with \strong{\emph{sample.size}} element. The
 #' selected statistic \strong{\emph{pars}} will be computed for each randomly
 #' generated set (\emph{b_stats}) and for sample \strong{\emph{varobj}}
-#' \emph{s_stat}. Next, the bootstrap \emph{p-value} will be computed as:
+#' (\emph{s_stat}). Next, the bootstrap \emph{p-value} will be computed as:
 #' \eqn{mean(c(s_stat, b_stats) >= s_stat)}.
+#'
+#' If both variables, \strong{\emph{varobj}} and \strong{\emph{distr}}, are
+#' numerical vectors, then \strong{\emph{num.sampl}} sets of random samples of
+#' \eqn{size = length(varobj)} are withdrawn from \strong{\emph{varobj}}.
 #'
 #' If sampling size is lesser the size of the sample, then the test becomes a
 #' Monte Carlo test. The test is based on the use of measures of goodness of
@@ -87,7 +92,7 @@
 #' positive reals), in short, \eqn{x ~ Dir(\alpha)}, then \eqn{x_i ~
 #' Beta(\alpha_i, \alpha_0 - \alpha_i)}, where Beta(.) stands for the Beta
 #' distribution and \eqn{\alpha_0 = \sum \alpha_i} (see Detail section,
-#' \code{\link{dirichlet}} function, and the last example).
+#' \code{\link{dirichlet}} function, and example 5).
 #'
 #' @param varobj A a vector containing observations, the variable for which the
 #' CDF parameters was estimated or the discrete absolute frequencies of each
@@ -95,7 +100,10 @@
 #' @param distr The possible options are:
 #' \enumerate{
 #'    \item The name of the cumulative distribution function (CDF).
-#'    \item A concrete CDF from where estimate the cumulative probabilities.
+#'    \item A concrete CDF, defined by the user,
+#'          from where to estimate the cumulative probabilities.
+#'    \item A numerical vector carrying discrete absolute frequencies for the
+#'          same categories provided in \strong{\emph{varobj}}.
 #' }
 #'
 #' @param pars CDF model parameters. A list of parameters to evaluate the CDF.
@@ -114,8 +122,8 @@
 #' @param par.names (Optional) The names of the parameters from
 #' \strong{\emph{distr}} function. Some distribution functions would require to
 #' provide the names of their parameters.
-#' @param parametric Logical object. If TRUE, then samples are drawn from the
-#' theoretical population described by \emph{distr}. Default: TRUE.
+#' @param replace (Optional) Only if \strong{\emph{distr}} is a numerical
+#' vector. Whether should sampling be with replacement.
 #' @param num.sampl Number of resamplings.
 #' @param sample.size Size of the samples used for each sampling.
 #' @param seed An integer used to set a 'seed' for random number generation.
@@ -248,6 +256,22 @@
 #'                   num.cores = 4, breaks = 50,
 #'                   seed = 1)
 #' }
+#'
+#' ## ========= Example 6 ======
+#' ##  Testing that two discrete probabilities vectors
+#' ##  come from the same probability distribution.
+#' set.seed(1)
+#' alpha = c(2.1, 3.2, 3.3, 2.4, 1.9, 1.5,  3, 4, 5, 10, 3, 2)
+#' ## Vector of absolute frequencies
+#' x <- round(rdirichlet(n = 2, alpha = alpha) * 1e3)
+#'
+#' mcgoftest(varobj = x[1,], distr = x[2, ],
+#'           pars = alpha, num.sampl = 999,
+#'           stat = "chisq",
+#'           par.names = "alpha",
+#'           num.cores = 4, breaks = 50,
+#'           seed = 1)
+
 
 mcgoftest <- function(
                     varobj,
@@ -258,7 +282,6 @@ mcgoftest <- function(
                     stat = c("ks", "ad", "rmse", "chisq", "hd"),
                     breaks = NULL,
                     par.names = NULL,
-                    parametric = TRUE,
                     replace = FALSE,
                     seed = 1,
                     num.cores = 1,
@@ -270,14 +293,32 @@ mcgoftest <- function(
    ## and numerical data analysis with R}. Herein, it is modified and extended.
    set.seed( seed )
    stat <- match.arg(stat)
-   if (!is.character(distr))
-       stop("\n*** 'distr' must be a character string naming a distribution ",
-            "function e.g.,\n that 'norm' will permit accessing ",
-            "functions 'pnorm' and 'rnorm'")
 
    if (distr == "dirichlet" && is.element(stat, c("ks", "ad")))
       stop("\n*** 'ks' and 'ad' approaches are not available for ",
            "n-dimensional distributions")
+
+   if (is.numeric(distr)) {
+      if (is.element(stat, c("ks", "ad"))) {
+         stat <- "chisq"
+         warning("*** 'ks' and 'ad' approaches are not available for ",
+                 "discrete distributions",
+                 "\n'chisq' approach was applied")
+      }
+      if (!is.null(dim(distr)))
+         stop(
+            "*** 'distr' must be a characterstring naming a distribution ",
+            "function e.g, 'norm' will permit accessing ",
+            "functions 'pnorm' and 'rnorm', or a numerical vector"
+         )
+      if (!is.null(dim(varobj)))
+         stop("\n*** if 'distr' is a numerical vector,",
+               " then 'varobj' must be a numerical vector as well")
+      if (length(distr) != length(varobj))
+         stop("\n*** if 'distr' is a numeric vector,",
+              " then length(distr) == length(varobj)")
+      parametric <- FALSE
+   }
 
    if (is.character(distr)) {
       pdistr <- paste0("p", distr)
@@ -287,20 +328,19 @@ mcgoftest <- function(
          stop(
             "*** 'distr' must be a characterstring naming a distribution ",
             "function e.g, 'norm' will permit accessing ",
-            "functions 'pnorm' and 'rnorm'"
+            "functions 'pnorm' and 'rnorm', or a numerical vector"
          )
 
-      if (parametric) {
-         rdistr <- paste0("r", distr)
-         rdistr <- get(rdistr, mode = "function",
-                        envir = parent.frame())
-         if (!is.function(rdistr))
-            stop(
-               "*** 'distr' must be a characterstring naming a ",
-               "distribution function e.g, 'norm' will permit accessing ",
-               "functions 'pnorm' and 'rnorm'"
-            )
-      }
+      rdistr <- paste0("r", distr)
+      rdistr <- get(rdistr, mode = "function",
+                    envir = parent.frame())
+      if (!is.function(rdistr))
+         stop(
+            "*** 'distr' must be a characterstring naming a ",
+            "distribution function e.g, 'norm' will permit accessing ",
+            "functions 'pnorm' and 'rnorm'"
+         )
+      parametric <- TRUE
    }
 
    if (inherits(varobj, c("matrix", "data.frame")))
@@ -308,12 +348,11 @@ mcgoftest <- function(
    else
       l <- length(varobj)
 
-   if ((missing( sample.size )) && parametric)
+   if (missing( sample.size ))
        sample.size = l
-   if ((missing( sample.size ) || sample.size > l) && !parametric
-      && replace == FALSE)
-      sample.size = l - 1
 
+   if (sample.size > l && !parametric)
+      sample.size = l
    statis <- switch(stat,
           ks = "Kolmogorov-Smirnov",
           ad = "Anderson–Darling",
@@ -327,7 +366,6 @@ mcgoftest <- function(
                         "Monte Carlo GoF testing",
                         "Permutation GoF testing")
 
-       if (sample.size == length(varobj)) parametric <- FALSE
        approach <- ifelse(parametric, "parametric approach",
                            "non-parametric approach")
 
@@ -385,21 +423,26 @@ freqs <- function(x, distr, pars = NULL, breaks = NULL,
                     par.names = NULL) {
    n <- length(x)
 
-   if (is.null(breaks))
-      breaks <- nclass.FD(x)
-   DENS <- hist(x, breaks = breaks, plot = FALSE)
-   freq0 <- DENS$counts
-   bounds <- data.frame(lower = DENS$breaks[ -length(DENS$breaks)],
-                        upper = DENS$breaks[ -1 ])
-   up_val <- distfn( x = bounds$upper, dfn = distr,
-                     type = "p", arg = pars,
-                     par.names = par.names)
-   low_val <- distfn(x = bounds$lower, dfn = distr,
-                     type = "p", arg = pars,
-                     par.names = par.names)
-   freq <- round(n * (up_val - low_val))
+   if (is.numeric(distr) && length(distr) == n) {
+      return(data.frame(obsf = x, expf = distr))
+   }
+   else {
+      if (is.null(breaks))
+         breaks <- nclass.FD(x)
+      DENS <- hist(x, breaks = breaks, plot = FALSE)
+      freq0 <- DENS$counts
+      bounds <- data.frame(lower = DENS$breaks[ -length(DENS$breaks)],
+                           upper = DENS$breaks[ -1 ])
+      up_val <- distfn( x = bounds$upper, dfn = distr,
+                        type = "p", arg = pars,
+                        par.names = par.names)
+      low_val <- distfn(x = bounds$lower, dfn = distr,
+                        type = "p", arg = pars,
+                        par.names = par.names)
+      freq <- round(n * (up_val - low_val))
 
-   return(data.frame(obsf = freq0, expf = freq))
+      return(data.frame(obsf = freq0, expf = freq))
+   }
 }
 
 # ------------- n-dimensional frequency based on marginals
@@ -423,12 +466,20 @@ freqnd <- function(x, distr = "beta", breaks, pars,
 
 FREQs <- function(x, distr, pars = NULL, breaks = NULL,
                   par.names = NULL) {
-   if (distr == "dirichlet")
-      fq <- freqnd(x = x, distr = "beta", breaks = breaks, pars = pars,
-                   par.names = NULL)
-   else
+   if (is.numeric(distr)) {
       fq <- freqs(x = x, distr, breaks = breaks,
                   pars = pars, par.names = NULL)
+   }
+   else {
+      if (distr == "dirichlet")
+         fq <- freqnd(x = x, distr = "beta",
+                    breaks = breaks, pars = pars,
+                    par.names = NULL)
+      else
+         fq <- freqs(x = x, distr, breaks = breaks,
+                    pars = pars, par.names = NULL)
+   }
+
    return(fq)
 }
 

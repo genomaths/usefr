@@ -13,7 +13,6 @@ mcgoftest(
   stat = c("ks", "ad", "rmse", "chisq", "hd"),
   breaks = NULL,
   par.names = NULL,
-  parametric = TRUE,
   replace = FALSE,
   seed = 1,
   num.cores = 1,
@@ -29,7 +28,10 @@ observation category.}
 \item{distr}{The possible options are:
 \enumerate{
    \item The name of the cumulative distribution function (CDF).
-   \item A concrete CDF from where estimate the cumulative probabilities.
+   \item A concrete CDF, defined by the user,
+         from where to estimate the cumulative probabilities.
+   \item A numerical vector carrying discrete absolute frequencies for the
+         same categories provided in \strong{\emph{varobj}}.
 }}
 
 \item{pars}{CDF model parameters. A list of parameters to evaluate the CDF.}
@@ -56,8 +58,8 @@ the breaks.}
 \strong{\emph{distr}} function. Some distribution functions would require to
 provide the names of their parameters.}
 
-\item{parametric}{Logical object. If TRUE, then samples are drawn from the
-theoretical population described by \emph{distr}. Default: TRUE.}
+\item{replace}{(Optional) Only if \strong{\emph{distr}} is a numerical
+vector. Whether should sampling be with replacement.}
 
 \item{seed}{An integer used to set a 'seed' for random number generation.}
 
@@ -91,12 +93,16 @@ Please, see below the examples on how to use this function.
 \details{
 The test is intended for mostly continuous distributions. Basically,
 given the set of parameter values \strong{\emph{pars}} from distribution
-\strong{\emph{distr}}, \strong{\emph{num.sampl}} sets of random values will
-be generated, each one of them with strong{\emph{sample.size}} element. The
+\strong{\emph{distr}}, \strong{\emph{num.sampl}} sets of random samples will
+be generated, each one of them with \strong{\emph{sample.size}} element. The
 selected statistic \strong{\emph{pars}} will be computed for each randomly
 generated set (\emph{b_stats}) and for sample \strong{\emph{varobj}}
-\emph{s_stat}. Next, the bootstrap \emph{p-value} will be computed as:
+(\emph{s_stat}). Next, the bootstrap \emph{p-value} will be computed as:
 \eqn{mean(c(s_stat, b_stats) >= s_stat)}.
+
+If both variables, \strong{\emph{varobj}} and \strong{\emph{distr}}, are
+numerical vectors, then \strong{\emph{num.sampl}} sets of random samples of
+\eqn{size = length(varobj)} are withdrawn from \strong{\emph{varobj}}.
 
 If sampling size is lesser the size of the sample, then the test becomes a
 Monte Carlo test. The test is based on the use of measures of goodness of
@@ -151,7 +157,7 @@ Distribution with parameters \eqn{\alpha = \alpha_1, ... , \alpha_n} (all
 positive reals), in short, \eqn{x ~ Dir(\alpha)}, then \eqn{x_i ~
 Beta(\alpha_i, \alpha_0 - \alpha_i)}, where Beta(.) stands for the Beta
 distribution and \eqn{\alpha_0 = \sum \alpha_i} (see Detail section,
-\code{\link{dirichlet}} function, and the last example).
+\code{\link{dirichlet}} function, and example 5).
 }
 \examples{
 ## ======== Example 1 =======
@@ -247,6 +253,21 @@ mcgoftest(varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
                   num.cores = 4, breaks = 50,
                   seed = 1)
 }
+
+## ========= Example 6 ======
+##  Testing that two discrete probabilities vectors
+##  come from the same probability distribution.
+set.seed(1)
+alpha = c(2.1, 3.2, 3.3, 2.4, 1.9, 1.5,  3, 4, 5, 10, 3, 2)
+## Vector of absolute frequencies
+x <- round(rdirichlet(n = 2, alpha = alpha) * 1e3)
+
+mcgoftest(varobj = x[1,], distr = x[2, ],
+          pars = alpha, num.sampl = 999,
+          stat = "chisq",
+          par.names = "alpha",
+          num.cores = 4, breaks = 50,
+          seed = 1)
 }
 \references{
 \enumerate{
