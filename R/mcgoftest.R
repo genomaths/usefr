@@ -25,7 +25,15 @@
 #' BIC are not useful (in this case) to decide which parameter set of values is
 #' the best. The goodness-of-fit tests \emph{(GOF)} can help in this case.
 #' Please, see below the examples on how to use this function.
-#' @details The test is intended for mostly continuous distributions.
+#' @details The test is intended for mostly continuous distributions. Basically,
+#' given the set of parameter values \strong{\emph{pars}} from distribution
+#' \strong{\emph{distr}}, \strong{\emph{num.sampl}} sets of random values will
+#' be generated, each one of them with strong{\emph{sample.size}} element. The
+#' selected statistic \strong{\emph{pars}} will be computed for each randomly
+#' generated set (\emph{b_stats}) and for sample \strong{\emph{varobj}}
+#' \emph{s_stat}. Next, the bootstrap \emph{p-value} will be computed as:
+#' \eqn{mean(c(s_stat, b_stats) >= s_stat)}.
+#'
 #' If sampling size is lesser the size of the sample, then the test becomes a
 #' Monte Carlo test. The test is based on the use of measures of goodness of
 #' fit, statistics. The following statistics are available (and some
@@ -64,8 +72,7 @@
 #'        }
 #' If the argument \strong{\emph{distr}} must be defined in
 #' environment-namespace from any package or the environment defined by the
-#' user. if  \eqn{missing( sample.size )} or
-#' \eqn{sample.size > length(varobj)}, then
+#' user. if  \eqn{missing( sample.size )}, then
 #' \eqn{sample.size <- length(varobj) - 1}.
 #'
 #' Notice that 'chisq', 'rmse', and 'hd' tests can be applied to testing two
@@ -215,16 +222,32 @@
 #'         seed = 123)
 #'
 #' ## ========= Example 5 ======
-#' ## GoF for Dirichlet Distribution
-#' alpha = c(2.1, 3.2, 3.3)
-#' x <- rdirichlet(n = 100, alpha = alpha)
+#' ## GoF for Dirichlet Distribution (these examples can be run,
+#' ## the 'not-run' is only to prevent time consuming in R checking)
+#' \dontrun{
+#'         set.seed(1)
+#'         alpha = c(2.1, 3.2, 3.3)
+#'         x <- rdirichlet(n = 100, alpha = alpha)
 #'
-#' mcgoftest(varobj = x, distr = "dirichlet",
-#'           pars = alpha, num.sampl = 999,
-#'           sample.size =  100, stat = "rmse",
-#'           par.names = "alpha",
-#'           num.cores = 4, breaks = 50,
-#'           seed = 123)
+#'         mcgoftest(varobj = x, distr = "dirichlet",
+#'                   pars = alpha, num.sampl = 999,
+#'                   sample.size =  100, stat = "chisq",
+#'                   par.names = "alpha",
+#'                   num.cores = 4, breaks = 50,
+#'                   seed = 1)
+#'
+#'         ## Now, adding some noise to the sample
+#'         set.seed(1)
+#'         x <- x + replicate(3, runif(100, max = 0.1))
+#'         x <- x/ rowSums(x)
+#'
+#'         mcgoftest(varobj = x, distr = "dirichlet",
+#'                   pars = alpha, num.sampl = 999,
+#'                   sample.size =  100, stat = "chisq",
+#'                   par.names = "alpha",
+#'                   num.cores = 4, breaks = 50,
+#'                   seed = 1)
+#' }
 
 mcgoftest <- function(
                     varobj,
@@ -236,6 +259,7 @@ mcgoftest <- function(
                     breaks = NULL,
                     par.names = NULL,
                     parametric = TRUE,
+                    replace = FALSE,
                     seed = 1,
                     num.cores = 1,
                     tasks = 0,
@@ -279,87 +303,16 @@ mcgoftest <- function(
       }
    }
 
-   if (missing( sample.size ) || sample.size > length(varobj))
-       sample.size = length(varobj) - 1
+   if (inherits(varobj, c("matrix", "data.frame")))
+      l <- nrow(varobj)
+   else
+      l <- length(varobj)
 
-    GoFtest <- function(x, R, szise, distr, pars, stat, breaks,
-                        parametric, par.names, mc.cores) {
-       if (length( x ) < szise) replace <- TRUE
-       else replace <- FALSE
-
-       if (verbose) progressbar = TRUE else progressbar = FALSE
-       if (Sys.info()['sysname'] == "Linux") {
-           bpparam <- MulticoreParam(workers=num.cores, tasks=tasks,
-                                       progressbar = progressbar)
-       } else bpparam <- SnowParam(workers=num.cores, type = "SOCK",
-                                   progressbar = progressbar)
-
-        pstats <- unlist(bplapply(1:R, DoIt, x, distr = distr,
-                                 pars = pars, stat = stat,
-                                 breaks = breaks, szise = szise,
-                                 parametric = parametric,
-                                 par.names = par.names,
-                                 BPPARAM = bpparam))
-
-        if (is.element(stat, c("ks", "ad")) && is.numeric(distr))
-            stop("\n*** 'ks' and 'ad' are only available for continuous",
-                 " distribution")
-
-        res <- switch(stat,
-                   ks = {
-                           statis = ks_stat(x = x, distr = distr, pars = pars,
-                                            par.names = par.names)
-                           p.value = statis$p.value
-                           statis = statis$stat
-                           c(KS.stat.D = statis,
-                               mc_p.value = mean(c(statis, pstats) >= statis,
-                                               na.rm = TRUE),
-                               KS.stat.p.value = p.value,
-                               sample.size = sample.size,
-                               num.sampl = num.sampl)
-                   },
-                   ad = {
-                           statis = ad_stat(x = x, distr = distr, pars = pars,
-                                            par.names = par.names)
-                           c(AD.stat = statis,
-                               mc_p.value=mean(c(statis, pstats) >= statis,
-                                               na.rm = TRUE),
-                               sample.size = sample.size,
-                               num.sampl = num.sampl)
-                    },
-                    rmse = {
-                            statis = rmse(x = x, distr = distr,
-                                            pars = pars ,
-                                            par.names = par.names,
-                                            breaks = breaks)
-                            c(rmse = statis,
-                                mc_p.value=mean(c(statis, pstats) >= statis,
-                                                na.rm = TRUE),
-                              sample.size = sample.size,
-                              num.sampl = num.sampl)
-                    },
-                    chisq = {
-                               statis = chisq(x = x, distr = distr, pars=pars,
-                                            par.names = par.names,
-                                            breaks = breaks)
-                               c(Chisq = statis,
-                                mc_p.value = mean(c(statis, pstats) >= statis,
-                                                na.rm = TRUE),
-                                sample.size = sample.size,
-                                num.sampl = num.sampl)
-                    },
-                    hd = {
-                            statis = hdiv(x = x, distr = distr, pars = pars,
-                                            par.names = par.names,
-                                            breaks = breaks)
-                            c(hd = statis,
-                              mc_p.value = mean(c(statis, pstats) >= statis,
-                                                na.rm = TRUE),
-                            sample.size = sample.size, num.sampl = num.sampl)
-                    }
-               )
-       return(res)
-   }
+   if ((missing( sample.size )) && parametric)
+       sample.size = l
+   if ((missing( sample.size ) || sample.size > l) && !parametric
+      && replace == FALSE)
+      sample.size = l - 1
 
    statis <- switch(stat,
           ks = "Kolmogorov-Smirnov",
@@ -370,14 +323,17 @@ mcgoftest <- function(
    )
 
    if (verbose) {
-       method <- ifelse(sample.size < length(varobj), "Monte Carlo GoF testing",
-                       "Permutation GoF testing")
+       method <- ifelse(sample.size < length(varobj),
+                        "Monte Carlo GoF testing",
+                        "Permutation GoF testing")
 
        if (sample.size == length(varobj)) parametric <- FALSE
        approach <- ifelse(parametric, "parametric approach",
                            "non-parametric approach")
 
-       cat( "***", method,"based on" , statis,"statistic", "(", approach, ")",
+       cat( "***", method,"based on" ,
+            statis,"statistic",
+            "(", approach, ")",
            " ...\n")
    }
 
@@ -387,9 +343,19 @@ mcgoftest <- function(
               "Use the parametric approach or permutation instead.")
    }
 
-   GoFtest(x = varobj, R = num.sampl, szise = sample.size, distr = distr,
-        pars=pars, stat = stat, breaks = breaks, parametric = parametric,
-        par.names = par.names, mc.cores = num.cores)
+   GoFtest( x = varobj,
+            R = num.sampl,
+            distr = distr,
+            szise = sample.size,
+            replace = replace,
+            pars = pars,
+            stat = stat,
+            breaks = breaks,
+            parametric = parametric,
+            par.names = par.names,
+            num.cores = num.cores,
+            tasks = tasks,
+            verbose = verbose)
 }
 
 # ======================= Anderson–Darling statistic ========================= #
@@ -412,51 +378,6 @@ ad_stat <- function(x, distr, pars = NULL, par.names = NULL) {
 # ============================================================================ #
 # ======================= Auxiliary functions ================================ #
 # ============================================================================ #
-
-
-# ======================= To compute the statistic ========================== #
-
-# ------- To compute the statistic
-
-stat_fun <- function(a, distr, pars, stat, breaks, parametric,
-                  par.names) {
-   switch(stat,
-          ks = ks_stat(x = a, distr = distr, pars = pars,
-                       par.names = par.names)$stat,
-          ad = ad_stat(x = a, distr = distr, pars = pars,
-                       par.names = par.names),
-          rmse = rmse(x = a, distr = distr, pars = pars,
-                      par.names = par.names,
-                      breaks = breaks),
-          chisq = chisq(x = a, distr = distr, pars = pars,
-                        par.names = par.names, breaks = breaks),
-          hd = hdiv(x = a, distr = distr, pars = pars,
-                    par.names = par.names,
-                    breaks = breaks)
-   )
-}
-
-
-# ------- To iterate the statistic computation
-
-DoIt <- function(r, x, distr, pars, stat, breaks, szise,
-                parametric, par.names) {
-   if (parametric) a <- distfn(x = szise, dfn = distr,
-                            type = "r", arg = pars,
-                            par.names = par.names)
-   else {
-      i <- sample( length( x ), szise, replace = replace )
-      a = x[ i ]
-   }
-
-   # to test empirical versus theoretical values
-   stat_fun(a = a, distr = distr, pars = pars, stat = stat,
-            breaks = breaks, parametric = parametric,
-            par.names = par.names)
-}
-
-# DoIt(1, distr= distr, pars=pars, stat=stat, breaks=breaks,
-#      parametric=parametric, par.names= par.names)
 
 # ================ Auxiliary function to compute the frequencies ============= #
 
@@ -581,6 +502,143 @@ hdiv <- function(x, distr, pars, breaks = NULL, par.names) {
 }
 
 
+# ======================= To compute the statistic ========================== #
+
+# ------- To compute the statistic
+
+stat_fun <- function(a, distr, pars, stat, breaks, parametric,
+                     par.names) {
+   switch(stat,
+          ks = ks_stat(x = a, distr = distr, pars = pars,
+                       par.names = par.names)$stat,
+          ad = ad_stat(x = a, distr = distr, pars = pars,
+                       par.names = par.names),
+          rmse = rmse(x = a, distr = distr, pars = pars,
+                      par.names = par.names,
+                      breaks = breaks),
+          chisq = chisq(x = a, distr = distr, pars = pars,
+                        par.names = par.names, breaks = breaks),
+          hd = hdiv(x = a, distr = distr, pars = pars,
+                    par.names = par.names,
+                    breaks = breaks)
+   )
+}
+
+
+# ------- To iterate the statistic computation
+
+DoIt <- function(r, x, distr, pars, stat, breaks,
+                 parametric, par.names, szise, replace = FALSE) {
+   if (parametric) a <- distfn(x = szise, dfn = distr,
+                               type = "r", arg = pars,
+                               par.names = par.names)
+   else {
+      i <- sample( length( x ), szise, replace = replace )
+      a = x[ i ]
+   }
+
+   # to test empirical versus theoretical values
+   stat_fun(a = a, distr = distr, pars = pars, stat = stat,
+            breaks = breaks, parametric = parametric,
+            par.names = par.names)
+}
+
+# DoIt(1, distr= distr, pars=pars, stat=stat, breaks=breaks,
+#      parametric=parametric, par.names= par.names)
+
+# ======================= GoF test function caller =========================== #
+
+GoFtest <- function(
+                    x,
+                    R,
+                    distr,
+                    szise,
+                    replace,
+                    pars,
+                    stat,
+                    breaks,
+                    parametric,
+                    par.names,
+                    num.cores,
+                    tasks,
+                    verbose) {
+   if (length( x ) < szise) replace <- TRUE
+   else replace <- FALSE
+
+   if (verbose) progressbar = TRUE else progressbar = FALSE
+   if (Sys.info()['sysname'] == "Linux") {
+      bpparam <- MulticoreParam(workers = num.cores, tasks = tasks,
+                                progressbar = progressbar)
+   } else bpparam <- SnowParam(workers = num.cores, type = "SOCK",
+                               progressbar = progressbar)
+
+   bstats <- unlist(bplapply(1:R, DoIt, x, distr = distr,
+                             pars = pars, stat = stat,
+                             breaks = breaks,
+                             szise = szise,
+                             replace = replace,
+                             parametric = parametric,
+                             par.names = par.names,
+                             BPPARAM = bpparam))
+
+   if (is.element(stat, c("ks", "ad")) && is.numeric(distr))
+      stop("\n*** 'ks' and 'ad' are only available for continuous",
+           " distribution")
+
+   res <- switch(stat,
+                 ks = {
+                    statis = ks_stat(x = x, distr = distr, pars = pars,
+                                     par.names = par.names)
+                    p.value = statis$p.value
+                    statis = statis$stat
+                    c(KS.stat.D = statis,
+                      mc_p.value = mean(c(statis, bstats) >= statis,
+                                        na.rm = TRUE),
+                      KS.stat.p.value = p.value,
+                      sample.size = szise,
+                      num.sampl = R)
+                 },
+                 ad = {
+                    statis = ad_stat(x = x, distr = distr, pars = pars,
+                                     par.names = par.names)
+                    c(AD.stat = statis,
+                      mc_p.value=mean(c(statis, bstats) >= statis,
+                                      na.rm = TRUE),
+                      sample.size = szise,
+                      num.sampl = R)
+                 },
+                 rmse = {
+                    statis = rmse(x = x, distr = distr,
+                                  pars = pars ,
+                                  par.names = par.names,
+                                  breaks = breaks)
+                    c(rmse = statis,
+                      mc_p.value=mean(c(statis, bstats) >= statis,
+                                      na.rm = TRUE),
+                      sample.size = szise,
+                      num.sampl = R)
+                 },
+                 chisq = {
+                    statis = chisq(x = x, distr = distr, pars=pars,
+                                   par.names = par.names,
+                                   breaks = breaks)
+                    c(Chisq = statis,
+                      mc_p.value = mean(c(statis, bstats) >= statis,
+                                        na.rm = TRUE),
+                      sample.size = szise,
+                      num.sampl = R)
+                 },
+                 hd = {
+                    statis = hdiv(x = x, distr = distr, pars = pars,
+                                  par.names = par.names,
+                                  breaks = breaks)
+                    c(hd = statis,
+                      mc_p.value = mean(c(statis, bstats) >= statis,
+                                        na.rm = TRUE),
+                      sample.size = szise, num.sampl = R)
+                 }
+   )
+   return(res)
+}
+
 # --------------------------- End auxiliary function ------------------------- #
-
-

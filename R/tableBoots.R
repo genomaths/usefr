@@ -180,10 +180,11 @@ tableBoots <- function(x, stat = c("rmst", "hd", "chisq", "all"),
     ## procedure N times
 
     tb <- replicate(num.permut, {
-                        r <- table(sample(x = seq_len(prod(d)),
-                                          size = N0,
-                                          replace = TRUE,
-                                          prob = prob))
+                        r <- table(sample(
+                                        x = seq_len(prod(d)),
+                                        size = N0,
+                                        replace = TRUE,
+                                        prob = prob))
                         ## updates initial counts
                         y[as.numeric(names(r))] <- r
                         y

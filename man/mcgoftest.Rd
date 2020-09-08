@@ -14,6 +14,7 @@ mcgoftest(
   breaks = NULL,
   par.names = NULL,
   parametric = TRUE,
+  replace = FALSE,
   seed = 1,
   num.cores = 1,
   tasks = 0,
@@ -88,7 +89,15 @@ the best. The goodness-of-fit tests \emph{(GOF)} can help in this case.
 Please, see below the examples on how to use this function.
 }
 \details{
-The test is intended for mostly continuous distributions.
+The test is intended for mostly continuous distributions. Basically,
+given the set of parameter values \strong{\emph{pars}} from distribution
+\strong{\emph{distr}}, \strong{\emph{num.sampl}} sets of random values will
+be generated, each one of them with strong{\emph{sample.size}} element. The
+selected statistic \strong{\emph{pars}} will be computed for each randomly
+generated set (\emph{b_stats}) and for sample \strong{\emph{varobj}}
+\emph{s_stat}. Next, the bootstrap \emph{p-value} will be computed as:
+\eqn{mean(c(s_stat, b_stats) >= s_stat)}.
+
 If sampling size is lesser the size of the sample, then the test becomes a
 Monte Carlo test. The test is based on the use of measures of goodness of
 fit, statistics. The following statistics are available (and some
@@ -127,8 +136,7 @@ limitations for their application to continuous variables are given):
        }
 If the argument \strong{\emph{distr}} must be defined in
 environment-namespace from any package or the environment defined by the
-user. if  \eqn{missing( sample.size )} or
-\eqn{sample.size > length(varobj)}, then
+user. if  \eqn{missing( sample.size )}, then
 \eqn{sample.size <- length(varobj) - 1}.
 
 Notice that 'chisq', 'rmse', and 'hd' tests can be applied to testing two
@@ -213,16 +221,32 @@ mcgoftest(varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
         seed = 123)
 
 ## ========= Example 5 ======
-## GoF for Dirichlet Distribution
-alpha = c(2.1, 3.2, 3.3)
-x <- rdirichlet(n = 100, alpha = alpha)
+## GoF for Dirichlet Distribution (these examples can be run,
+## the 'not-run' is only to prevent time consuming in R checking)
+\dontrun{
+        set.seed(1)
+        alpha = c(2.1, 3.2, 3.3)
+        x <- rdirichlet(n = 100, alpha = alpha)
 
-mcgoftest(varobj = x, distr = "dirichlet",
-          pars = alpha, num.sampl = 999,
-          sample.size =  100, stat = "rmse",
-          par.names = "alpha",
-          num.cores = 4, breaks = 50,
-          seed = 123)
+        mcgoftest(varobj = x, distr = "dirichlet",
+                  pars = alpha, num.sampl = 999,
+                  sample.size =  100, stat = "chisq",
+                  par.names = "alpha",
+                  num.cores = 4, breaks = 50,
+                  seed = 1)
+
+        ## Now, adding some noise to the sample
+        set.seed(1)
+        x <- x + replicate(3, runif(100, max = 0.1))
+        x <- x/ rowSums(x)
+
+        mcgoftest(varobj = x, distr = "dirichlet",
+                  pars = alpha, num.sampl = 999,
+                  sample.size =  100, stat = "chisq",
+                  par.names = "alpha",
+                  num.cores = 4, breaks = 50,
+                  seed = 1)
+}
 }
 \references{
 \enumerate{
