@@ -36,8 +36,11 @@
 #' \eqn{mean(c(s_stat, b_stats) >= s_stat)}.
 #'
 #' If both variables, \strong{\emph{varobj}} and \strong{\emph{distr}}, are
-#' numerical vectors, then \strong{\emph{num.sampl}} sets of random samples of
-#' \eqn{size = length(varobj)} are withdrawn from \strong{\emph{varobj}}.
+#' numerical vectors, then \code{\link{tableBoots}} function is applied. That
+#' is, the problem is confronted as a \eqn{n x m} contingency independence test,
+#' since there is no way to prove that two arbitrary sequences of integer
+#' numbers would follow the same probability distribution without provide
+#' additional information/knowledge.
 #'
 #' If sampling size is lesser the size of the sample, then the test becomes a
 #' Monte Carlo test. The test is based on the use of measures of goodness of
@@ -122,8 +125,6 @@
 #' @param par.names (Optional) The names of the parameters from
 #' \strong{\emph{distr}} function. Some distribution functions would require to
 #' provide the names of their parameters.
-#' @param replace (Optional) Only if \strong{\emph{distr}} is a numerical
-#' vector. Whether should sampling be with replacement.
 #' @param num.sampl Number of resamplings.
 #' @param sample.size Size of the samples used for each sampling.
 #' @param seed An integer used to set a 'seed' for random number generation.
@@ -258,20 +259,39 @@
 #' }
 #'
 #' ## ========= Example 6 ======
-#' ##  Testing that two discrete probabilities vectors
-#' ##  come from the same probability distribution.
+#' ##  Testing whether two discrete probabilities vectors
+#' ##  would come from different probability distributions.
 #' set.seed(1)
-#' alpha = c(2.1, 3.2, 3.3, 2.4, 1.9, 1.5,  3, 4, 5, 10, 3, 2)
 #' ## Vector of absolute frequencies
-#' x <- round(rdirichlet(n = 2, alpha = alpha) * 1e3)
+#' n = 12
+#' alpha = round(runif(n, min = 0.1, max = 0.8) * 10, 1)
+#' x1 <- round(runif(n = n) * 100)
 #'
-#' mcgoftest(varobj = x[1,], distr = x[2, ],
-#'           pars = alpha, num.sampl = 999,
+#' ## Add some little noise
+#' x2 <- x1 + round(runif(n, min = 0.1, max = 0.2) * 10)
+#'
+#' mcgoftest(varobj = x1, distr = x2,
+#'           num.sampl = 999,
 #'           stat = "chisq",
-#'           par.names = "alpha",
-#'           num.cores = 4, breaks = 50,
 #'           seed = 1)
-
+#'
+#' ## Compare it with Chi-square test from R package 'stat'
+#' chisq.test(rbind(x1,x2), simulate.p.value = TRUE, B = 2e3)$p.value
+#'
+#' ## Add bigger noise to 'x1'
+#' x3 <- x1 + round(rnorm(n, mean = 5, sd = 1) * 10)
+#' mcgoftest(varobj = x1, distr = x3,
+#'           num.sampl = 999,
+#'           stat = "chisq",
+#'           seed = 1)
+#'
+#' ## Chi-square test from R package 'stat' is consistent with 'mcgoftest'
+#' chisq.test(rbind(x1, x3), simulate.p.value = TRUE, B = 2e3)$p.value
+#'
+#' ## We will always fail in to detect differences between 'crude' probability
+#' ## vectors without additional information.
+#' chisq.test(x= x1, y = x3, simulate.p.value = TRUE, B = 2e3)$p.value
+#'
 
 mcgoftest <- function(
                     varobj,
@@ -282,7 +302,6 @@ mcgoftest <- function(
                     stat = c("ks", "ad", "rmse", "chisq", "hd"),
                     breaks = NULL,
                     par.names = NULL,
-                    replace = FALSE,
                     seed = 1,
                     num.cores = 1,
                     tasks = 0,
@@ -307,7 +326,7 @@ mcgoftest <- function(
       }
       if (!is.null(dim(distr)))
          stop(
-            "*** 'distr' must be a characterstring naming a distribution ",
+            "*** 'distr' must be a character string naming a distribution ",
             "function e.g, 'norm' will permit accessing ",
             "functions 'pnorm' and 'rnorm', or a numerical vector"
          )
@@ -326,7 +345,7 @@ mcgoftest <- function(
                      envir = parent.frame())
       if (!is.function(pdistr))
          stop(
-            "*** 'distr' must be a characterstring naming a distribution ",
+            "*** 'distr' must be a character string naming a distribution ",
             "function e.g, 'norm' will permit accessing ",
             "functions 'pnorm' and 'rnorm', or a numerical vector"
          )
@@ -336,7 +355,7 @@ mcgoftest <- function(
                     envir = parent.frame())
       if (!is.function(rdistr))
          stop(
-            "*** 'distr' must be a characterstring naming a ",
+            "*** 'distr' must be a character string naming a ",
             "distribution function e.g, 'norm' will permit accessing ",
             "functions 'pnorm' and 'rnorm'"
          )
@@ -381,19 +400,26 @@ mcgoftest <- function(
               "Use the parametric approach or permutation instead.")
    }
 
-   GoFtest( x = varobj,
-            R = num.sampl,
-            distr = distr,
-            szise = sample.size,
-            replace = replace,
-            pars = pars,
-            stat = stat,
-            breaks = breaks,
-            parametric = parametric,
-            par.names = par.names,
-            num.cores = num.cores,
-            tasks = tasks,
-            verbose = verbose)
+   if (parametric) {
+      res <-    GoFtest(x = varobj,
+                        R = num.sampl,
+                        distr = distr,
+                        szise = sample.size,
+                        pars = pars,
+                        stat = stat,
+                        breaks = breaks,
+                        parametric = parametric,
+                        par.names = par.names,
+                        num.cores = num.cores,
+                        tasks = tasks,
+                        verbose = verbose)
+   }
+   else {
+      res <- tableBoots(rbind(varobj, distr),
+                        stat = stat,
+                        num.permut = num.sampl )
+   }
+   return(res)
 }
 
 # ======================= Anderson–Darling statistic ========================= #
@@ -423,26 +449,21 @@ freqs <- function(x, distr, pars = NULL, breaks = NULL,
                     par.names = NULL) {
    n <- length(x)
 
-   if (is.numeric(distr) && length(distr) == n) {
-      return(data.frame(obsf = x, expf = distr))
-   }
-   else {
-      if (is.null(breaks))
-         breaks <- nclass.FD(x)
-      DENS <- hist(x, breaks = breaks, plot = FALSE)
-      freq0 <- DENS$counts
-      bounds <- data.frame(lower = DENS$breaks[ -length(DENS$breaks)],
-                           upper = DENS$breaks[ -1 ])
-      up_val <- distfn( x = bounds$upper, dfn = distr,
-                        type = "p", arg = pars,
-                        par.names = par.names)
-      low_val <- distfn(x = bounds$lower, dfn = distr,
-                        type = "p", arg = pars,
-                        par.names = par.names)
-      freq <- round(n * (up_val - low_val))
+   if (is.null(breaks))
+      breaks <- nclass.FD(x)
+   DENS <- hist(x, breaks = breaks, plot = FALSE)
+   freq0 <- DENS$counts
+   bounds <- data.frame(lower = DENS$breaks[ -length(DENS$breaks)],
+                        upper = DENS$breaks[ -1 ])
+   up_val <- distfn( x = bounds$upper, dfn = distr,
+                     type = "p", arg = pars,
+                     par.names = par.names)
+   low_val <- distfn(x = bounds$lower, dfn = distr,
+                     type = "p", arg = pars,
+                     par.names = par.names)
+   freq <- round(n * (up_val - low_val))
 
-      return(data.frame(obsf = freq0, expf = freq))
-   }
+   return(data.frame(obsf = freq0, expf = freq))
 }
 
 # ------------- n-dimensional frequency based on marginals
@@ -466,20 +487,13 @@ freqnd <- function(x, distr = "beta", breaks, pars,
 
 FREQs <- function(x, distr, pars = NULL, breaks = NULL,
                   par.names = NULL) {
-   if (is.numeric(distr)) {
+   if (distr == "dirichlet")
+      fq <- freqnd(x = x, distr = "beta",
+                   breaks = breaks, pars = pars,
+                   par.names = NULL)
+   else
       fq <- freqs(x = x, distr, breaks = breaks,
                   pars = pars, par.names = NULL)
-   }
-   else {
-      if (distr == "dirichlet")
-         fq <- freqnd(x = x, distr = "beta",
-                    breaks = breaks, pars = pars,
-                    par.names = NULL)
-      else
-         fq <- freqs(x = x, distr, breaks = breaks,
-                    pars = pars, par.names = NULL)
-   }
-
    return(fq)
 }
 
@@ -579,14 +593,10 @@ stat_fun <- function(a, distr, pars, stat, breaks, parametric,
 # ------- To iterate the statistic computation
 
 DoIt <- function(r, x, distr, pars, stat, breaks,
-                 parametric, par.names, szise, replace = FALSE) {
+                 parametric, par.names, szise) {
    if (parametric) a <- distfn(x = szise, dfn = distr,
                                type = "r", arg = pars,
                                par.names = par.names)
-   else {
-      i <- sample( length( x ), szise, replace = replace )
-      a = x[ i ]
-   }
 
    # to test empirical versus theoretical values
    stat_fun(a = a, distr = distr, pars = pars, stat = stat,
@@ -604,7 +614,6 @@ GoFtest <- function(
                     R,
                     distr,
                     szise,
-                    replace,
                     pars,
                     stat,
                     breaks,
@@ -613,8 +622,6 @@ GoFtest <- function(
                     num.cores,
                     tasks,
                     verbose) {
-   if (length( x ) < szise) replace <- TRUE
-   else replace <- FALSE
 
    if (verbose) progressbar = TRUE else progressbar = FALSE
    if (Sys.info()['sysname'] == "Linux") {
@@ -627,7 +634,6 @@ GoFtest <- function(
                              pars = pars, stat = stat,
                              breaks = breaks,
                              szise = szise,
-                             replace = replace,
                              parametric = parametric,
                              par.names = par.names,
                              BPPARAM = bpparam))

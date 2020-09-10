@@ -233,7 +233,7 @@ tableBoots <- function(x, stat = c("rmst", "hd", "chisq", "all"),
                       rmst = sum((x - expf)^2, na.rm = TRUE)/4,
                       hdiv = HD(x, expf),
                       chisq = sum((x - expf)^2/expf, na.rm = TRUE))
-        res <- (sum(st > st0, na.rm = TRUE) + 1)/num.permut
+        res <- (sum(st > st0, na.rm = TRUE) + 1)/(num.permut + 1)
     }
     return(res)
 }

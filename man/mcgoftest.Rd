@@ -13,7 +13,6 @@ mcgoftest(
   stat = c("ks", "ad", "rmse", "chisq", "hd"),
   breaks = NULL,
   par.names = NULL,
-  replace = FALSE,
   seed = 1,
   num.cores = 1,
   tasks = 0,
@@ -58,9 +57,6 @@ the breaks.}
 \strong{\emph{distr}} function. Some distribution functions would require to
 provide the names of their parameters.}
 
-\item{replace}{(Optional) Only if \strong{\emph{distr}} is a numerical
-vector. Whether should sampling be with replacement.}
-
 \item{seed}{An integer used to set a 'seed' for random number generation.}
 
 \item{num.cores, tasks}{Parameters for parallel computation using package
@@ -101,8 +97,11 @@ generated set (\emph{b_stats}) and for sample \strong{\emph{varobj}}
 \eqn{mean(c(s_stat, b_stats) >= s_stat)}.
 
 If both variables, \strong{\emph{varobj}} and \strong{\emph{distr}}, are
-numerical vectors, then \strong{\emph{num.sampl}} sets of random samples of
-\eqn{size = length(varobj)} are withdrawn from \strong{\emph{varobj}}.
+numerical vectors, then \code{\link{tableBoots}} function is applied. That
+is, the problem is confronted as a \eqn{n x m} contingency independence test,
+since there is no way to prove that two arbitrary sequences of integer
+numbers would follow the same probability distribution without provide
+additional information/knowledge.
 
 If sampling size is lesser the size of the sample, then the test becomes a
 Monte Carlo test. The test is based on the use of measures of goodness of
@@ -255,19 +254,39 @@ mcgoftest(varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
 }
 
 ## ========= Example 6 ======
-##  Testing that two discrete probabilities vectors
-##  come from the same probability distribution.
+##  Testing whether two discrete probabilities vectors
+##  would come from different probability distributions.
 set.seed(1)
-alpha = c(2.1, 3.2, 3.3, 2.4, 1.9, 1.5,  3, 4, 5, 10, 3, 2)
 ## Vector of absolute frequencies
-x <- round(rdirichlet(n = 2, alpha = alpha) * 1e3)
+n = 12
+alpha = round(runif(n, min = 0.1, max = 0.8) * 10, 1)
+x1 <- round(runif(n = n) * 100)
 
-mcgoftest(varobj = x[1,], distr = x[2, ],
-          pars = alpha, num.sampl = 999,
+## Add some little noise
+x2 <- x1 + round(runif(n, min = 0.1, max = 0.2) * 10)
+
+mcgoftest(varobj = x1, distr = x2,
+          num.sampl = 999,
           stat = "chisq",
-          par.names = "alpha",
-          num.cores = 4, breaks = 50,
           seed = 1)
+
+## Compare it with Chi-square test from R package 'stat'
+chisq.test(rbind(x1,x2), simulate.p.value = TRUE, B = 2e3)$p.value
+
+## Add bigger noise to 'x1'
+x3 <- x1 + round(rnorm(n, mean = 5, sd = 1) * 10)
+mcgoftest(varobj = x1, distr = x3,
+          num.sampl = 999,
+          stat = "chisq",
+          seed = 1)
+
+## Chi-square test from R package 'stat' is consistent with 'mcgoftest'
+chisq.test(rbind(x1, x3), simulate.p.value = TRUE, B = 2e3)$p.value
+
+## We will always fail in to detect differences between 'crude' probability
+## vectors without additional information.
+chisq.test(x= x1, y = x3, simulate.p.value = TRUE, B = 2e3)$p.value
+
 }
 \references{
 \enumerate{
