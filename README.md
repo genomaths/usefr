@@ -50,7 +50,7 @@ In the above situations, just proceed with the following steps (<https://github.
           CFLAGS=-std=gnu99
      ```
   
-     if your file is empty, the you can add, e.g., something like this:
+     if your file is empty, then you can add, e.g., something like this:
   
      ```
      SOLARIS=$(shell $(R_HOME)/bin/Rscript -e 'cat(grepl("SunOS", Sys.info()["sysname"]))')
