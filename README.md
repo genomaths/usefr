@@ -29,20 +29,42 @@ This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_, _c
 
 The installation of "cubature" R package on CenOS (required by 'usefr') from 
 the source, would produce some error when trying to compile the C++ code from
-the package source. Use instead the binary package, which is already compiled.
-After that, still some error message can be returned, like this: 
+the package source. 
 
 "/lib64/libstdc++.so.6: version `GLIBCXX_3.4.20' not found (required by ...
 cubature.so"
 
-In the above situation, just proceed with one of the following alternatives:
+Or
+
+"./src/divonne/Split.c:119:3: note: use option -std=c99 or -std=gnu99 to compile your code"
+
+In the above situations, just proceed with the following steps (<https://github.com/bnaras/cubature/issues/29>):
   
-  1. Download the binary of 'cubature' R package from here: <https://is.gd/WZI32A>
-     and install it.
+  1. In your home directory search for the folder named ".R" (a hidden folder) and a file named "Makevars", i.e.: "~/.R/Makevars".
+     If you do not have the folder ".R", then creates it. If you do not have the file "Makevars", 
+     then you can create an empty text file 
      
-  2. Or follow the link: <https://github.com/cdr/code-server/issues/347>  
+  2. Adds the following line to the the file "Makevars":
   
-  3. Or just install [Anaconda](https://docs.anaconda.com/anaconda/install/linux/) in your CentOS and then [install R on Annaconda](https://docs.anaconda.com/anaconda/user-guide/tasks/using-r-language/) and all the nightmares with R on CentOS will pass away!
+     ```
+          CFLAGS=-std=gnu99
+     ```
+  
+     if your file is empty, the you can add, e.g., something like this:
+  
+     ```
+     SOLARIS=$(shell $(R_HOME)/bin/Rscript -e 'cat(grepl("SunOS", Sys.info()["sysname"]))')
+     ifeq ($(SOLARIS),TRUE)
+     SOLARIS_FLAG=-DSOLARIS
+     else
+     SOLARIS_FLAG=-USOLARIS
+     endif
+     
+     CFLAGS=-std=gnu99
+     
+     ```
+
+If the above step does not works then,  follow the link: <https://github.com/cdr/code-server/issues/347>
 
 ------------
 
