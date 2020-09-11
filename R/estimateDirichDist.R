@@ -34,7 +34,11 @@
 #' Dirichlet distribution is a family of continuous multivariate probability
 #' distributions, a multivariate generalization of the Beta distribution.
 #'
+#' @details As any non-linear fitting, results strongly depends on the start
+#' parameter values.
 #' @param x A matrix or a data.frame object carrying count data.
+#' @param start Initial parameter values for \eqn{\lapha =
+#' \alpha_1, ... , \alpha_n} (all positive reals). Defaults is NULL.
 #' @param num.cores,tasks Parameters for parallel computation using
 #'     \code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to
 #'     use, i.e. at most how many child processes will be run simultaneously
@@ -56,7 +60,8 @@
 #'
 #' estimateDirichDist(x)
 
-estimateDirichDist <- function(  x,
+estimateDirichDist <- function( x,
+                                start = NULL,
                                 num.cores = 1L,
                                 tasks = 0L,
                                 verbose = TRUE,
@@ -72,6 +77,19 @@ estimateDirichDist <- function(  x,
     d <- dim(x)
     p <- x/rsum(x)
 
+    if (is.null(start)) {
+        if (length(start) != ncol(x))
+            warning("*** Wrong 'start' parameter length.",
+                    " The length(start) == ncol(x) \n",
+                    "The 'start' values will be ignored")
+        start <- matrix(1, d[1], d[2])
+    }
+    else {
+        alfa <- sum(start)
+        start <- cbind(shape1 = start,
+                    shape2 = sapply(start, function(x) alfa - x))
+    }
+
     if (num.cores > 1) {
         cn <- colnames(p)
         # Set parallel computation
@@ -86,10 +104,13 @@ estimateDirichDist <- function(  x,
 
         pars <- bplapply(seq_len(d[2]), function(k) {
 
-            parm <- try(betaDistEstimation(q = p[, k], ...)$parameters[1],
+            parm <- try(betaDistEstimation( q = p[, k],
+                                            init.pars = start[k,],
+                                            ...)$parameters[1],
                         silent = TRUE)
             if (!inherits(parm, "try-error")) {
                 parm <- try(betaDistEstimation( q = p[, k],
+                                                init.pars = start[k,],
                                                 force.optim = TRUE,
                                                 ...)$parameters[1],
                             silent = TRUE)
@@ -105,10 +126,13 @@ estimateDirichDist <- function(  x,
         pars <- vector(mode = "numeric", length = d[2])
         for (k in seq_len(d[2])) {
             # if (verbose)
-            parm <- try(betaDistEstimation(q = p[, k], ...)$parameters[1],
+            parm <- try(betaDistEstimation(q = p[, k],
+                                           init.pars = start[k,],
+                                           ...)$parameters[1],
                         silent = TRUE)
             if (!inherits(parm, "try-error")) {
                 parm <- try(betaDistEstimation( q = p[, k],
+                                                init.pars = start[k,],
                                                 force.optim = TRUE,
                                                 ...)$parameters[1],
                             silent = TRUE)

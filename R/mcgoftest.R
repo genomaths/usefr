@@ -135,7 +135,7 @@
 #' for Linux OS).
 #' @param verbose if verbose, comments and progress bar will be printed.
 #' @importFrom BiocParallel MulticoreParam SnowParam bplapply
-#' @importFrom stats ks.test
+#' @importFrom stats ks.test rmultinom
 #' @return A numeric vector with the following data:
 #'     \enumerate{
 #'
@@ -340,10 +340,11 @@ mcgoftest <- function(
    }
 
    if (is.character(distr)) {
+      is.discr <- is.element(distr, c("dirichlet", "multinom"))
       pdistr <- paste0("p", distr)
-      pdistr <- get(pdistr, mode = "function",
-                     envir = parent.frame())
-      if (!is.function(pdistr))
+      pdistr <- try(get(pdistr, mode = "function",
+                        envir = parent.frame()), silent = TRUE)
+      if (inherits(pdistr, "try-error") && !is.discr)
          stop(
             "*** 'distr' must be a character string naming a distribution ",
             "function e.g, 'norm' will permit accessing ",
@@ -351,9 +352,10 @@ mcgoftest <- function(
          )
 
       rdistr <- paste0("r", distr)
-      rdistr <- get(rdistr, mode = "function",
-                    envir = parent.frame())
-      if (!is.function(rdistr))
+      rdistr <- try(get(rdistr, mode = "function",
+                        envir = parent.frame()), silent = TRUE)
+
+      if (inherits(rdistr, "try-error") && !is.discr)
          stop(
             "*** 'distr' must be a character string naming a ",
             "distribution function e.g, 'norm' will permit accessing ",
@@ -469,16 +471,35 @@ freqs <- function(x, distr, pars = NULL, breaks = NULL,
 # ------------- n-dimensional frequency based on marginals
 # So far, only for Dirichlet distribution
 
-freqnd <- function(x, distr = "beta", breaks, pars,
+freqnd <- function(x, distr, breaks, pars,
                    par.names = NULL) {
 
-   alfa <- sum(pars)
-   fq <- lapply(seq_len(ncol(x)),
-                function(k) freqs(x = x[, k], distr = distr,
-                                  pars = list(shape1 = pars[k],
-                                              shape2 = alfa - pars[k]),
-                                  breaks = breaks,
-                                  par.names = par.names))
+
+   fq <- switch(distr,
+            beta = {
+                    alfa <- sum(pars)
+                    lapply(seq_len(ncol(x)),
+                           function(k)
+                              freqs(
+                               x = x[, k],
+                               distr = distr,
+                               pars = list( shape1 = pars[k],
+                                            shape2 = alfa - pars[k]),
+                               breaks = breaks,
+                               par.names = par.names))
+                 },
+            binom = {
+                        lapply(seq_len(ncol(x)),
+                            function(k)
+                               freqs(
+                                    x = x[, k],
+                                    distr = distr,
+                                    pars = list(size = pars[[1]],
+                                                prob = pars[[2]][k]),
+                                    breaks = breaks,
+                                    par.names = par.names))
+                    }
+   )
 
    fq <- do.call(rbind, fq)
    rownames(fq) <- NULL
@@ -487,10 +508,14 @@ freqnd <- function(x, distr = "beta", breaks, pars,
 
 FREQs <- function(x, distr, pars = NULL, breaks = NULL,
                   par.names = NULL) {
-   if (distr == "dirichlet")
-      fq <- freqnd(x = x, distr = "beta",
+   if (is.element(distr, c("dirichlet", "multinom"))) {
+      distr <- switch( distr,
+                       dirichlet = "beta",
+                       multinom = "binom")
+      fq <- freqnd(x = x, distr = distr,
                    breaks = breaks, pars = pars,
                    par.names = NULL)
+   }
    else
       fq <- freqs(x = x, distr, breaks = breaks,
                   pars = pars, par.names = NULL)
@@ -624,19 +649,32 @@ GoFtest <- function(
                     verbose) {
 
    if (verbose) progressbar = TRUE else progressbar = FALSE
-   if (Sys.info()['sysname'] == "Linux") {
-      bpparam <- MulticoreParam(workers = num.cores, tasks = tasks,
-                                progressbar = progressbar)
-   } else bpparam <- SnowParam(workers = num.cores, type = "SOCK",
-                               progressbar = progressbar)
+   if (num.cores > 1) {
+      if (Sys.info()['sysname'] == "Linux") {
+         bpparam <- MulticoreParam(workers = num.cores, tasks = tasks,
+                                   progressbar = progressbar)
+      } else bpparam <- SnowParam(workers = num.cores, type = "SOCK",
+                                  progressbar = progressbar)
 
-   bstats <- unlist(bplapply(1:R, DoIt, x, distr = distr,
-                             pars = pars, stat = stat,
-                             breaks = breaks,
-                             szise = szise,
-                             parametric = parametric,
-                             par.names = par.names,
-                             BPPARAM = bpparam))
+      bstats <- unlist(bplapply(1:R, DoIt, x, distr = distr,
+                                pars = pars, stat = stat,
+                                breaks = breaks,
+                                szise = szise,
+                                parametric = parametric,
+                                par.names = par.names,
+                                BPPARAM = bpparam))
+   }
+
+   else {
+      bstats <- c()
+      for (k in seq_len(R)) {
+         bstats <- c(bstats,
+                     DoIt(1, x, distr, pars, stat, breaks,
+                        parametric, par.names, szise)
+                     )
+      }
+   }
+
 
    if (is.element(stat, c("ks", "ad")) && is.numeric(distr))
       stop("\n*** 'ks' and 'ad' are only available for continuous",

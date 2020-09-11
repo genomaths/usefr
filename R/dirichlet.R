@@ -189,20 +189,25 @@ pdirichlet <- function(
         stop("\n*** 'alpha' must be a numerical vector",
              " with length(alpha) = ncol(q).")
 
-    if (inherits(q, c("matrix", "data.frame"))) {
+    if (inherits(q, c("matrix", "data.frame")) && nrow(q) > 1) {
         if (is.data.frame(q))
             q <- as.matrix(q)
     }
-    else
+    else {
+        if (!d1 && nrow(q) == 1) {
+            q <- as.numeric(q)
+            d1 <- TRUE
+        }
         if (!is.numeric(q) || !length(q) > 1 || length(q) != l)
             stop("\n*** 'x' must be a 'matrix' or a 'data.frame' or",
                  " a numerical vector length(x) == length(alpha)")
+    }
 
     if (d1) {
         intgrl <- integralDir(
                                lower = rep(0, (l - 1)),
                                upper = q[ seq_len(l - 1) ],
-                               alpha = alpha, ...)
+                               alpha = alpha)
     }
     else {
         lowerLimit <- matrix(0, nrow(q), (l - 1))
@@ -290,3 +295,13 @@ integralDir <- function(lower, upper, alpha, ...) {
     hcubature(ddirich, lowerLimit = lower, upperLimit = upper,
               alpha = alpha, ...)$integral
 }
+
+
+mc_pdir <- function(q, alpha, n = 1e4, seed = 1) {
+                set.seed(seed)
+                l <- seq_len(length(alpha) - 1)
+                x <- rdirichlet(n, alpha = alpha)
+                sum(apply(x[,l], 1, function(x) prod(x <= q[l]))) / n
+}
+
+

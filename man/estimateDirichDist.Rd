@@ -4,10 +4,20 @@
 \alias{estimateDirichDist}
 \title{Nonlinear Parameter Estimation for Dirichlet Distribution \eqn{}}
 \usage{
-estimateDirichDist(x, num.cores = 1L, tasks = 0L, verbose = TRUE, ...)
+estimateDirichDist(
+  x,
+  start = NULL,
+  num.cores = 1L,
+  tasks = 0L,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{A matrix or a data.frame object carrying count data.}
+
+\item{start}{Initial parameter values for \eqn{\lapha =
+\alpha_1, ... , \alpha_n} (all positive reals). Defaults is NULL.}
 
 \item{num.cores, tasks}{Parameters for parallel computation using
 \code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to
@@ -32,6 +42,10 @@ Beta(.) stands for the Beta distribution and \eqn{\alpha_0 = \sum \alpha_i}.
 
 Dirichlet distribution is a family of continuous multivariate probability
 distributions, a multivariate generalization of the Beta distribution.
+}
+\details{
+As any non-linear fitting, results strongly depends on the start
+parameter values.
 }
 \examples{
 library(DirichletReg)
