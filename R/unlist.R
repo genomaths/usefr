@@ -23,9 +23,9 @@
 #' format, 'unlist' simplifies it to produce a new R object which contains all
 #' the initial components which in 'x' object.
 #'
-#' @param x Any list R object.
-#' @details This function try completely flatten a list. If it fail, then the
-#' result for \code(\link[base]{unlist}} function (recursive = TRUE and
+#' @param x Any list of R objects.
+#' @details This function try to completely flattening a list. If it fail, then
+#' the result for \code(\link[base]{unlist}} function (recursive = TRUE and
 #' use.names = TRUE) is returned
 #' @export
 

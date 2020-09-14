@@ -7,7 +7,7 @@
 unlist(x, recursive = TRUE, use.names = TRUE)
 }
 \arguments{
-\item{x}{Any list R object.}
+\item{x}{Any list of R objects.}
 }
 \description{
 Given a list 'x' of R objects from the same class and same
