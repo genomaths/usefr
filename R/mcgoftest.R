@@ -764,6 +764,7 @@ GoFtest <- function(
                        statis =  shapiro.test(x = x)
                        c(SW.stat.p.value = statis$p.value,
                          mc_p.value = mean(c(statis$statistic,
+                                             ## SW is a left-tailed test
                                              bstats) <= statis$statistic,
                                              na.rm = TRUE),
                          sample.size = szise,
