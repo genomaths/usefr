@@ -25,7 +25,7 @@
 #'
 #' @param x Any list of R objects.
 #' @details This function try to completely flattening a list. If it fail, then
-#' the result for \code(\link[base]{unlist}} function (recursive = TRUE and
+#' the result for \code{\link[base]{unlist}} function (recursive = TRUE and
 #' use.names = TRUE) is returned
 #' @export
 
@@ -34,7 +34,6 @@ unlist <- function(x) UseMethod("unlist", x)
 
 #' @aliases unlist.default
 #' @export
-#' @keywords internal
 unlist.default <- function(x) {
     x0 <- try(suppressWarnings(do.call("c", unname(x))),
               silent = TRUE)

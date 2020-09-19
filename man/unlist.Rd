@@ -15,5 +15,7 @@ format, 'unlist' simplifies it to produce a new R object which contains all
 the initial components which in 'x' object.
 }
 \details{
-
+This function try to completely flattening a list. If it fail, then
+the result for \code{\link[base]{unlist}} function (recursive = TRUE and
+use.names = TRUE) is returned
 }

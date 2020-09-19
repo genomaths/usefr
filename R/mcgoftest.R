@@ -48,11 +48,11 @@
 #' limitations for their application to continuous variables are given):
 #'
 #'     \itemize{
-#'         \item Kolmogorov- Smirnov statistic (ks). Limitations: sensitive to
+#'         \item Kolmogorov- Smirnov statistic ('ks'). Limitations: sensitive to
 #'               ties [1]. Only the parametric Monte Carlo resampling
 #'               (provided that there is not ties in the data) can be used.
 #'
-#'         \item Anderson–Darling statistic (ad) [2]. Limitation: by
+#'         \item Anderson–Darling statistic ('ad') [2]. Limitation: by
 #'               construction, it depends on the sample size. So, the size of
 #'               the sampling must be close to the sample size if Monte Carlo
 #'               resampling is used, which could be a limitation if the sample
@@ -67,15 +67,22 @@
 #'               not make sense to perform a permutation test. That is, the
 #'               maximum sampling size is the sample size less 1.
 #'
-#'         \item Pearson's Chi-squared statistic (chisq). Limitation: the sample
+#'         \item Shapiro-Wilk statistic ('sw') [5]. A Jackknife resampling is
+#'              applied, instead of a Monte Carlo resampling. Simulation studies
+#'              suggest that Shapiro-Wilk test is the most powerful normality
+#'              test, followed by Anderson-Darling test, Lillie/ors test and
+#'              Kolmogorov-Smirnov test [6]. In , a jackknife approach is
+#'              applied.
+#'
+#'         \item Pearson's Chi-squared statistic ('chisq'). Limitation: the sample
 #'               must be discretized (partitioned into bins), which is could be
 #'               a source of bias that leads to the rejection of the null
 #'               hypothesis. Here, the discretization is done using function
 #'               the resources from function \code{\link[graphics]{hist}}.
 #'
-#'         \item Root Mean Square statistic (rmse). Limitation: the same
+#'         \item Root Mean Square statistic ('rmse'). Limitation: the same
 #'               as 'chisq'.
-#'         \item Hellinger Divergence statistic (hd). Limitation: the same
+#'         \item Hellinger Divergence statistic ('hd'). Limitation: the same
 #'               as 'chisq'.
 #'        }
 #' If the argument \strong{\emph{distr}} must be defined in
@@ -107,6 +114,9 @@
 #'          from where to estimate the cumulative probabilities.
 #'    \item A numerical vector carrying discrete absolute frequencies for the
 #'          same categories provided in \strong{\emph{varobj}}.
+#'    \item NULL value (default). In this cases the Shapiro-Wilk test of
+#'          normality is applied. The jackknife estimator of a parameter of
+#'          Shapiro-Wilk statistic is accomplished.
 #' }
 #'
 #' @param pars CDF model parameters. A list of parameters to evaluate the CDF.
@@ -159,6 +169,12 @@
 #'         \item A. Basu, A. Mandal, L. Pardo, Hypothesis testing for two
 #'             discrete populations based on the Hellinger distance. Stat.
 #'             Probab. Lett. 80, 206–214 (2010).
+#'         \item Patrick Royston (1982). An extension of Shapiro and Wilk's W
+#'             test for normality to large samples. Applied Statistics, 31,
+#'             115–124. doi: 10.2307/2347973.
+#'         \item Y. Bee Wah, N. Mohd Razali, Power comparisons of Shapiro-Wilk,
+#'             Kolmogorov-Smirnov, Lilliefors and Anderson-Darling tests.
+#'             J. Stat. Model. Anal. 2, 21–33 (2011).
 #'     }
 #' @seealso Distribution fitting: \code{\link{fitMixDist}},
 #'     \code{\link[MASS]{fitdistr}}, \code{\link{fitCDF}}, and
@@ -295,11 +311,11 @@
 
 mcgoftest <- function(
                     varobj,
-                    distr,
+                    distr = NULL,
                     pars = NULL,
                     num.sampl = 999,
                     sample.size,
-                    stat = c("ks", "ad", "rmse", "chisq", "hd"),
+                    stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
                     breaks = NULL,
                     par.names = NULL,
                     seed = 1,
@@ -313,17 +329,40 @@ mcgoftest <- function(
    set.seed( seed )
    stat <- match.arg(stat)
 
+   if (is.null(distr) && stat != "sw") {
+      stat <- "sw"
+      message("--> Applying Shapiro-Wilk test of normality.")
+   }
+
+   if (stat == "sw") {
+         parametric <- TRUE
+         distr <- NULL
+         num.sampl <- length(varobj)
+         sample.size <- length(varobj) - 1
+         if (sample.size > 5000)
+            stop("\n*** For Shapiro-Wilk test sample size  must be",
+                 " between 3 and 5000")
+   }
+
+   if (stat == "sw" && !is.null(distr)) {
+      distr <- NULL
+      warning("*** 'sw' approach does not require for ",
+              "a 'distr' value, since it is a test of normality without ",
+              "further assumptions.\n")
+   }
+
    if (distr == "dirichlet" && is.element(stat, c("ks", "ad")))
       stop("\n*** 'ks' and 'ad' approaches are not available for ",
            "n-dimensional distributions")
 
    if (is.numeric(distr)) {
       if (is.element(stat, c("ks", "ad"))) {
-         stat <- "chisq"
+         distr <- "chisq"
          warning("*** 'ks' and 'ad' approaches are not available for ",
                  "discrete distributions",
                  "\n'chisq' approach was applied")
       }
+
       if (!is.null(dim(distr)))
          stop(
             "*** 'distr' must be a character string naming a distribution ",
@@ -377,6 +416,7 @@ mcgoftest <- function(
    statis <- switch(stat,
           ks = "Kolmogorov-Smirnov",
           ad = "Anderson–Darling",
+          sw = "Shapiro-Wilk",
           rmse = "Root Mean Square",
           chisq = "Pearson's Chi-squared",
           hd = "Hellinger test"
@@ -410,16 +450,16 @@ mcgoftest <- function(
                         pars = pars,
                         stat = stat,
                         breaks = breaks,
-                        parametric = parametric,
                         par.names = par.names,
                         num.cores = num.cores,
                         tasks = tasks,
                         verbose = verbose)
    }
    else {
-      res <- tableBoots(rbind(varobj, distr),
-                        stat = stat,
-                        num.permut = num.sampl )
+        if (is.numeric(distr))
+                res <- tableBoots(rbind(varobj, distr),
+                                  stat = stat,
+                                  num.permut = num.sampl )
    }
    return(res)
 }
@@ -551,7 +591,22 @@ ks_stat <- function(x, distr, pars, par.names) {
    return(list(stat = unname(res$statistic), p.value = res$p.value))
 }
 
-# --------------------- Auxiliary function to get distribution --------------- #
+# ========================== Shapiro-Wilk statistic ========================== #
+
+shapiro <- function(r) {
+                        ## A jackknife approach (live out one)
+                        l <- length(r)
+                        f <- function(i) c(setdiff(i, l), l)
+                        idx <- combn(seq_along(r), l - 1 ,
+                                     FUN = f, simplify = FALSE)
+                        idx[[1]] <- idx[[1]][-l]
+                        statis <- unlist(lapply(idx, function(i) {
+                              shapiro.test(r[i])$statistic
+                        }))
+                        return(statis)
+}
+
+# ================== Auxiliary function to get distribution ================== #
 
 distfn <- function(x, dfn, type = "r", arg, par.names = NULL) {
     if (!is.null(par.names))  {
@@ -596,8 +651,7 @@ hdiv <- function(x, distr, pars, breaks = NULL, par.names) {
 
 # ------- To compute the statistic
 
-stat_fun <- function(a, distr, pars, stat, breaks, parametric,
-                     par.names) {
+stat_fun <- function(a, distr, pars, stat, breaks, par.names) {
    switch(stat,
           ks = ks_stat(x = a, distr = distr, pars = pars,
                        par.names = par.names)$stat,
@@ -617,20 +671,18 @@ stat_fun <- function(a, distr, pars, stat, breaks, parametric,
 
 # ------- To iterate the statistic computation
 
-DoIt <- function(r, x, distr, pars, stat, breaks,
-                 parametric, par.names, szise) {
-   if (parametric) a <- distfn(x = szise, dfn = distr,
-                               type = "r", arg = pars,
-                               par.names = par.names)
+DoIt <- function(r, x, distr, pars, stat, breaks, par.names, szise) {
+                a <- distfn(x = szise, dfn = distr,
+                            type = "r", arg = pars,
+                            par.names = par.names)
 
-   # to test empirical versus theoretical values
-   stat_fun(a = a, distr = distr, pars = pars, stat = stat,
-            breaks = breaks, parametric = parametric,
-            par.names = par.names)
+                # to test empirical versus theoretical values
+                stat_fun(a = a, distr = distr, pars = pars, stat = stat,
+                        breaks = breaks, par.names = par.names)
 }
 
 # DoIt(1, distr= distr, pars=pars, stat=stat, breaks=breaks,
-#      parametric=parametric, par.names= par.names)
+#      par.names= par.names)
 
 # ======================= GoF test function caller =========================== #
 
@@ -642,14 +694,13 @@ GoFtest <- function(
                     pars,
                     stat,
                     breaks,
-                    parametric,
                     par.names,
                     num.cores,
                     tasks,
                     verbose) {
 
    if (verbose) progressbar = TRUE else progressbar = FALSE
-   if (num.cores > 1) {
+   if (num.cores > 1 && stat != "sw") {
       if (Sys.info()['sysname'] == "Linux") {
          bpparam <- MulticoreParam(workers = num.cores, tasks = tasks,
                                    progressbar = progressbar)
@@ -660,19 +711,24 @@ GoFtest <- function(
                                 pars = pars, stat = stat,
                                 breaks = breaks,
                                 szise = szise,
-                                parametric = parametric,
                                 par.names = par.names,
                                 BPPARAM = bpparam))
    }
-
    else {
-      bstats <- c()
-      for (k in seq_len(R)) {
-         bstats <- c(bstats,
-                     DoIt(1, x, distr, pars, stat, breaks,
-                        parametric, par.names, szise)
-                     )
+      if (stat != "sw") {
+         bstats <- c()
+         for (k in seq_len(R)) {
+            bstats <- c(bstats,
+                        DoIt(1, x, distr, pars, stat, breaks,
+                             par.names, szise)
+            )
+         }
       }
+
+   }
+
+   if (stat == "sw") {
+      bstats <- shapiro(x)
    }
 
 
@@ -681,19 +737,20 @@ GoFtest <- function(
            " distribution")
 
    res <- switch(stat,
-                 ks = {
-                    statis = ks_stat(x = x, distr = distr, pars = pars,
-                                     par.names = par.names)
-                    p.value = statis$p.value
-                    statis = statis$stat
-                    c(KS.stat.D = statis,
-                      mc_p.value = mean(c(statis, bstats) >= statis,
-                                        na.rm = TRUE),
-                      KS.stat.p.value = p.value,
-                      sample.size = szise,
-                      num.sampl = R)
-                 },
-                 ad = {
+                ks = {
+                        statis = ks_stat(x = x, distr = distr, pars = pars,
+                                        par.names = par.names)
+                        p.value = statis$p.value
+                        statis = statis$stat
+                        c(KS.stat.D = statis,
+                          mc_p.value = mean(c(statis, bstats) >= statis,
+                                            na.rm = TRUE),
+                          KS.stat.p.value = p.value,
+                          sample.size = szise,
+                          num.sampl = R
+                        )
+                },
+                ad = {
                     statis = ad_stat(x = x, distr = distr, pars = pars,
                                      par.names = par.names)
                     c(AD.stat = statis,
@@ -701,8 +758,20 @@ GoFtest <- function(
                                       na.rm = TRUE),
                       sample.size = szise,
                       num.sampl = R)
-                 },
-                 rmse = {
+                },
+
+                sw = {
+                       statis =  shapiro.test(x = x)
+                       c(SW.stat.p.value = statis$p.value,
+                         mc_p.value = mean(c(statis$statistic,
+                                             bstats) <= statis$statistic,
+                                             na.rm = TRUE),
+                         sample.size = szise,
+                         num.sampl = R
+                        )
+                },
+
+                rmse = {
                     statis = rmse(x = x, distr = distr,
                                   pars = pars ,
                                   par.names = par.names,

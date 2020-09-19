@@ -10,7 +10,7 @@ mcgoftest(
   pars = NULL,
   num.sampl = 999,
   sample.size,
-  stat = c("ks", "ad", "rmse", "chisq", "hd"),
+  stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
   breaks = NULL,
   par.names = NULL,
   seed = 1,
@@ -109,11 +109,11 @@ fit, statistics. The following statistics are available (and some
 limitations for their application to continuous variables are given):
 
     \itemize{
-        \item Kolmogorov- Smirnov statistic (ks). Limitations: sensitive to
+        \item Kolmogorov- Smirnov statistic ('ks'). Limitations: sensitive to
               ties [1]. Only the parametric Monte Carlo resampling
               (provided that there is not ties in the data) can be used.
 
-        \item Anderson–Darling statistic (ad) [2]. Limitation: by
+        \item Anderson–Darling statistic ('ad') [2]. Limitation: by
               construction, it depends on the sample size. So, the size of
               the sampling must be close to the sample size if Monte Carlo
               resampling is used, which could be a limitation if the sample
@@ -128,15 +128,20 @@ limitations for their application to continuous variables are given):
               not make sense to perform a permutation test. That is, the
               maximum sampling size is the sample size less 1.
 
-        \item Pearson's Chi-squared statistic (chisq). Limitation: the sample
+        \item Shapiro-Wilk statistic ('sw') [5]. Simulation studies suggest
+             that Shapiro-Wilk test is the most powerful normality test,
+             followed by Anderson-Darling test, Lillie/ors test and
+             Kolmogorov-Smirnov test [6].
+
+        \item Pearson's Chi-squared statistic ('chisq'). Limitation: the sample
               must be discretized (partitioned into bins), which is could be
               a source of bias that leads to the rejection of the null
               hypothesis. Here, the discretization is done using function
               the resources from function \code{\link[graphics]{hist}}.
 
-        \item Root Mean Square statistic (rmse). Limitation: the same
+        \item Root Mean Square statistic ('rmse'). Limitation: the same
               as 'chisq'.
-        \item Hellinger Divergence statistic (hd). Limitation: the same
+        \item Hellinger Divergence statistic ('hd'). Limitation: the same
               as 'chisq'.
        }
 If the argument \strong{\emph{distr}} must be defined in
@@ -300,6 +305,12 @@ chisq.test(x= x1, y = x3, simulate.p.value = TRUE, B = 2e3)$p.value
         \item A. Basu, A. Mandal, L. Pardo, Hypothesis testing for two
             discrete populations based on the Hellinger distance. Stat.
             Probab. Lett. 80, 206–214 (2010).
+        \item Patrick Royston (1982). An extension of Shapiro and Wilk's W
+            test for normality to large samples. Applied Statistics, 31,
+            115–124. doi: 10.2307/2347973.
+        \item Y. Bee Wah, N. Mohd Razali, Power comparisons of Shapiro-Wilk,
+            Kolmogorov-Smirnov, Lilliefors and Anderson-Darling tests.
+            J. Stat. Model. Anal. 2, 21–33 (2011).
     }
 }
 \seealso{
