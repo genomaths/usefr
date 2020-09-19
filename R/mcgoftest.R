@@ -74,11 +74,12 @@
 #'              Kolmogorov-Smirnov test [6]. In , a jackknife approach is
 #'              applied.
 #'
-#'         \item Pearson's Chi-squared statistic ('chisq'). Limitation: the sample
-#'               must be discretized (partitioned into bins), which is could be
-#'               a source of bias that leads to the rejection of the null
-#'               hypothesis. Here, the discretization is done using function
-#'               the resources from function \code{\link[graphics]{hist}}.
+#'         \item Pearson's Chi-squared statistic ('chisq'). Limitation: the
+#'               sample must be discretized (partitioned into bins), which is
+#'               could be a source of bias that leads to the rejection of the
+#'               null hypothesis. Here, the discretization is done using
+#'               function the resources from function
+#'               \code{\link[graphics]{hist}}.
 #'
 #'         \item Root Mean Square statistic ('rmse'). Limitation: the same
 #'               as 'chisq'.
@@ -465,6 +466,7 @@ mcgoftest <- function(
 }
 
 # ======================= Anderson–Darling statistic ========================= #
+
 ad_stat <- function(x, distr, pars = NULL, par.names = NULL) {
    x <- sort(x[complete.cases(x)])
    if (!missing(distr))  x <- distfn(x = x, dfn = distr,
