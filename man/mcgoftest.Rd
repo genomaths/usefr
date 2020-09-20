@@ -90,7 +90,7 @@ the best. The goodness-of-fit tests \emph{(GOF)} can help in this case.
 Please, see below the examples on how to use this function.
 }
 \details{
-The test is intended for mostly continuous distributions. Basically,
+The test is intended mostly for continuous distributions. Basically,
 given the set of parameter values \strong{\emph{pars}} from distribution
 \strong{\emph{distr}}, \strong{\emph{num.sampl}} sets of random samples will
 be generated, each one of them with \strong{\emph{sample.size}} element. The
@@ -136,8 +136,9 @@ limitations for their application to continuous variables are given):
              suggest that Shapiro-Wilk test is the most powerful normality
              test, followed by Anderson-Darling test, Lillie/ors test and
              Kolmogorov-Smirnov test [6]. In this case, a jackknife
-             resampling is applied (leave-one-out) and the \strong{p-value}
-             for the mean of Shapiro-Wilk statistic is returned.
+             resampling is applied (leave-one-out) and the
+             \emph{\strong{p-value}} for the mean of Shapiro-Wilk statistic
+             is returned.
 
         \item Pearson's Chi-squared statistic ('chisq'). Limitation: the
               sample must be discretized (partitioned into bins), which is
@@ -237,7 +238,16 @@ mcgoftest(varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
         sample.size =  999, stat = "chisq", num.cores = 4, breaks = 200,
         seed = 123)
 
-## ========= Example 5 ======
+#' ## ========= Example 5 ======
+## Shapiro-Wilk test of normality.
+
+set.seed(151)
+r <- rnorm(21, mean = 5, sd = 1)
+shapiro.test(r) # Classical test
+
+mcgoftest(r, stat = "sw")
+
+## ========= Example 6 ======
 ## GoF for Dirichlet Distribution (these examples can be run,
 ## the 'not-run' is only to prevent time consuming in R checking)
 \dontrun{
@@ -265,7 +275,25 @@ mcgoftest(varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
                   seed = 1)
 }
 
-## ========= Example 6 ======
+## ========= Example 7 ======
+## Testing multinomially distributed vectors
+
+## A vector of probability parameters
+set.seed(123)
+prob = round(runif(12, min = 0.1, max = 0.8), 2)
+prob = prob / sum(prob) # To normalize the probability vector
+
+## Generate multinomially distributed random numeric vectors
+r = rmultinom(12, size = 120, prob = prob)
+
+## A list the parameter values must be provided
+pars = list(size = 120, prob = prob)
+
+mcgoftest(r, distr = "multinom", stat = "chisq",
+          pars = pars, sample.size = 20,
+          num.sampl = 50)
+
+## ========= Example 8 ======
 ##  Testing whether two discrete probabilities vectors
 ##  would come from different probability distributions.
 set.seed(1)
@@ -298,13 +326,6 @@ chisq.test(rbind(x1, x3), simulate.p.value = TRUE, B = 2e3)$p.value
 ## We will always fail in to detect differences between 'crude' probability
 ## vectors without additional information.
 chisq.test(x= x1, y = x3, simulate.p.value = TRUE, B = 2e3)$p.value
-
-## Shapiro-Wilk test of normality.
-set.seed(151)
-r <- rnorm(21, mean = 5, sd = 1)
-shapiro.test(r) # Classical test
-
-mcgoftest(r, stat = "sw")
 
 }
 \references{

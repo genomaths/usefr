@@ -249,7 +249,16 @@
 #'         sample.size =  999, stat = "chisq", num.cores = 4, breaks = 200,
 #'         seed = 123)
 #'
-#' ## ========= Example 5 ======
+##'#' ## ========= Example 5 ======
+#' ## Shapiro-Wilk test of normality.
+#'
+#' set.seed(151)
+#' r <- rnorm(21, mean = 5, sd = 1)
+#' shapiro.test(r) # Classical test
+#'
+#' mcgoftest(r, stat = "sw")
+#'
+#' ## ========= Example 6 ======
 #' ## GoF for Dirichlet Distribution (these examples can be run,
 #' ## the 'not-run' is only to prevent time consuming in R checking)
 #' \dontrun{
@@ -277,7 +286,25 @@
 #'                   seed = 1)
 #' }
 #'
-#' ## ========= Example 6 ======
+#' ## ========= Example 7 ======
+#' ## Testing multinomially distributed vectors
+#'
+#' ## A vector of probability parameters
+#' set.seed(123)
+#' prob = round(runif(12, min = 0.1, max = 0.8), 2)
+#' prob = prob / sum(prob) # To normalize the probability vector
+#'
+#' ## Generate multinomially distributed random numeric vectors
+#' r = rmultinom(12, size = 120, prob = prob)
+#'
+#' ## A list the parameter values must be provided
+#' pars = list(size = 120, prob = prob)
+#'
+#' mcgoftest(r, distr = "multinom", stat = "chisq",
+#'           pars = pars, sample.size = 20,
+#'           num.sampl = 50)
+#'
+#' ## ========= Example 8 ======
 #' ##  Testing whether two discrete probabilities vectors
 #' ##  would come from different probability distributions.
 #' set.seed(1)
@@ -311,15 +338,6 @@
 #' ## vectors without additional information.
 #' chisq.test(x= x1, y = x3, simulate.p.value = TRUE, B = 2e3)$p.value
 #'
-#' ## ========= Example 7 ======
-#' ## Shapiro-Wilk test of normality.
-#'
-#' set.seed(151)
-#' r <- rnorm(21, mean = 5, sd = 1)
-#' shapiro.test(r) # Classical test
-#'
-#' mcgoftest(r, stat = "sw")
-#'
 
 mcgoftest <- function(
                     varobj,
@@ -340,6 +358,12 @@ mcgoftest <- function(
    ## and numerical data analysis with R}. Herein, it is modified and extended.
    set.seed( seed )
    stat <- match.arg(stat)
+   require_pars <- grepl(stat, c("ks", "ad", "rmse", "chisq", "hd"))
+   if (require_pars && is.null(pars) && is.character(distr))
+      stop("\n*** A list of parameter values is required for ",
+           "the application of '",
+           c("ks", "ad", "rmse", "chisq", "hd")[require_pars], "' approach.",
+           "\nYou can see the examples.")
 
    if (is.null(distr) && stat != "sw") {
       if (length(varobj) < 7)
