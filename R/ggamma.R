@@ -92,15 +92,15 @@
 #' @title Generalized Gamma distribution
 #' @export
 dggamma <- function(q, alpha = 1, scale = 1, mu = 0,
-    psi = 1, log.p = FALSE) {
-    if (scale > 0 && alpha > 0 && psi > 0) {
-        y <- (q - mu)/scale
-        d <- exp(-y^alpha) * alpha * y^(alpha * psi -
-            1)/(scale * gamma(psi))
-        if (log.p)
-            return(log(d)) else return(d)
-    } else d <- NaN
-    return(d)
+                    psi = 1, log.p = FALSE) {
+                    if (scale > 0 && alpha > 0 && psi > 0) {
+                        y <- (q - mu)/scale
+                        d <- exp(-y^alpha) * alpha * y^(alpha * psi -
+                            1)/(scale * gamma(psi))
+                        if (log.p)
+                            return(log(d)) else return(d)
+                    } else d <- NaN
+                    return(d)
 }
 #'
 #' @name pggamma

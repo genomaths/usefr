@@ -60,7 +60,8 @@
 #' @aliases dgamma3p
 #' @title Gamma Distribution with Three Parameters
 #' @export
-dgamma3p <- function(x, shape = 1, rate = 1, scale = 1/rate, mu = 0, log = FALSE) {
+dgamma3p <- function(x, shape = 1, rate = 1,
+                     scale = 1/rate, mu = 0, log = FALSE) {
   d <- dgamma(x = x - mu, shape = shape, scale = scale, log = log)
   return(d)
 }
@@ -70,8 +71,9 @@ dgamma3p <- function(x, shape = 1, rate = 1, scale = 1/rate, mu = 0, log = FALSE
 #' @rdname gamma3p
 #' @title Gamma Distribution with Three Parameters
 #' @export
-pgamma3p <- function(q, shape = 1,  rate = 1, scale = 1/rate, mu = 0, lower.tail = TRUE,
-                      log.p = FALSE) {
+pgamma3p <- function(q, shape = 1,  rate = 1,
+                     scale = 1/rate, mu = 0, lower.tail = TRUE,
+                     log.p = FALSE) {
    p <- pgamma(q = q - mu, shape = shape, scale = scale,
                    lower.tail = lower.tail, log.p = log.p)
    return(p)
@@ -81,7 +83,8 @@ pgamma3p <- function(q, shape = 1,  rate = 1, scale = 1/rate, mu = 0, lower.tail
 #' @rdname gamma3p
 #' @title Gamma Distribution with Three Parameters
 #' @export
-qgamma3p <- function(p, shape = 1, rate = 1, scale = 1/rate, mu = 0, lower.tail = TRUE,
+qgamma3p <- function(p, shape = 1, rate = 1,
+                     scale = 1/rate, mu = 0, lower.tail = TRUE,
                       log.p = FALSE) {
    q <- qgamma(p = p, shape = shape, scale = scale, lower.tail = lower.tail,
                  log.p = log.p) + mu
