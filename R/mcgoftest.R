@@ -26,7 +26,7 @@
 #' the best. The goodness-of-fit tests \emph{(GOF)} can help in this case.
 #' Please, see below the examples on how to use this function.
 #'
-#' @details The test is intended for mostly continuous distributions. Basically,
+#' @details The test is intended mostly for continuous distributions. Basically,
 #' given the set of parameter values \strong{\emph{pars}} from distribution
 #' \strong{\emph{distr}}, \strong{\emph{num.sampl}} sets of random samples will
 #' be generated, each one of them with \strong{\emph{sample.size}} element. The
@@ -71,8 +71,10 @@
 #'              applied, instead of a Monte Carlo resampling. Simulation studies
 #'              suggest that Shapiro-Wilk test is the most powerful normality
 #'              test, followed by Anderson-Darling test, Lillie/ors test and
-#'              Kolmogorov-Smirnov test [6]. In , a jackknife approach is
-#'              applied.
+#'              Kolmogorov-Smirnov test [6]. In this case, a jackknife
+#'              resampling is applied (leave-one-out) and the
+#'              \emph{\strong{p-value}} for the mean of Shapiro-Wilk statistic
+#'              is returned.
 #'
 #'         \item Pearson's Chi-squared statistic ('chisq'). Limitation: the
 #'               sample must be discretized (partitioned into bins), which is
@@ -309,6 +311,15 @@
 #' ## vectors without additional information.
 #' chisq.test(x= x1, y = x3, simulate.p.value = TRUE, B = 2e3)$p.value
 #'
+#' ## ========= Example 7 ======
+#' ## Shapiro-Wilk test of normality.
+#'
+#' set.seed(151)
+#' r <- rnorm(21, mean = 5, sd = 1)
+#' shapiro.test(r) # Classical test
+#'
+#' mcgoftest(r, stat = "sw")
+#'
 
 mcgoftest <- function(
                     varobj,
@@ -331,6 +342,8 @@ mcgoftest <- function(
    stat <- match.arg(stat)
 
    if (is.null(distr) && stat != "sw") {
+      if (length(varobj) < 7)
+         stop("\n*** At least 7 observation/values must be provided")
       stat <- "sw"
       message("--> Applying Shapiro-Wilk test of normality.")
    }
@@ -340,9 +353,9 @@ mcgoftest <- function(
          distr <- NULL
          num.sampl <- length(varobj)
          sample.size <- length(varobj) - 1
-         if (sample.size > 5000)
+         if (sample.size > 2000)
             stop("\n*** For Shapiro-Wilk test sample size  must be",
-                 " between 3 and 5000")
+                 " between 7 and 2000")
    }
 
    if (stat == "sw" && !is.null(distr)) {
@@ -593,21 +606,6 @@ ks_stat <- function(x, distr, pars, par.names) {
    return(list(stat = unname(res$statistic), p.value = res$p.value))
 }
 
-# ========================== Shapiro-Wilk statistic ========================== #
-
-shapiro <- function(r) {
-                        ## A jackknife approach (live out one)
-                        l <- length(r)
-                        f <- function(i) c(setdiff(i, l), l)
-                        idx <- combn(seq_along(r), l - 1 ,
-                                     FUN = f, simplify = FALSE)
-                        idx[[1]] <- idx[[1]][-l]
-                        statis <- unlist(lapply(idx, function(i) {
-                              shapiro.test(r[i])$statistic
-                        }))
-                        return(statis)
-}
-
 # ================== Auxiliary function to get distribution ================== #
 
 distfn <- function(x, dfn, type = "r", arg, par.names = NULL) {
@@ -764,11 +762,9 @@ GoFtest <- function(
 
                 sw = {
                        statis =  shapiro.test(x = x)
+                       w = mean(statis$statistic, na.rm = TRUE)
                        c(SW.stat.p.value = statis$p.value,
-                         mc_p.value = mean(c(statis$statistic,
-                                             ## SW is a left-tailed test
-                                             bstats) <= statis$statistic,
-                                             na.rm = TRUE),
+                         jackknife_p.value = sw_sta_pval(w, szise),
                          sample.size = szise,
                          num.sampl = R
                         )
@@ -807,5 +803,74 @@ GoFtest <- function(
    )
    return(res)
 }
+
+# ============== Shapiro-Wilk statistic & related functions ================== #
+
+shapiro <- function(r) {
+   ## A jackknife approach (live out one)
+   idx <- jackknife_index(r)
+   statis <- unlist(lapply(idx, function(i) {
+      shapiro.test(r[i])$statistic
+   }))
+   return(statis)
+}
+
+## ------------ Calculate significance level for Shapiro-Wilk statistic
+
+sw_sta_pval <- function(w, n) {
+   ## polynomial coefficients
+   lambda_7_20 <- c( 0.118898, 0.133414, 0,327907 )
+   lambda_21_2000 <- c( 0.480385, 0.318828, 0, -0.0241665,
+                        0.00879701, 0.002989646 )
+   log_mu_7_20 <- c(-0.37542, -0.492145, -1.124332, -0.199422)
+   log_mu_21_2000 <- c(-1.91487, -1.37888, -0.04183209,
+                       0.1066339, -0.03513666, -0.01504614)
+
+   log_s_7_20 <- c(-3.15805, 0.729399, 3.01855, 1.558776)
+   log_s_21_2000 <- c(-3.73538, -1.015807, -0.331885, 0.1773538,
+                      -0.01638782, -0.03215018, 0.003852646)
+
+   nlog <- log(n);
+   if (n > 6 && n < 21) {
+      x <- nlog - 3
+      lambda <- lambda_7_20[1] + lambda_7_20[2] * x + lambda_7_20[3] * x^2
+      mu <- log_mu_7_20[1] + log_mu_7_20[2] * x + log_mu_7_20[3] * x^2 +
+                    log_mu_7_20[4] * x^3
+      sd <- log_s_7_20[1] + log_s_7_20[2] * x + log_s_7_20[3] * x^2 +
+                    log_s_7_20[4] * x^3
+      pval <- pnorm(((1 - w)^lambda - exp(mu)) / exp(sd),
+                    lower.tail = FALSE)
+   }
+
+   if (n > 20 && n < 2001) {
+      x <- nlog - 5
+      m <- seq_len(6)
+      pars <- sapply(m, function(k) {
+                     lambda <- lambda_21_2000[k] * x^(k - 1)
+                     mu <- log_mu_21_2000[k] * x^(k - 1)
+                     sd <- log_s_21_2000[k] * x^(k - 1)
+                     return(c(lambda = lambda, mu = mu, sd = sd))
+      })
+
+      pars <- rowSums(pars)
+      pval <- pnorm(((1 - w)^pars[1] - exp(pars[2])) / exp(pars[3]),
+                    lower.tail = FALSE)
+   }
+   return(unname(pval))
+}
+
+
+# ===================== Jackknife leave-out-one indexes ====================== #
+
+jackknife_index <- function(r) {
+   l <- length(r)
+   f <- function(i) c(setdiff(i, l), l)
+   idx <- combn(seq_along(r), l - 1 ,
+                FUN = f, simplify = FALSE)
+   idx[[1]] <- idx[[1]][-l]
+   return(idx)
+}
+
+
 
 # --------------------------- End auxiliary function ------------------------- #

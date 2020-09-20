@@ -6,7 +6,7 @@
 \usage{
 mcgoftest(
   varobj,
-  distr,
+  distr = NULL,
   pars = NULL,
   num.sampl = 999,
   sample.size,
@@ -31,6 +31,9 @@ observation category.}
          from where to estimate the cumulative probabilities.
    \item A numerical vector carrying discrete absolute frequencies for the
          same categories provided in \strong{\emph{varobj}}.
+   \item NULL value (default). In this cases the Shapiro-Wilk test of
+         normality is applied. The jackknife estimator of a parameter of
+         Shapiro-Wilk statistic is accomplished.
 }}
 
 \item{pars}{CDF model parameters. A list of parameters to evaluate the CDF.}
@@ -128,16 +131,20 @@ limitations for their application to continuous variables are given):
               not make sense to perform a permutation test. That is, the
               maximum sampling size is the sample size less 1.
 
-        \item Shapiro-Wilk statistic ('sw') [5]. Simulation studies suggest
-             that Shapiro-Wilk test is the most powerful normality test,
-             followed by Anderson-Darling test, Lillie/ors test and
-             Kolmogorov-Smirnov test [6].
+        \item Shapiro-Wilk statistic ('sw') [5]. A Jackknife resampling is
+             applied, instead of a Monte Carlo resampling. Simulation studies
+             suggest that Shapiro-Wilk test is the most powerful normality
+             test, followed by Anderson-Darling test, Lillie/ors test and
+             Kolmogorov-Smirnov test [6]. In this case, a jackknife
+             resampling is applied (leave-one-out) and the \strong{p-value}
+             for the mean of Shapiro-Wilk statistic is returned.
 
-        \item Pearson's Chi-squared statistic ('chisq'). Limitation: the sample
-              must be discretized (partitioned into bins), which is could be
-              a source of bias that leads to the rejection of the null
-              hypothesis. Here, the discretization is done using function
-              the resources from function \code{\link[graphics]{hist}}.
+        \item Pearson's Chi-squared statistic ('chisq'). Limitation: the
+              sample must be discretized (partitioned into bins), which is
+              could be a source of bias that leads to the rejection of the
+              null hypothesis. Here, the discretization is done using
+              function the resources from function
+              \code{\link[graphics]{hist}}.
 
         \item Root Mean Square statistic ('rmse'). Limitation: the same
               as 'chisq'.
@@ -291,6 +298,13 @@ chisq.test(rbind(x1, x3), simulate.p.value = TRUE, B = 2e3)$p.value
 ## We will always fail in to detect differences between 'crude' probability
 ## vectors without additional information.
 chisq.test(x= x1, y = x3, simulate.p.value = TRUE, B = 2e3)$p.value
+
+## Shapiro-Wilk test of normality.
+set.seed(151)
+r <- rnorm(21, mean = 5, sd = 1)
+shapiro.test(r) # Classical test
+
+mcgoftest(r, stat = "sw")
 
 }
 \references{

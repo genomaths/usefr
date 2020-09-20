@@ -16,11 +16,14 @@ Suggests: testthat,
     knitr,
     rmarkdown
 Imports:
-   BiocParallel,
-   minpack.lm,
-   numDeriv,
-   utils,
-   stats,
-   graphics,
-   copula
+    BiocParallel,
+    minpack.lm,
+    numDeriv,
+    utils,
+    stats,
+    graphics,
+    copula,
+    Rcpp
 VignetteBuilder: knitr
+LinkingTo: 
+    Rcpp
