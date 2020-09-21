@@ -72,6 +72,13 @@
 #' @param maxiter,maxfev,ptol Parameters to control of various aspects of the
 #'     Levenberg-Marquardt algorithm through function
 #'     \code{\link[minpack.lm]{nls.lm.control}} from *minpack.lm* package.
+#' @param xlab (Optional) Label for variable the variable
+#' \strong{\emph{varobj}}. Default is \emph{xlab = "x"}.
+#' @param mar,mgp (Optional) Graphical parameters (see
+#' \code{\link[graphics]{par}})
+#' @param ... (Optional) Further graphical parameters (see
+#' \code{\link[graphics]{par}}). Graphical parameter will simultaneously affect
+#' all the plots.
 #' @param verbose Logic. If TRUE, prints the function log to stdout
 #' @details The nonlinear fit (NLF) problem for CDFs is addressed with
 #'     Levenberg-Marquardt algorithm implemented in function
@@ -154,9 +161,20 @@
 #' cdfp <- fitCDF(x1, distNames = "Normal", plot = FALSE)
 #' summary(cdfp$bestfit)
 
-fitCDF <- function(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
-                   start = NULL, only.info = FALSE, maxiter = 1024,
-                   maxfev = 1e+5, ptol = 1e-12, verbose = TRUE) {
+fitCDF <- function(varobj,
+                   distNames,
+                   plot = TRUE,
+                   plot.num = 1,
+                   distf = NULL,
+                   start = NULL,
+                   only.info = FALSE,
+                   maxiter = 1024,
+                   maxfev = 1e+5,
+                   ptol = 1e-12,
+                   xlabel = "x",
+                   mar = c(4, 4, 2.2, 1),
+                   mgp = c(2, 0.4, 0 ),
+                   verbose = TRUE, ...) {
 
    if (is.numeric(distNames)) {
       distNames <- as.integer(distNames)
@@ -408,8 +426,8 @@ fitCDF <- function(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
             }
 
             cat( " * Plots for", distNAMES[ k ], "distribution...\n" )
-            par(mfrow = c(2, 2), mar = c(2,2.5,2.2,1) + 0.2,
-                mgp = c(1.2,0.4,0), las = 1)
+            par(mfrow = c(2, 2), mar = c(4,4,2.2,1), mgp = c( 2, 0.4, 0 ),
+                las = 1, ...)
             plot(Fy, verticals=TRUE,
                 panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
                                grid(col="white", lty = 1)},
@@ -420,25 +438,27 @@ fitCDF <- function(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
             mtext(text=paste("AIC =", round(aicDAT$AIC[ k ], 3 ) ), cex = 0.6)
 
             ## PP-plot
-            par(mar = c( 2, 2, 2.2, 1 ) + 0.2, mgp = c( 1.2, 0.4, 0 ),
-                las = 1)
+            # par(mar = c( 5, 2, 2.2, 1 ) + 0.2, mgp = c( 1.2, 0.4, 0 ),
+            #     las = 1)
             plot(pX, evalY,
                  panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
                     grid(col="white", lty = 1)},
                  col="blue", bty = "n", main = "P-P Plot", pch = 20,
                  cex = 0.4, xlab = "Empirical CDF",
+                 xlab = xlabel,
                  ylab = "Theoretical CDF", cex.main = 0.9)
             abline( 0, 1, col= "red", lwd = 2 ) # Reference line y = x
             pars = FITs$par
             pars=t( cbind( names( pars ), format( round ( pars, 3 ), 3 )))
             mtext( text = paste( pars, collapse = " " ), cex = 0.6 )
 
-            par(mar = c( 3.5, 3, 1, 1 ) + 0.07, mgp = c( 1.2, 0.4, 0 ) )
+            # par(mar = c( 5, 3, 1, 1 ) + 0.07, mgp = c( 1.2, 0.4, 0 ) )
             plot( X, rstudent,
                   panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
                      grid(col="white", lty = 1)}, bty = "n",
                   pch = 20, xlab = expression( italic( "x" ) ),
-                  ylab = "Studentized residuals", col = "blue", cex = 0.4,
+                  xlab = xlabel,  ylab = "Studentized residuals",
+                  col = "blue", cex = 0.4,
                   cex.main = 0.9 )
             abline(h = 2, col= "red", lwd = 2, lty=2) # Reference line y = x
             abline(h = -2, col= "red", lwd = 2, lty=2) # Reference line y = x
@@ -448,7 +468,7 @@ fitCDF <- function(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
             qdistr <- try(get(qfunLIST[[k]], mode = "function",
                               envir = parent.frame()), silent = TRUE)
             ## --- Q-Q plot
-            par( mar = c( 3.5, 2, 1, 1 ) + 0.07, mgp = c( 1.2, 0.4, 0 ) )
+            # par( mar = c( 5, 2, 1, 1 ) + 0.07, mgp = c( 1.2, 0.4, 0 ) )
             if (!inherits(rdistr, "try-error") &&
                 !inherits(qdistr, "try-error")) {
                r <- rValues(rfunLIST[[k]], FITs, 1e4)

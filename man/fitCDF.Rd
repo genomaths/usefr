@@ -15,7 +15,11 @@ fitCDF(
   maxiter = 1024,
   maxfev = 1e+05,
   ptol = 1e-12,
-  verbose = TRUE
+  xlabel = "x",
+  mar = c(4, 4, 2.2, 1),
+  mgp = c(2, 0.4, 0),
+  verbose = TRUE,
+  ...
 )
 }
 \arguments{
@@ -75,7 +79,17 @@ parameter estimation is returned.}
 Levenberg-Marquardt algorithm through function
 \code{\link[minpack.lm]{nls.lm.control}} from *minpack.lm* package.}
 
+\item{mar, mgp}{(Optional) Graphical parameters (see
+\code{\link[graphics]{par}})}
+
 \item{verbose}{Logic. If TRUE, prints the function log to stdout}
+
+\item{...}{(Optional) Further graphical parameters (see
+\code{\link[graphics]{par}}). Graphical parameter will simultaneously affect
+all the plots.}
+
+\item{xlab}{(Optional) Label for variable the variable
+\strong{\emph{varobj}}. Default is \emph{xlab = "x"}.}
 }
 \value{
 After return the plots, a list with following values is provided:
