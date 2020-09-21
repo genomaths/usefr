@@ -282,17 +282,22 @@ fitCDF <- function(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
    else if (is.numeric(distNames))
              elemt <- is.element(distNames, seq_along(distNAMES))
 
-   if( missing( distNames ) ) distNames <- seq_along(distNAMES)
-   if( length( distNames ) < 20 && elemt) {
+   if ( missing( distNames ) )
+      distNames <- seq_along(distNAMES)
+
+   if ( length( distNames ) < 20 && elemt ) {
       if (is.character(distNames))
-         distNames <- as.numeric(na.omit(match(distNames, distNAMES)))
+         distNames <- as.integer(na.omit(match(distNames, distNAMES)))
+
       if (sum(!is.element(distNames, 1:length(distNAMES))) > 0)
          stop("At least one CDF is not found between the",
               " possible selections \n")
+
       if (is.integer(distNames)) {
          distnms <- distNAMES
          distNAMES <- distNAMES[ distNames ]
          funLIST <- funLIST[ distNames ]
+
          if (!is.null(start)) {
             parLIST <- list(start)
          } else parLIST <- parLIST[ distNames ]
@@ -362,7 +367,6 @@ fitCDF <- function(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
    funLIST <- funLIST[ ORDER ]
    fitLIST <- fitLIST[ ORDER ]
    bestFIT <- fitLIST[[ 1 ]]
-   bestFIT$fvec <- NULL
    bestFIT$info <- distNAMES[ 1 ]
 
    rfunLIST <- rfunLIST[match(distNAMES, distnms)]
@@ -447,7 +451,7 @@ fitCDF <- function(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
             par( mar = c( 3.5, 2, 1, 1 ) + 0.07, mgp = c( 1.2, 0.4, 0 ) )
             if (!inherits(rdistr, "try-error") &&
                 !inherits(qdistr, "try-error")) {
-               r <- rValues(rfunLIST[[k]], FITs, length(X))
+               r <- rValues(rfunLIST[[k]], FITs, 1e4)
                qqplot( x = r, y = X,
                      panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
                                     grid(col="white", lty = 1)},
@@ -458,7 +462,7 @@ fitCDF <- function(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
                      qtype = 6, xlab = "Theoretical Quantiles",
                      ylab = "Empirical Quantiles")
                # Reference line y = x
-               qqline( y = r,
+               qqline( y = X,
                        distribution = function(p)
                           qValues(p, qfunLIST[[k]], FITs),
                        col= "red", lwd = 2, qtype = 6 )
@@ -479,10 +483,10 @@ fitCDF <- function(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
          fitLIST = fitLIST[ as.character( aicDAT$Distribution ) ]
          cat( "** Done ***\n" )
 
-         bestFIT$residuals <- rbestFIT
+         bestFIT$fvec <- rbestFIT
          return(list(aic = aicDAT,
-                     fit = fitLIST,
                      bestfit = bestFIT,
+                     fit = fitLIST,
                      fitted = YbestFIT,
                      rstudent = rstbestFIT))
       } else {
@@ -491,11 +495,11 @@ fitCDF <- function(varobj, distNames, plot = TRUE, plot.num = 1, distf = NULL,
          evalLIST <- as.list( bestFIT$par )
          evalLIST$q <- X
          evalY <- do.call( funLIST[[ 1 ]], evalLIST )
-         bestFIT$residuals <-  pX - evalY
+         bestFIT$fvec <-  pX - evalY
 
          fitLIST = fitLIST[ as.character( aicDAT$Distribution ) ]
          cat("** Done ***\n")
-         return( list( aic = aicDAT, fit = fitLIST, bestfit = bestFIT ) )
+         return( list( aic = aicDAT, bestfit = bestFIT, fit = fitLIST ) )
       }
    }
 }
