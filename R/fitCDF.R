@@ -126,13 +126,19 @@
 #'         \item rstudent: studentized residuals
 #'         \item residuals: residuals
 #'     }
-#'     After x = fitCDF( varobj, ...), attributes( x$bestfit ) yields:
-#'     $names
-#'     [1] "par" "hessian" "fvec" "info" "message" "diag" "niter" "rsstrace"
-#'         "deviance"
-#'     $class
-#'     [1] "nls.lm"
-#'     And fitting details can be retrived with summary(x$bestfit)
+#'     After cdf = fitCDF( varobj, ...), attributes( cdf$bestfit ) shows the
+#'     list of objects carry on cdf$bestfit:
+#'      \itemize{
+#'         \item $names
+#'               [1] "par" "hessian" "fvec" "info" "message" "diag" "niter"
+#'                   "rsstrace"  "deviance"
+#'
+#'         \item $class
+#'               [1] "nls.lm"
+#'      }
+#'
+#'     And fitting details can be retrieved with summary(cdf$bestfit)
+#'
 #' @importFrom numDeriv grad
 #' @importFrom minpack.lm nls.lm nls.lm.control
 #' @importFrom utils flush.console
@@ -160,6 +166,11 @@
 #' x1 <- rnorm(10000, mean = 0.5, sd = 1)
 #' cdfp <- fitCDF(x1, distNames = "Normal", plot = FALSE)
 #' summary(cdfp$bestfit)
+#'
+#' ## Add some cosmetics to the plots
+#' cdfp <- fitCDF(x1, distNames = "Normal", xlabel = "My Nice Variable Label",
+#'                plot = T, font.lab= 3, font=2,font.axis=2, family="serif",
+#'                cex.lab = 1.3, cex.axis = 1.3)
 
 fitCDF <- function(varobj,
                    distNames,
@@ -470,12 +481,11 @@ fitCDF <- function(varobj,
             if (!inherits(rdistr, "try-error") &&
                 !inherits(qdistr, "try-error")) {
                r <- rValues(rfunLIST[[k]], FITs, 1e4)
+               xl <- c(min(r, na.rm = TRUE), max(r, na.rm = TRUE))
                qqplot( x = r, y = X,
                      panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
                                     grid(col="white", lty = 1)},
-                     bty = "n",
-                     xlim = c(min(r, na.rm = TRUE), max(r, na.rm = TRUE)),
-                     ylim = c(min(r, na.rm = TRUE), max(r, na.rm = TRUE)),
+                     bty = "n", xlim = xl, ylim = xl,
                      col="blue" , pch = 20, cex=0.4, cex.main=0.9,
                      qtype = 6, xlab = "Theoretical Quantiles",
                      ylab = "Empirical Quantiles")
@@ -483,6 +493,7 @@ fitCDF <- function(varobj,
                qqline( y = X,
                        distribution = function(p)
                           qValues(p, qfunLIST[[k]], FITs),
+                       xlim = xl, ylim = xl,
                        col= "red", lwd = 2, qtype = 6 )
             }
             else {

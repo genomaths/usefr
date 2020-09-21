@@ -103,12 +103,16 @@ After return the plots, a list with following values is provided:
         \item residuals: residuals
     }
     After x = fitCDF( varobj, ...), attributes( x$bestfit ) yields:
-    $names
-    [1] "par" "hessian" "fvec" "info" "message" "diag" "niter" "rsstrace"
-        "deviance"
-    $class
-    [1] "nls.lm"
-    And fitting details can be retrived with summary(x$bestfit)
+     \itemize{
+        \item $names
+              [1] "par" "hessian" "fvec" "info" "message" "diag" "niter"
+                  "rsstrace"  "deviance"
+
+        \item $class
+              [1] "nls.lm"
+     }
+
+    And fitting details can be retrieved with summary(x$bestfit)
 }
 \description{
 Usually the parameter estimation of a cummulative distribution
@@ -160,6 +164,11 @@ set.seed(1230)
 x1 <- rnorm(10000, mean = 0.5, sd = 1)
 cdfp <- fitCDF(x1, distNames = "Normal", plot = FALSE)
 summary(cdfp$bestfit)
+
+## Add some cosmetics to the plots
+cdfp <- fitCDF(x1, distNames = "Normal", xlabel = "My Nice Variable Label",
+               plot = T, font.lab= 3, font=2,font.axis=2, family="serif",
+               cex.lab = 1.3, cex.axis = 1.3)
 }
 \references{
 \enumerate{
