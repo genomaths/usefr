@@ -75,7 +75,7 @@
 #' @param xlab (Optional) Label for variable the variable
 #' \strong{\emph{varobj}}. Default is \emph{xlab = "x"}.
 #' @param mar,mgp (Optional) Graphical parameters (see
-#' \code{\link[graphics]{par}})
+#' \code{\link[graphics]{par}}).
 #' @param ... (Optional) Further graphical parameters (see
 #' \code{\link[graphics]{par}}). Graphical parameter will simultaneously affect
 #' all the plots.
@@ -432,7 +432,7 @@ fitCDF <- function(varobj,
                 panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
                                grid(col="white", lty = 1)},
                 col="blue", pch=20, bty = "n",
-                xlab=expression(italic( "x" )), ylab="CDF",
+                xlab = xlabel, ylab="CDF",
                 main = paste( distNAMES[ k ], "Distribution"), cex.main=0.9)
             lines( evalLIST$q, evalY, col = 2, lty = 2, lwd = 2)
             mtext(text=paste("AIC =", round(aicDAT$AIC[ k ], 3 ) ), cex = 0.6)
@@ -445,7 +445,6 @@ fitCDF <- function(varobj,
                     grid(col="white", lty = 1)},
                  col="blue", bty = "n", main = "P-P Plot", pch = 20,
                  cex = 0.4, xlab = "Empirical CDF",
-                 xlab = xlabel,
                  ylab = "Theoretical CDF", cex.main = 0.9)
             abline( 0, 1, col= "red", lwd = 2 ) # Reference line y = x
             pars = FITs$par
@@ -456,8 +455,7 @@ fitCDF <- function(varobj,
             plot( X, rstudent,
                   panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
                      grid(col="white", lty = 1)}, bty = "n",
-                  pch = 20, xlab = expression( italic( "x" ) ),
-                  xlab = xlabel,  ylab = "Studentized residuals",
+                  pch = 20, xlab = xlabel,  ylab = "Studentized residuals",
                   col = "blue", cex = 0.4,
                   cex.main = 0.9 )
             abline(h = 2, col= "red", lwd = 2, lty=2) # Reference line y = x

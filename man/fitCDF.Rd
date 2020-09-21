@@ -80,7 +80,7 @@ Levenberg-Marquardt algorithm through function
 \code{\link[minpack.lm]{nls.lm.control}} from *minpack.lm* package.}
 
 \item{mar, mgp}{(Optional) Graphical parameters (see
-\code{\link[graphics]{par}})}
+\code{\link[graphics]{par}}).}
 
 \item{verbose}{Logic. If TRUE, prints the function log to stdout}
 
