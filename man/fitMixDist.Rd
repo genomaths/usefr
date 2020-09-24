@@ -95,7 +95,7 @@ size 'usepoints' and to do the estimation with it.}
     values:
     \itemize{
         \item "norm" \href{https://goo.gl/xaEAdT}{(Wikipedia)}
-        \item "halfnorm" \href{https://goo.gl/yxMF6T}{(Wikipedia)}.
+        \item "hnorm" \href{https://goo.gl/yxMF6T}{(Wikipedia)}.
         \item "lnorm" \href{https://is.gd/A5EJFi}{(Wikipedia)}
         \item "gnorm" \href{https://goo.gl/EPk8mH}{(Wikipedia)}
         \item "gamma" \href{https://goo.gl/cYkvar}{(Wikipedia)}

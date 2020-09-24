@@ -48,7 +48,7 @@
 #'     values:
 #'     \itemize{
 #'         \item "norm" \href{https://goo.gl/xaEAdT}{(Wikipedia)}
-#'         \item "halfnorm" \href{https://goo.gl/yxMF6T}{(Wikipedia)}.
+#'         \item "hnorm" \href{https://goo.gl/yxMF6T}{(Wikipedia)}.
 #'         \item "lnorm" \href{https://is.gd/A5EJFi}{(Wikipedia)}
 #'         \item "gnorm" \href{https://goo.gl/EPk8mH}{(Wikipedia)}
 #'         \item "gamma" \href{https://goo.gl/cYkvar}{(Wikipedia)}
@@ -207,13 +207,13 @@ fitMixDist <- function(X,
    nampar <- lapply(args, names)
 
    ## -------------------------------------------------------------- ##
-   ## List of distribution present in fuction fitCDF from "usefr" R package
-   distNames <- c("norm","lnorm","halfnorm","gnorm","tgnorm","laplace",
-                  "gamma","gamma3","ggamma4","ggamma3", "weibull",
+   ## List of distribution present in function fitCDF from "usefr" R package
+   distNames <- c("norm","lnorm","hnorm","gnorm","tgnorm","laplace",
+                  "gamma","gamma3p","ggamma","ggamma", "weibull",
                   "weibull3p","beta","beta3","beta4","bweibull",
                   "gbeta","rayleigh","exp","exp2")
 
-   pdf <- c("lnorm","halfnorm","laplace", "gamma","gamma3","ggamma4",
+   pdf <- c("lnorm","hnorm","laplace", "gamma","gamma3","ggamma4",
             "ggamma", "ggamma3", "weibull","weibull3p","beta","beta3",
             "beta4","bweibull", "pchisq", "gbeta","rayleigh","exp","exp2")
 
@@ -253,7 +253,7 @@ fitMixDist <- function(X,
    parLIST <- function(dfn, MEAN = NULL, VAR = NULL, SD = NULL) {
      return(switch(dfn,
                    norm = c(mean = MEAN, sd = SD),
-                   hnorm = c(theta = 1/MEAN),
+                   hnorm = c(theta = sqrt(pi)/(SD * sqrt(2))),
                    gnorm = c( mean = MEAN, sigma = SD, beta = 2 ),
                    laplace = c( mean = MEAN, sigma = SD ),
                    gamma = gammapars(mu = MEAN, sigma = SD),

@@ -28,12 +28,12 @@
 #' @description Probability density function (PDF), cummulative density function
 #'     (CDF), quantile function and random generation for the Half-normal
 #'     (hnorm) distribution.
-#' @details An alternative parametrization to avoid issues when sigma is near
-#'     zero is applied by using a scaled precision (inverse of the variance)
-#'     obtained by setting \eqn{\theta=sqrt(\pi)/\sigma*sqrt(2)}. Details about
-#'     these functions can be found in \href{https://goo.gl/yxMF6T}{Wikipedia}
-#'     and in \href{https://is.gd/S9Kdss}{ MathWorld}. Notice that
-#'     \eqn{\theta = 1} means \eqn{\sigma = \sqrt \pi/\sqrt 2}.
+#' @details An alternative parameterization to avoid issues when sigma is near
+#' zero is applied by using a scaled precision (inverse of the variance)
+#' obtained by setting \eqn{\theta = \sqrt(\pi)/(\sigma*\sqrt(2))}. Details
+#' about these functions can be found in \href{https://goo.gl/yxMF6T}{Wikipedia}
+#' and in \href{https://is.gd/S9Kdss}{ MathWorld}. Notice that \eqn{\theta = 1}
+#' means \eqn{\sigma = \sqrt \pi/\sqrt 2}.
 #' @param q numeric vector
 #' @param n number of observations
 #' @param theta numerical parameter, strictly positive (default 1).
