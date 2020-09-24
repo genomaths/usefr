@@ -38,7 +38,7 @@
 #'     \item norm = c( mean = MEAN, sd = SD )
 #'     \item lnorm = c(meanlog = mean( log1p(X), na.rm = TRUE),
 #'             sdlog = sd( log1p( X ), na.rm = TRUE))
-#'     \item halfnorm = c(theta = sqrt(pi/2))
+#'     \item hnorm = c(theta = sqrt(pi)/(SD*sqrt(2)))
 #'     \item gnorm = c( mean = MEAN, sigma = SD, beta = 2)
 #'     \item tgnorm = c( mean = MEAN, sigma = SD, beta = 2)
 #'     \item laplace = c( mean = MEAN, sigma = sqrt( VAR))
@@ -299,7 +299,7 @@ fitCDF <- function(varobj,
    parLIST <- list(norm = c( mean = MEAN, sd = SD ),
                    lnorm = c(meanlog = mean( log1p( X ), na.rm = TRUE ),
                              sdlog = sd( log1p( X ), na.rm = TRUE ) ),
-                   hnorm = c(theta = sqrt(pi)/(SD * sqrt(2))),
+                   hnorm = c(theta = sqrt(pi)/(SD * sqrt(2)), mu = 0),
                    gnorm = c( mean = MEAN, sigma = SD, beta = 2 ),
                    tgnorm = c( mean = MEAN, sigma = SD, beta = 2 ),
                    laplace = c( mean = MEAN, sigma = sqrt( VAR ) ),

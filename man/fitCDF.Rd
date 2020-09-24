@@ -55,7 +55,7 @@ below). Default is NULL.}
     \item norm = c( mean = MEAN, sd = SD )
     \item lnorm = c(meanlog = mean( log1p(X), na.rm = TRUE),
             sdlog = sd( log1p( X ), na.rm = TRUE))
-    \item halfnorm = c(theta = sqrt(pi/2))
+    \item hnorm = c(theta = sqrt(pi)/(SD*sqrt(2)))
     \item gnorm = c( mean = MEAN, sigma = SD, beta = 2)
     \item tgnorm = c( mean = MEAN, sigma = SD, beta = 2)
     \item laplace = c( mean = MEAN, sigma = sqrt( VAR))

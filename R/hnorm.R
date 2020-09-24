@@ -26,19 +26,22 @@
 #'
 #' @title Half-Normal distribution
 #' @description Probability density function (PDF), cummulative density function
-#'     (CDF), quantile function and random generation for the Half-normal
-#'     (hnorm) distribution.
+#' (CDF), quantile function and random generation for the Half-normal
+#' (hnorm) distribution.
 #' @details An alternative parameterization to avoid issues when sigma is near
 #' zero is applied by using a scaled precision (inverse of the variance)
 #' obtained by setting \eqn{\theta = \sqrt(\pi)/(\sigma*\sqrt(2))}. Details
 #' about these functions can be found in \href{https://goo.gl/yxMF6T}{Wikipedia}
-#' and in \href{https://is.gd/S9Kdss}{ MathWorld}. Notice that \eqn{\theta = 1}
+#' and in \href{https://is.gd/S9Kdss}{MathWorld} and
+#' \href{https://is.gd/Bpy7yQ}{MathWorks} to see the distribution with location
+#' parameter \eqn{\mu}. Notice that \eqn{\theta = 1}
 #' means \eqn{\sigma = \sqrt \pi/\sqrt 2}.
-#' @param q numeric vector
+#' @param x,q numeric vector, \eqn{x > \mu} and \eqn{q > \mu}
+#' @param mu location parameter (\eqn{\mu}).
 #' @param n number of observations
 #' @param theta numerical parameter, strictly positive (default 1).
-#' @param sigma Standart deviation of the normal distribution. Here,
-#'     \eqn{\sigma = \sqrt \pi/(\theta\sqrt 2)}
+#' @param sigma Standard deviation of the normal distribution. Here,
+#' \eqn{\sigma = \sqrt \pi/(\theta\sqrt 2)}
 #' @param lower.tail logical; if TRUE (default), probabilities are P[X<=x],
 #'     otherwise, P[X > x]
 #' @param log.p logical; if TRUE, probabilities/densities p are returned as
@@ -68,8 +71,10 @@
 #' @rdname hnorm
 #' @title Half-Normal distribution
 #' @export
-dhnorm <- function(x, theta = 1, log = FALSE) {
-   x <- x * theta * sqrt(2/pi)
+dhnorm <- function(x, theta = 1, mu = 0, log = FALSE) {
+   idx <- which(x < mu)
+   x <- (x - mu) * theta * sqrt(2/pi)
+   if (length(idx) > 0 ) x[idx] <- 0
    if (log) {
        const <- log(2) + log(2)/2 - log(pi)/2
        d <- ifelse(x < 0, 0, const + log(theta) + dnorm(x, log = TRUE))
@@ -81,8 +86,10 @@ dhnorm <- function(x, theta = 1, log = FALSE) {
 #' @rdname hnorm
 #' @title Half-Normal distribution
 #' @export
-phnorm <- function(q, theta = 1, lower.tail = TRUE, log.p = FALSE) {
-   q <- q * theta * sqrt(2/pi)
+phnorm <- function(q, theta = 1, mu = 0, lower.tail = TRUE, log.p = FALSE) {
+   idx <- which(q < mu)
+   q <- (q - mu) * theta * sqrt(2/pi)
+   if (length(idx) > 0 ) q[idx] <- 0
    # 'p' is given in terms of the error function through 'pnorm'
    # erfc <- function(x) 2 * pnorm(x * sqrt(2), lower = FALSE), see ?qnorm
    p <- ifelse(q < 0, 0, 2 * pnorm(q) - 1)
@@ -95,12 +102,13 @@ phnorm <- function(q, theta = 1, lower.tail = TRUE, log.p = FALSE) {
 #' @rdname hnorm
 #' @title Half-Normal distribution
 #' @export
-qhnorm <- function(p, theta = 1, sigma = NULL, lower.tail=TRUE, log.p=FALSE) {
+qhnorm <- function(p, theta = 1, mu = 0, sigma = NULL, lower.tail=TRUE,
+                   log.p=FALSE) {
    if (log.p) p = exp(p)
    if (!lower.tail) p = 1 - p
    p <- (p + 1)/2
    if (is.null(sigma)) sigma <- theta2sigma(theta)
-   q <- ifelse(p < 0, 0, qnorm(p, mean = 0, sd = sigma))
+   q <- ifelse(p < 0, 0, qnorm(p, mean = 0, sd = sigma)) + mu
    return(q)
 }
 
@@ -108,8 +116,8 @@ qhnorm <- function(p, theta = 1, sigma = NULL, lower.tail=TRUE, log.p=FALSE) {
 #' @rdname hnorm
 #' @title Half-Normal distribution
 #' @export
-rhnorm <- function(n, theta = 1) {
-   r <- abs(rnorm(n, sd = theta2sigma(theta)))
+rhnorm <- function(n, theta = 1, mu = 0) {
+   r <- abs(rnorm(n, sd = theta2sigma(theta))) + mu
    return(r)
 }
 

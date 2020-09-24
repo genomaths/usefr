@@ -253,7 +253,7 @@ fitMixDist <- function(X,
    parLIST <- function(dfn, MEAN = NULL, VAR = NULL, SD = NULL) {
      return(switch(dfn,
                    norm = c(mean = MEAN, sd = SD),
-                   hnorm = c(theta = sqrt(pi)/(SD * sqrt(2))),
+                   hnorm = c(theta = sqrt(pi)/(SD * sqrt(2)), mu = 0),
                    gnorm = c( mean = MEAN, sigma = SD, beta = 2 ),
                    laplace = c( mean = MEAN, sigma = SD ),
                    gamma = gammapars(mu = MEAN, sigma = SD),

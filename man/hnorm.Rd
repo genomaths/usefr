@@ -10,22 +10,24 @@
 \alias{sigma2theta}
 \title{Half-Normal distribution}
 \usage{
-dhnorm(x, theta = 1, log = FALSE)
+dhnorm(x, theta = 1, mu = 0, log = FALSE)
 
-phnorm(q, theta = 1, lower.tail = TRUE, log.p = FALSE)
+phnorm(q, theta = 1, mu = 0, lower.tail = TRUE, log.p = FALSE)
 
-qhnorm(p, theta = 1, sigma = NULL, lower.tail = TRUE, log.p = FALSE)
+qhnorm(p, theta = 1, mu = 0, sigma = NULL, lower.tail = TRUE, log.p = FALSE)
 
-rhnorm(n, theta = 1)
+rhnorm(n, theta = 1, mu = 0)
 
 theta2sigma(theta)
 
 sigma2theta(sigma)
 }
 \arguments{
+\item{x, q}{numeric vector, \eqn{x > \mu} and \eqn{q > \mu}}
+
 \item{theta}{numerical parameter, strictly positive (default 1).}
 
-\item{q}{numeric vector}
+\item{mu}{location parameter (\eqn{\mu}).}
 
 \item{lower.tail}{logical; if TRUE (default), probabilities are P[X<=x],
 otherwise, P[X > x]}
@@ -33,7 +35,7 @@ otherwise, P[X > x]}
 \item{log.p}{logical; if TRUE, probabilities/densities p are returned as
 log(p).}
 
-\item{sigma}{Standart deviation of the normal distribution. Here,
+\item{sigma}{Standard deviation of the normal distribution. Here,
 \eqn{\sigma = \sqrt \pi/(\theta\sqrt 2)}}
 
 \item{n}{number of observations}
@@ -45,15 +47,17 @@ Half-normal PDF values (theta parameter) for dhnorm,
 }
 \description{
 Probability density function (PDF), cummulative density function
-    (CDF), quantile function and random generation for the Half-normal
-    (hnorm) distribution.
+(CDF), quantile function and random generation for the Half-normal
+(hnorm) distribution.
 }
 \details{
 An alternative parameterization to avoid issues when sigma is near
 zero is applied by using a scaled precision (inverse of the variance)
 obtained by setting \eqn{\theta = \sqrt(\pi)/(\sigma*\sqrt(2))}. Details
 about these functions can be found in \href{https://goo.gl/yxMF6T}{Wikipedia}
-and in \href{https://is.gd/S9Kdss}{ MathWorld}. Notice that \eqn{\theta = 1}
+and in \href{https://is.gd/S9Kdss}{MathWorld} and
+\href{https://is.gd/Bpy7yQ}{MathWorks} to see the distribution with location
+parameter \eqn{\mu}. Notice that \eqn{\theta = 1}
 means \eqn{\sigma = \sqrt \pi/\sqrt 2}.
 }
 \examples{
