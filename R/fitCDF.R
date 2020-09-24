@@ -44,9 +44,9 @@
 #'     \item laplace = c( mean = MEAN, sigma = sqrt( VAR))
 #'     \item gamma = c( shape = MEAN^2/VAR, rate = MEAN/VAR)
 #'     \item gamma3p = c( shape = MEAN^2/VAR, rate = MEAN/VAR, mu = 0),
-#'     \item ggamma4 = c(alpha = MEAN^2/VAR, scale = VAR/MEAN, mu = MIN,
+#'     \item ggamma = c(alpha = MEAN^2/VAR, scale = VAR/MEAN, mu = MIN,
 #'                         psi = 1)
-#'     \item ggamma3 = c( alpha = MEAN^2/VAR, scale = VAR/MEAN, psi = 1)
+#'     \item ggamma = c( alpha = MEAN^2/VAR, scale = VAR/MEAN, psi = 1)
 #'     \item weibull = c( shape = log( 2 ), scale = Q)
 #'     \item weibull3p = c( mu = MIN, shape = log( 2 ), scale = Q)
 #'     \item beta = c(shape1 = 1, shape2 = 2)
@@ -72,10 +72,11 @@
 #' @param maxiter,maxfev,ptol Parameters to control of various aspects of the
 #'     Levenberg-Marquardt algorithm through function
 #'     \code{\link[minpack.lm]{nls.lm.control}} from *minpack.lm* package.
-#' @param xlab (Optional) Label for variable the variable
-#' \strong{\emph{varobj}}. Default is \emph{xlab = "x"}.
-#' @param mar,mgp (Optional) Graphical parameters (see
+#' @param xlabel (Optional) Label for variable \strong{\emph{varobj}}.
+#' Default is \emph{xlabel = "x"}.
+#' @param mar,mgp,las,cex.main (Optional) Graphical parameters (see
 #' \code{\link[graphics]{par}}).
+#' @param cex.text,cex.point Numerical value to scale text and points.
 #' @param ... (Optional) Further graphical parameters (see
 #' \code{\link[graphics]{par}}). Graphical parameter will simultaneously affect
 #' all the plots.
@@ -171,6 +172,14 @@
 #' cdfp <- fitCDF(x1, distNames = "Normal", xlabel = "My Nice Variable Label",
 #'                plot = T, font.lab= 3, font=2,font.axis=2, family="serif",
 #'                cex.lab = 1.3, cex.axis = 1.3)
+#'
+#' ## Fitting a Weibull distribution with 3 paramaters
+#' x1 <- rweibull3p(1000, shape = 0.5, scale = 1, mu = 0.1)
+#' cdfp <- fitCDF(x1, distNames = "3P Weibull",
+#'                xlabel = "My Nice Variable Label",
+#'                plot = T, font.lab= 3, font=2, font.axis=2, family="serif",
+#'                cex.lab = 1.3, cex.axis = 1.3, cex.main = 1.1,
+#'                mgp = c(2.5, 1, 0))
 
 fitCDF <- function(varobj,
                    distNames,
@@ -183,8 +192,12 @@ fitCDF <- function(varobj,
                    maxfev = 1e+5,
                    ptol = 1e-12,
                    xlabel = "x",
-                   mar = c(4, 4, 2.2, 1),
-                   mgp = c(2, 0.4, 0 ),
+                   mar = c(4, 4, 3, 1),
+                   mgp = c(2.5, 0.6, 0),
+                   las = 1,
+                   cex.main = 1,
+                   cex.text = 0.8,
+                   cex.point = 0.5,
                    verbose = TRUE, ...) {
 
    if (is.numeric(distNames)) {
@@ -430,6 +443,7 @@ fitCDF <- function(varobj,
             residuals <- pX - evalY
 
             rstudent <- nls.rstudent(gradient, residuals, length(bestFIT$par))
+            outliers <- sum(abs(rstudent) > 2, na.rm = TRUE)
             if (k == 1) {
                rbestFIT <- residuals
                rstbestFIT <- rstudent
@@ -437,16 +451,17 @@ fitCDF <- function(varobj,
             }
 
             cat( " * Plots for", distNAMES[ k ], "distribution...\n" )
-            par(mfrow = c(2, 2), mar = c(4,4,2.2,1), mgp = c( 2, 0.4, 0 ),
-                las = 1, ...)
+            par(mfrow = c(2, 2), mar = mar, mgp = mgp, las = las, ...)
             plot(Fy, verticals=TRUE,
                 panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
                                grid(col="white", lty = 1)},
-                col="blue", pch=20, bty = "n",
-                xlab = xlabel, ylab="CDF",
-                main = paste( distNAMES[ k ], "Distribution"), cex.main=0.9)
+                col = "blue", pch = 20, bty = "n",
+                xlab = xlabel, ylab="CDF", cex = cex.point,
+                main = paste( distNAMES[ k ], "Distribution"),
+                cex.main = cex.main)
             lines( evalLIST$q, evalY, col = 2, lty = 2, lwd = 2)
-            mtext(text=paste("AIC =", round(aicDAT$AIC[ k ], 3 ) ), cex = 0.6)
+            mtext(text=paste("AIC =", round(aicDAT$AIC[ k ], 3 ) ),
+                  cex = cex.text)
 
             ## PP-plot
             # par(mar = c( 5, 2, 2.2, 1 ) + 0.2, mgp = c( 1.2, 0.4, 0 ),
@@ -455,22 +470,29 @@ fitCDF <- function(varobj,
                  panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
                     grid(col="white", lty = 1)},
                  col="blue", bty = "n", main = "P-P Plot", pch = 20,
-                 cex = 0.4, xlab = "Empirical CDF",
-                 ylab = "Theoretical CDF", cex.main = 0.9)
+                 cex = cex.point, xlab = "Empirical CDF",
+                 ylab = "Theoretical CDF", cex.main = cex.main)
             abline( 0, 1, col= "red", lwd = 2 ) # Reference line y = x
-            pars = FITs$par
-            pars=t( cbind( names( pars ), format( round ( pars, 3 ), 3 )))
-            mtext( text = paste( pars, collapse = " " ), cex = 0.6 )
+            pars <- FITs$par
+            par_n <- names( pars )
+            pars <- unlist(pars)
+            pars <- t( cbind( par_n, format( round ( pars, 3 ), 3 )))
+            mtext( text = paste( pars, collapse = " " ),
+                   cex = cex.text )
 
             # par(mar = c( 5, 3, 1, 1 ) + 0.07, mgp = c( 1.2, 0.4, 0 ) )
             plot( X, rstudent,
                   panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
                      grid(col="white", lty = 1)}, bty = "n",
                   pch = 20, xlab = xlabel,  ylab = "Studentized residuals",
-                  col = "blue", cex = 0.4,
-                  cex.main = 0.9 )
+                  main = "Outliers",
+                  col = "blue", cex = cex.point,
+                  cex.main = cex.main )
             abline(h = 2, col= "red", lwd = 2, lty=2) # Reference line y = x
             abline(h = -2, col= "red", lwd = 2, lty=2) # Reference line y = x
+            mtext( text = paste( "Number of outliers (|st| > 2): ",
+                                 outliers, collapse = " " ),
+                  cex = cex.text )
 
             rdistr <- try(get(rfunLIST[[k]], mode = "function",
                               envir = parent.frame()), silent = TRUE)
@@ -486,24 +508,28 @@ fitCDF <- function(varobj,
                      panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
                                     grid(col="white", lty = 1)},
                      bty = "n", xlim = xl, ylim = xl,
-                     col="blue" , pch = 20, cex=0.4, cex.main=0.9,
-                     qtype = 6, xlab = "Theoretical Quantiles",
+                     col="blue" , pch = 20, cex = cex.point,
+                     cex.main = cex.main,
+                     qtype = 6, main = "Q-Q Plot",
+                     xlab = "Theoretical Quantiles",
                      ylab = "Empirical Quantiles")
                # Reference line y = x
                qqline( y = X,
                        distribution = function(p)
                           qValues(p, qfunLIST[[k]], FITs),
-                       xlim = xl, ylim = xl,
+                       xlim = xl, ylim = xl, cex = cex.point,
                        col= "red", lwd = 2, qtype = 6 )
             }
             else {
                qqnorm( rstudent,
                      panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
                           grid(col="white", lty = 1)},
-                     bty = "n",
-                      col="blue" , pch = 20, cex=0.4, cex.main=0.9, qtype = 6)
+                     bty = "n", main = "Q-Q Plot",
+                      col="blue" , pch = 20, cex = cex.point,
+                     cex.main = cex.main, qtype = 6)
                # Reference line y = x
-               qqline( rstudent, col= "red", lwd = 2, qtype = 6 )
+               qqline( rstudent, col= "red", lwd = 2, qtype = 6,
+                       cex.main = cex.main, cex = cex.point )
             }
             j = j + 1
          }

@@ -16,8 +16,12 @@ fitCDF(
   maxfev = 1e+05,
   ptol = 1e-12,
   xlabel = "x",
-  mar = c(4, 4, 2.2, 1),
-  mgp = c(2, 0.4, 0),
+  mar = c(4, 4, 3, 1),
+  mgp = c(2.5, 0.6, 0),
+  las = 1,
+  cex.main = 1,
+  cex.text = 0.8,
+  cex.point = 0.5,
   verbose = TRUE,
   ...
 )
@@ -57,9 +61,9 @@ below). Default is NULL.}
     \item laplace = c( mean = MEAN, sigma = sqrt( VAR))
     \item gamma = c( shape = MEAN^2/VAR, rate = MEAN/VAR)
     \item gamma3p = c( shape = MEAN^2/VAR, rate = MEAN/VAR, mu = 0),
-    \item ggamma4 = c(alpha = MEAN^2/VAR, scale = VAR/MEAN, mu = MIN,
+    \item ggamma = c(alpha = MEAN^2/VAR, scale = VAR/MEAN, mu = MIN,
                         psi = 1)
-    \item ggamma3 = c( alpha = MEAN^2/VAR, scale = VAR/MEAN, psi = 1)
+    \item ggamma = c( alpha = MEAN^2/VAR, scale = VAR/MEAN, psi = 1)
     \item weibull = c( shape = log( 2 ), scale = Q)
     \item weibull3p = c( mu = MIN, shape = log( 2 ), scale = Q)
     \item beta = c(shape1 = 1, shape2 = 2)
@@ -79,17 +83,19 @@ parameter estimation is returned.}
 Levenberg-Marquardt algorithm through function
 \code{\link[minpack.lm]{nls.lm.control}} from *minpack.lm* package.}
 
-\item{mar, mgp}{(Optional) Graphical parameters (see
+\item{xlabel}{(Optional) Label for variable \strong{\emph{varobj}}.
+Default is \emph{xlabel = "x"}.}
+
+\item{mar, mgp, las, cex.main}{(Optional) Graphical parameters (see
 \code{\link[graphics]{par}}).}
+
+\item{cex.text, cex.point}{Numerical value to scale text and points.}
 
 \item{verbose}{Logic. If TRUE, prints the function log to stdout}
 
 \item{...}{(Optional) Further graphical parameters (see
 \code{\link[graphics]{par}}). Graphical parameter will simultaneously affect
 all the plots.}
-
-\item{xlab}{(Optional) Label for variable the variable
-\strong{\emph{varobj}}. Default is \emph{xlab = "x"}.}
 }
 \value{
 After return the plots, a list with following values is provided:
@@ -102,7 +108,8 @@ After return the plots, a list with following values is provided:
         \item rstudent: studentized residuals
         \item residuals: residuals
     }
-    After x = fitCDF( varobj, ...), attributes( x$bestfit ) yields:
+    After cdf = fitCDF( varobj, ...), attributes( cdf$bestfit ) shows the
+    list of objects carry on cdf$bestfit:
      \itemize{
         \item $names
               [1] "par" "hessian" "fvec" "info" "message" "diag" "niter"
@@ -112,7 +119,7 @@ After return the plots, a list with following values is provided:
               [1] "nls.lm"
      }
 
-    And fitting details can be retrieved with summary(x$bestfit)
+    And fitting details can be retrieved with summary(cdf$bestfit)
 }
 \description{
 Usually the parameter estimation of a cummulative distribution
@@ -169,6 +176,14 @@ summary(cdfp$bestfit)
 cdfp <- fitCDF(x1, distNames = "Normal", xlabel = "My Nice Variable Label",
                plot = T, font.lab= 3, font=2,font.axis=2, family="serif",
                cex.lab = 1.3, cex.axis = 1.3)
+
+## Fitting a Weibull distribution with 3 paramaters
+x1 <- rweibull3p(1000, shape = 0.5, scale = 1, mu = 0.1)
+cdfp <- fitCDF(x1, distNames = "3P Weibull",
+               xlabel = "My Nice Variable Label",
+               plot = T, font.lab= 3, font=2, font.axis=2, family="serif",
+               cex.lab = 1.3, cex.axis = 1.3, cex.main = 1.1,
+               mgp = c(2.5, 1, 0))
 }
 \references{
 \enumerate{
