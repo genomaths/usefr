@@ -221,12 +221,12 @@ fitMixDist <- function(X,
 
    ## ========== Auxiliary functions & Starting parameter values ============= #
 
-   weibullpars <- function(mu, sigma) {
-     return(weibullpar(mu = mu, sigma = sigma)[-3])
+   weibullpars <- function(mean, sigma) {
+     return(weibullpar(mu = mean, sigma = sigma)[-3])
    }
 
-   gammapars <- function(mu, sigma) {
-     return(c(shape = 1/sigma^2, scale = sigma^2/mu))
+   gammapars <- function(mean, sigma) {
+     return(c(shape = 1/sigma^2, scale = sigma^2/mean))
    }
 
    betapars <- function(mu, var) {
@@ -250,14 +250,22 @@ fitMixDist <- function(X,
        return(arg)
    }
 
-   parLIST <- function(dfn, MEAN = NULL, VAR = NULL, SD = NULL) {
+   parLIST <- function(dfn, MEAN = NULL, VAR = NULL, SD = NULL,
+                       MAX = NULL, MIN = NULL) {
      return(switch(dfn,
                    norm = c(mean = MEAN, sd = SD),
-                   hnorm = c(theta = sqrt(pi)/(SD * sqrt(2)), mu = 0),
+                   hnorm = c(theta = sqrt(pi)/(SD * sqrt(2)),
+                             mu = MAX - MIN),
                    gnorm = c( mean = MEAN, sigma = SD, beta = 2 ),
                    laplace = c( mean = MEAN, sigma = SD ),
-                   gamma = gammapars(mu = MEAN, sigma = SD),
-                   weibull = weibullpars(mu = MEAN, sigma = SD),
+                   gamma = gammapars(mean = MEAN, sigma = SD),
+                   gamma3p = c(gammapars(mean = MEAN, sigma = SD),
+                               mu = MAX - MIN),
+                   ggamma = c(gammapars(mean = MEAN, sigma = SD),
+                              mu = MAX - MIN, psi = 1),
+                   weibull = weibullpars(mean = MEAN, sigma = SD),
+                   weibull3p = c(weibullpars(mean = MEAN, sigma = SD),
+                                 mu = MAX - MIN),
                    beta = betapars(mu = MEAN, var = VAR),
                    rayleigh = c( sigma = SD ),
                    exp = c( rate = 1 )
@@ -287,7 +295,9 @@ fitMixDist <- function(X,
                      silent = TRUE)
 
          if (inherits(args, "try-error"))
-            args <- mapply(parLIST, dfns, MEAN = mu, SD = sigma,
+            args <- mapply(parLIST, dfns, MEAN = mu, SD = sigma, VAR = sigma^2,
+                           MIN = min(Z, na.rm = TRUE),
+                           MAX = max(Z, na.rm = TRUE),
                            SIMPLIFY = FALSE)
          rm(Z); gc()
       } else {
