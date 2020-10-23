@@ -20,10 +20,18 @@
 #' @details Adjusted R squared (rho), the AIC, and BIC are estimated. The
 #' Stein's formula for adjusted R squared (rho) is applied as an estimator of
 #' the average cross-validation predictive power (1).
-#' @param object A 'nls' object, typically returned after performing a
-#' nonlinear regression fit with function \code{\link[stats]{nls}} or
-#' \code{\link[minpack.lm]{nls.lm}} or \code{\link[minpack.lm]{nlsLM}}.
+#' @param object An object which inherits from 'nls' class, typically returned
+#' after performing a nonlinear regression fit with function
+#' \code{\link[stats]{nls}} or \code{\link[minpack.lm]{nlsLM}}.
 #' @export
+#' @examples
+#' ### Examples from 'nls' doc
+#' DNase1 <- subset(DNase, Run == 1)
+#'
+#' ## using a selfStart model
+#' fm1DNase1 <- nls(density ~ SSlogis(log(conc), Asym, xmid, scal), DNase1)
+#' nlmR(fm1DNase1)
+#'
 #' @references
 #' 1. Stevens JP. Applied Multivariate Statistics for the Social
 #'     Sciences. Fifth Edit. Routledge Academic; 2009.
@@ -33,7 +41,7 @@ nlmR <- function(object) {
      if (!inherits(object, "nls"))
           stop("\n*** 'object' must inherits from class 'nls', i.e.,\n",
           "an object derived from nonlinear fit from fron functions: \n",
-          "'nls' or 'nlsLM' or 'nls.ml' from packages 'stats' or 'minpack.lm'.")
+          "'nls' or 'nlsLM' from packages 'stats' or 'minpack.lm'.")
 
      m <- length(coef(object))
      n <- length(object$m$lhs())
