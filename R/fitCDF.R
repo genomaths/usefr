@@ -1,3 +1,5 @@
+## ########################################################################### #
+##
 ## Copyright (C) 2019 Robersy Sanchez <https://genomaths.com/>
 ##
 ## Author: Robersy Sanchez
@@ -16,7 +18,9 @@
 ##
 ## You should have received a copy of the GNU General Public License along with
 ## this program; if not, see <http://www.gnu.org/licenses/>.
-
+##
+## ########################################################################### #
+#
 #' @rdname fitCDF
 #' @title Nonlinear fit of a commulative distribution function
 #' @description Usually the parameter estimation of a cummulative distribution
@@ -57,21 +61,27 @@
 #'     \item rayleigh = c( sigma = SD )
 #'     \item exp = c( rate = 1)
 #'     \item exp2 = c( rate = 1, mu = 0)
+#'     \item geom = c(prob = ifelse(MEAN > 0, 1/(1 + MEAN), 1))
 #' }
-#' @param plot Logic. Default TRUE. Whether to produce the plots for the best
+#' @param rho Logical. Default FALSE. If TRUE, then the Stein's rho for
+#' adjusted R squared (rho) is applied as an estimator of the average
+#' cross-validation predictive power [1].
+#' @param plot Logical. Default TRUE. Whether to produce the plots for the best
 #'     fitted CDF.
 #' @param plot.num The number of distributions to be plotted.
-#' @param distf A symbol naming a cumulative distribution function (CDF) present
-#'     in the R session environment (Not a character string!). For example,
-#'     \strong{pnorm}, \strong{pgamma}, etc. If the function is not present in
-#'     the environment, then an error will be returned. It must given only if
-#'     'distNames' is not any of current 20 named distributions (see  details
-#'     below). Default is NULL.
+#' @param distf A character string naming a cumulative distribution function
+#' (CDF) present in the R session environment . For example, \strong{gamma} or
+#' \strong{norm}, etc, from where, internally, we can get: density, distribution
+#' function, quantile function and random generation as: \strong{dnorm},
+#' \strong{pnorm}, \strong{qnorm}, and \strong{rnorm}, respectively. If the
+#' function is not present in the environment, then an error will be returned.
+#' It must given only if 'distNames' is not any of current 20 named
+#' distributions (see  details below). Default is NULL.
 #' @param only.info Logic. Default TRUE. If true, only information about the
-#'     parameter estimation is returned.
+#' parameter estimation is returned.
 #' @param maxiter,maxfev,ptol Parameters to control of various aspects of the
-#'     Levenberg-Marquardt algorithm through function
-#'     \code{\link[minpack.lm]{nls.lm.control}} from *minpack.lm* package.
+#' Levenberg-Marquardt algorithm through function
+#' \code{\link[minpack.lm]{nls.lm.control}} from *minpack.lm* package.
 #' @param xlabel (Optional) Label for variable \strong{\emph{varobj}}.
 #' Default is \emph{xlabel = "x"}.
 #' @param mar,mgp,las,cex.main (Optional) Graphical parameters (see
@@ -82,15 +92,14 @@
 #' all the plots.
 #' @param verbose Logic. If TRUE, prints the function log to stdout
 #' @details The nonlinear fit (NLF) problem for CDFs is addressed with
-#'     Levenberg-Marquardt algorithm implemented in function
-#'     \code{\link[minpack.lm]{nls.lm}} from package *minpack.lm*. This function
-#'     is inspired in a script for the function
-#'     \code{\link[propagate]{fitDistr}} from the package propagate [1]. Some
-#'     parts or script ideas from function \code{\link[propagate]{fitDistr}}
-#'     are used, but here we to estimate CDF and not the PDF as in the case of
-#'     "\code{\link[propagate]{fitDistr}}. A more informative are also
-#'     incorporated. The studentized residuals are provided as well.
-#'     The list (so far) of possible CDFs is:
+#' Levenberg-Marquardt algorithm implemented in function
+#' \code{\link[minpack.lm]{nls.lm}} from package *minpack.lm*. This function is
+#' inspired in a script for the function \code{\link[propagate]{fitDistr}} from
+#' the package propagate [2]. Some parts or script ideas from function
+#' \code{\link[propagate]{fitDistr}} are used, but here we to estimate CDF and
+#' not the PDF as in the case of "\code{\link[propagate]{fitDistr}}. A more
+#' informative are also incorporated. The studentized residuals are provided as
+#' well. The list (so far) of possible CDFs is:
 #'     \enumerate{
 #'         \item Normal \href{https://goo.gl/xaEAdT}{(Wikipedia)}
 #'         \item Log-normal \href{https://goo.gl/a7MtYq}{(Wikipedia)}
@@ -99,13 +108,13 @@
 #'             parametrization (to avoid issues if \eqn{\sigma} is near zero),
 #'             obtained by setting \eqn{\theta=sqrt(\pi)/\sigma*sqrt(2)}.
 #'         \item Generalized Normal \href{https://goo.gl/EPk8mH}{(Wikipedia)}
-#'         \item T-Generalized Normal [2].
+#'         \item T-Generalized Normal [3].
 #'         \item Laplace \href{https://goo.gl/fCykV9}{(Wikipedia)}
 #'         \item Gamma \href{https://goo.gl/cYkvar}{(Wikipedia)}
-#'         \item 3P Gamma [3].
-#'         \item Generalized 4P Gamma [3]
+#'         \item 3P Gamma [4].
+#'         \item Generalized 4P Gamma [4]
 #'                 \href{https://goo.gl/1n4kpW.}{(Wikipedia)}
-#'         \item Generalized 3P Gamma [3].
+#'         \item Generalized 3P Gamma [4].
 #'         \item Weibull \href{https://goo.gl/WMXmQP}{(Wikipedia)}
 #'         \item 3P Weibull \href{https://goo.gl/WMXmQP}{(Wikipedia)}
 #'         \item Beta \href{https://goo.gl/893wzR}{(Wikipedia)}
@@ -116,6 +125,7 @@
 #'         \item Rayleigh \href{https://goo.gl/d9b3zv}{(Wikipedia)}
 #'         \item Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
 #'         \item 2P Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
+#'         \item Geometric \href{https://is.gd/94HW4w}{(Wikipedia)}
 #'     }
 #' @return After return the plots, a list with following values is provided:
 #'     \itemize{
@@ -138,7 +148,7 @@
 #'               [1] "nls.lm"
 #'      }
 #'
-#'     And fitting details can be retrieved with summary(cdf$bestfit)
+#' And fitting details can be retrieved with summary(cdf$bestfit)
 #'
 #' @importFrom numDeriv grad
 #' @importFrom minpack.lm nls.lm nls.lm.control
@@ -153,6 +163,8 @@
 #'     for goodness-of-fit: \code{\link{mcgoftest}}.
 #' @references
 #'   \enumerate{
+#'     \item Stevens JP. Applied Multivariate Statistics for the Social
+#'           Sciences. Fifth Edit. Routledge Academic; 2009.
 #'     \item Andrej-Nikolai Spiess (2014). propagate: Propagation of
 #'           Uncertainty. R package version 1.0-4.
 #'           http://CRAN.R-project.org/package=propagate
@@ -187,6 +199,7 @@ fitCDF <- function(varobj,
                    plot.num = 1,
                    distf = NULL,
                    start = NULL,
+                   rho = FALSE,
                    only.info = FALSE,
                    maxiter = 1024,
                    maxfev = 1e+5,
@@ -214,7 +227,8 @@ fitCDF <- function(varobj,
    }
 
    options(warn = -1)
-   if (is.vector(varobj)) X <- sort( varobj )
+   if (is.vector(varobj))
+      X <- sort( varobj )
    else stop( "varobj must be a numeric vector!" )
    MEAN <- mean( X, na.rm = TRUE)
    VAR <- var( X, na.rm = TRUE)
@@ -290,11 +304,12 @@ fitCDF <- function(varobj,
                   "Generalized 4P Gamma", "Generalized 3P Gamma","Weibull",
                   "3P Weibull", "Beta", "3P Beta", "4P Beta", "Beta-Weibull",
                   "Generalized Beta", "Rayleigh", "Exponential",
-                  "2P Exponential")
+                  "2P Exponential", "Geometric")
 
    funLIST <- list(pnorm, plnorm, phnorm, pgnorm, ptgnorm, plaplace, pgamma,
                    pgamma3p, pggamma, pggamma, pweibull, pweibull3p, pbeta,
-                   pbeta3, pbeta4, pbweibull, pgbeta, prayleigh, pexp, pexp2 )
+                   pbeta3, pbeta4, pbweibull, pgbeta, prayleigh, pexp, pexp2,
+                   pgeom)
 
    parLIST <- list(norm = c( mean = MEAN, sd = SD ),
                    lnorm = c(meanlog = mean( log1p( X ), na.rm = TRUE ),
@@ -316,7 +331,8 @@ fitCDF <- function(varobj,
                    gbeta = c( shape1 = 1, shape2 = 2, lambda = 1 ),
                    rayleigh = c( sigma = SD ),
                    exp = c( rate = 1 ),
-                   exp2 = c( rate = 1, mu = 0 )
+                   exp2 = c( rate = 1, mu = 0 ),
+                   geom = c(prob = ifelse(MEAN > 0, 1/(1 + MEAN), 1))
    )
 
    if (is.character(distNames))
@@ -349,16 +365,19 @@ fitCDF <- function(varobj,
    if (is.character(distNames) && !elemt) {
       if (is.null(distf))
          stop("*** A user defined distribution function must be given")
-      distf <- try(match.fun(distf), silent = TRUE)
-      if (inherits(distf, "try-error"))
+      distp <- try(match.fun(paste0("p", distf)), silent = TRUE)
+      if (inherits(distp, "try-error"))
          stop("*** 'distf' must a symbol to call a commulative distribution",
               "function e.g, pnorm, pgamma")
 
-      funLIST <- list(distf)
+      funLIST <- list(distp)
       if (is.null(start))
          stop("*** 'start' parameter values must be provided")
       else parLIST <- list(start)
       distNAMES <- distNames
+      distnms <- distNAMES
+      rfunLIST <-paste0("r", distf)
+      qfunLIST <- paste0("q", distf)
    }
 
 
@@ -409,6 +428,9 @@ fitCDF <- function(varobj,
    funLIST <- funLIST[ ORDER ]
    fitLIST <- fitLIST[ ORDER ]
    bestFIT <- fitLIST[[ 1 ]]
+   evalLIST <- as.list( bestFIT$par )
+   evalLIST$q <- X
+   bestFIT$fitted <- do.call( funLIST[[ 1 ]], evalLIST )
    bestFIT$info <- distNAMES[ 1 ]
 
    rfunLIST <- rfunLIST[match(distNAMES, distnms)]
@@ -538,23 +560,33 @@ fitCDF <- function(varobj,
          fitLIST = fitLIST[ as.character( aicDAT$Distribution ) ]
          cat( "** Done ***\n" )
 
+         if (rho)
+            rho <- Stein_rho(fit = bestFIT)
+         else rho <- NA
+
          bestFIT$fvec <- rbestFIT
          return(list(aic = aicDAT,
                      bestfit = bestFIT,
                      fit = fitLIST,
                      fitted = YbestFIT,
-                     rstudent = rstbestFIT))
+                     rstudent = rstbestFIT,
+                     rho = rho))
       } else {
          names(fitLIST) <- distNAMES
 
          evalLIST <- as.list( bestFIT$par )
          evalLIST$q <- X
          evalY <- do.call( funLIST[[ 1 ]], evalLIST )
+         bestFIT$fitted <- evalY
          bestFIT$fvec <-  pX - evalY
+         if (rho)
+            rho <- Stein_rho(fit = bestFIT)
+         else rho <- c(rho = NA )
 
          fitLIST = fitLIST[ as.character( aicDAT$Distribution ) ]
          cat("** Done ***\n")
-         return( list( aic = aicDAT, bestfit = bestFIT, fit = fitLIST ) )
+         return( list( aic = aicDAT, bestfit = bestFIT,
+                     fit = fitLIST, rho = rho ) )
       }
    }
 }
@@ -636,7 +668,8 @@ distr <- c("norm", "lnorm", "hnorm", "gnorm",
            "tgnorm", "laplace", "gamma", "gamma3p",
            'ggamma', "ggamma", "weibull", "weibull3p",
            "beta", "beta3", "beta4", "bweibull", "gbeta",
-           'rayleigh', "exp", "exp2" )
+           'rayleigh', "exp", "exp2", "geom" )
+
 
 rfunLIST <- paste0("r", distr)
 qfunLIST <- paste0("q", distr)
@@ -654,5 +687,17 @@ qValues <- function(p, distn, fit) {
 }
 
 
+## -------------- Stein adjusted R square ---------------
 
-
+Stein_rho <- function(fit) {
+   m <- length(fit$par)
+   n <- length(fit$fitted)
+   Adj.R.Square <- 1 - (deviance(fit)/((n - m) *
+                                       var(fit$fitted, use = "everything")))
+   if (m > 2)
+      rho <- ((n - 1)/(n - 4)) * ((n - 2)/(n - 5)) * ((n + 1)/n)
+   else rho <- ((n - 1)/(n - 3)) * ((n - 2)/(n - 4)) * ((n + 1)/n)
+   rho <- 1 - rho * (1 - Adj.R.Square)
+   rho = ifelse(is.na(rho) | rho < 0, 0, rho)
+   return(c(Adj.R.Square = Adj.R.Square, rho = rho))
+}

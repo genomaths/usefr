@@ -1,7 +1,9 @@
+## ########################################################################### #
+##
 ## Copyright (C) 2019 Robersy Sanchez <https://genomaths.com/>
 ##
 ## Author: Robersy Sanchez
-#
+##
 ## This file is part of the R package "usefr".
 ##
 ## 'usefr' is free software: you can redistribute it and/or modify
@@ -16,7 +18,9 @@
 ##
 ## You should have received a copy of the GNU General Public License along with
 ## this program; if not, see <http://www.gnu.org/licenses/>.
-
+##
+## ########################################################################### #
+#
 #' @rdname mcgoftest
 #' @title Bootstrap test for Goodness of fit (GoF)
 #' @description To accomplish the nonlinear fit of a probability distribution

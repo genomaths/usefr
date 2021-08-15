@@ -11,6 +11,7 @@ fitCDF(
   plot.num = 1,
   distf = NULL,
   start = NULL,
+  rho = FALSE,
   only.info = FALSE,
   maxiter = 1024,
   maxfev = 1e+05,
@@ -35,17 +36,19 @@ below in details section, e.g. c(1:10, 15). If 'distNames' is not any of
 current 20 named distributions, then it can be any arbitrary character
 string, but the argument 'distf' must be given (see below).}
 
-\item{plot}{Logic. Default TRUE. Whether to produce the plots for the best
+\item{plot}{Logical. Default TRUE. Whether to produce the plots for the best
 fitted CDF.}
 
 \item{plot.num}{The number of distributions to be plotted.}
 
-\item{distf}{A symbol naming a cumulative distribution function (CDF) present
-in the R session environment (Not a character string!). For example,
-\strong{pnorm}, \strong{pgamma}, etc. If the function is not present in
-the environment, then an error will be returned. It must given only if
-'distNames' is not any of current 20 named distributions (see  details
-below). Default is NULL.}
+\item{distf}{A character string naming a cumulative distribution function
+(CDF) present in the R session environment . For example, \strong{gamma} or
+\strong{norm}, etc, from where, internally, we can get: density, distribution
+function, quantile function and random generation as: \strong{dnorm},
+\strong{pnorm}, \strong{qnorm}, and \strong{rnorm}, respectively. If the
+function is not present in the environment, then an error will be returned.
+It must given only if 'distNames' is not any of current 20 named
+distributions (see  details below). Default is NULL.}
 
 \item{start}{A named numerical vector giving the parameters to be optimized
     with initial values. This can be omitted for some of the named
@@ -74,7 +77,12 @@ below). Default is NULL.}
     \item rayleigh = c( sigma = SD )
     \item exp = c( rate = 1)
     \item exp2 = c( rate = 1, mu = 0)
+    \item geom = c(prob = ifelse(MEAN > 0, 1/(1 + MEAN), 1))
 }}
+
+\item{rho}{Logical. Default FALSE. If TRUE, then the Stein's rho for
+adjusted R squared (rho) is applied as an estimator of the average
+cross-validation predictive power [1].}
 
 \item{only.info}{Logic. Default TRUE. If true, only information about the
 parameter estimation is returned.}
@@ -119,7 +127,7 @@ After return the plots, a list with following values is provided:
               [1] "nls.lm"
      }
 
-    And fitting details can be retrieved with summary(cdf$bestfit)
+And fitting details can be retrieved with summary(cdf$bestfit)
 }
 \description{
 Usually the parameter estimation of a cummulative distribution
@@ -130,15 +138,14 @@ Usually the parameter estimation of a cummulative distribution
 }
 \details{
 The nonlinear fit (NLF) problem for CDFs is addressed with
-    Levenberg-Marquardt algorithm implemented in function
-    \code{\link[minpack.lm]{nls.lm}} from package *minpack.lm*. This function
-    is inspired in a script for the function
-    \code{\link[propagate]{fitDistr}} from the package propagate [1]. Some
-    parts or script ideas from function \code{\link[propagate]{fitDistr}}
-    are used, but here we to estimate CDF and not the PDF as in the case of
-    "\code{\link[propagate]{fitDistr}}. A more informative are also
-    incorporated. The studentized residuals are provided as well.
-    The list (so far) of possible CDFs is:
+Levenberg-Marquardt algorithm implemented in function
+\code{\link[minpack.lm]{nls.lm}} from package *minpack.lm*. This function is
+inspired in a script for the function \code{\link[propagate]{fitDistr}} from
+the package propagate [2]. Some parts or script ideas from function
+\code{\link[propagate]{fitDistr}} are used, but here we to estimate CDF and
+not the PDF as in the case of "\code{\link[propagate]{fitDistr}}. A more
+informative are also incorporated. The studentized residuals are provided as
+well. The list (so far) of possible CDFs is:
     \enumerate{
         \item Normal \href{https://goo.gl/xaEAdT}{(Wikipedia)}
         \item Log-normal \href{https://goo.gl/a7MtYq}{(Wikipedia)}
@@ -147,13 +154,13 @@ The nonlinear fit (NLF) problem for CDFs is addressed with
             parametrization (to avoid issues if \eqn{\sigma} is near zero),
             obtained by setting \eqn{\theta=sqrt(\pi)/\sigma*sqrt(2)}.
         \item Generalized Normal \href{https://goo.gl/EPk8mH}{(Wikipedia)}
-        \item T-Generalized Normal [2].
+        \item T-Generalized Normal [3].
         \item Laplace \href{https://goo.gl/fCykV9}{(Wikipedia)}
         \item Gamma \href{https://goo.gl/cYkvar}{(Wikipedia)}
-        \item 3P Gamma [3].
-        \item Generalized 4P Gamma [3]
+        \item 3P Gamma [4].
+        \item Generalized 4P Gamma [4]
                 \href{https://goo.gl/1n4kpW.}{(Wikipedia)}
-        \item Generalized 3P Gamma [3].
+        \item Generalized 3P Gamma [4].
         \item Weibull \href{https://goo.gl/WMXmQP}{(Wikipedia)}
         \item 3P Weibull \href{https://goo.gl/WMXmQP}{(Wikipedia)}
         \item Beta \href{https://goo.gl/893wzR}{(Wikipedia)}
@@ -164,6 +171,7 @@ The nonlinear fit (NLF) problem for CDFs is addressed with
         \item Rayleigh \href{https://goo.gl/d9b3zv}{(Wikipedia)}
         \item Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
         \item 2P Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
+        \item Geometric \href{https://is.gd/94HW4w}{(Wikipedia)}
     }
 }
 \examples{
@@ -187,6 +195,8 @@ cdfp <- fitCDF(x1, distNames = "3P Weibull",
 }
 \references{
 \enumerate{
+    \item Stevens JP. Applied Multivariate Statistics for the Social
+          Sciences. Fifth Edit. Routledge Academic; 2009.
     \item Andrej-Nikolai Spiess (2014). propagate: Propagation of
           Uncertainty. R package version 1.0-4.
           http://CRAN.R-project.org/package=propagate

@@ -53,7 +53,7 @@
 #' AICmodel(residuals=res, np=2) == AIC(nlm)
 #'
 #' @importFrom stats resid coef
-#'
+#' @seealso \code{\link{BICmodel}}
 #' @export
 AICmodel <- function(model=NULL, residuals=NULL, np=NULL) {
    if (is.null(model) && is.null(residuals)) {

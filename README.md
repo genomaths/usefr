@@ -22,7 +22,7 @@ This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_, _c
     
     BiocManager::install('BiocParallel')
     install.packages(c("minpack.lm", "numDeriv", "copula", "mclust",
-                        "nls2", "cubature"), dependencies=TRUE)
+                        "nls2", "cubature", "mixdist"), dependencies=TRUE)
 ```
 
 ### Installing issues with the R package "cubature" on CentOS

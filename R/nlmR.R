@@ -16,14 +16,14 @@
 #' @rdname nlmR
 #' @title Nonlinear Goodness-of-fit and Determination Coefficients
 #' @description This function returns goodness-of-fit criteria for nonlinear
-#' model selection.
-#' @details Adjusted R squared (rho), the AIC, and BIC are estimated. The
-#' Stein's formula for adjusted R squared (rho) is applied as an estimator of
-#' the average cross-validation predictive power (1).
+#' model selection. Adjusted R squared (rho), the AIC, and BIC are estimated.
+#' @details The Stein's formula for adjusted R squared (rho) is applied as an
+#' estimator of the average cross-validation predictive power (1).
 #' @param object An object which inherits from 'nls' class, typically returned
 #' after performing a nonlinear regression fit with function
 #' \code{\link[stats]{nls}} or \code{\link[minpack.lm]{nlsLM}}.
 #' @export
+#' @seealso \code{\link{mcgoftest}} for Bootstrap test for Goodness of fit.
 #' @examples
 #' ### Examples from 'nls' doc
 #' DNase1 <- subset(DNase, Run == 1)
