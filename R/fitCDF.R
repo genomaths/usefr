@@ -23,11 +23,11 @@
 #
 #' @rdname fitCDF
 #' @title Nonlinear fit of a commulative distribution function
-#' @description Usually the parameter estimation of a cummulative distribution
-#'     function (*CDF*) are accomplished using the corresponding probability
-#'     density function (*PDF*). DIfferent optimization algorithms can be used
-#'     to accomplished this task and different algorithms can yield different
-#'     esitmated parameters. Hence, why not try to fit the CDF directly?
+#' @description Usually the parameter estimation of a cumulative distribution
+#' function (*CDF*) are accomplished using the corresponding probability density
+#' function (*PDF*). Different optimization algorithms can be used to
+#' accomplished this task and different algorithms can yield different estimated
+#' parameters. Hence, why not try to fit the CDF directly?
 #' @param varobj A a vector containing observations, the variable for which the
 #'     CDF parameters will be estimated.
 #' @param distNames a vector of distribution numbers to select from the listed
@@ -63,11 +63,20 @@
 #'     \item exp2 = c( rate = 1, mu = 0)
 #'     \item geom = c(prob = ifelse(MEAN > 0, 1/(1 + MEAN), 1))
 #' }
-#' @param rho Logical. Default FALSE. If TRUE, then the Stein's rho for
-#' adjusted R squared (rho) is applied as an estimator of the average
-#' cross-validation predictive power [1].
+#' @param loss.fun Loss function used in the regression (see
+#' \href{https://en.wikipedia.org/wiki/Loss_function}{(Loss function)}). After
+#' \eqn{z =  1/2 * sum((f(x) - y)^2)} we have:
+#' \enumerate{
+#'     \item "linear": linear function which gives a standard least squares:
+#'           \eqn{loss(z) = z}.
+#'     \item "huber": Huber loss, \eqn{loss(z) = ifelse(z <= 1, z, sqrt(z) -1)}.
+#'     \item "smooth": Smooth approximation to the sum of residues absolute
+#'           values: \eqn{loss(z) = 2*(sqrt(z + 1) - 1)}.
+#'     \item "cauchy": Cauchy loss: \eqn{loss(z) = log(z + 1)}.
+#'     \item "arctg": arc-tangent loss function: \eqn{loss(x) = atan(z)}.
+#' }
 #' @param plot Logical. Default TRUE. Whether to produce the plots for the best
-#'     fitted CDF.
+#' fitted CDF.
 #' @param plot.num The number of distributions to be plotted.
 #' @param distf A character string naming a cumulative distribution function
 #' (CDF) present in the R session environment . For example, \strong{gamma} or
@@ -93,12 +102,14 @@
 #' @param verbose Logic. If TRUE, prints the function log to stdout
 #' @details The nonlinear fit (NLF) problem for CDFs is addressed with
 #' Levenberg-Marquardt algorithm implemented in function
-#' \code{\link[minpack.lm]{nls.lm}} from package *minpack.lm*. This function is
-#' inspired in a script for the function \code{\link[propagate]{fitDistr}} from
-#' the package propagate [2]. Some parts or script ideas from function
+#' \code{\link[minpack.lm]{nls.lm}} from package *minpack.lm*. The Stein's rho
+#' for adjusted R squared (rho) is applied as an estimator of the average
+#' cross-validation predictive power [1]. This function is inspired in a script
+#' for the function \code{\link[propagate]{fitDistr}} from the package propagate
+#' [2]. Some parts or script ideas from function
 #' \code{\link[propagate]{fitDistr}} are used, but here we to estimate CDF and
-#' not the PDF as in the case of "\code{\link[propagate]{fitDistr}}. A more
-#' informative are also incorporated. The studentized residuals are provided as
+#' not the PDF as in the case of "\code{\link[propagate]{fitDistr}}. More
+#' informative results are given now. The studentized residuals are provided as
 #' well. The list (so far) of possible CDFs is:
 #'     \enumerate{
 #'         \item Normal \href{https://goo.gl/xaEAdT}{(Wikipedia)}
@@ -155,7 +166,7 @@
 #' @importFrom utils flush.console
 #' @importFrom mixdist weibullpar
 #' @importFrom stats var sd quantile ecdf pgamma pnorm pbeta pexp pweibull
-#'     plnorm na.omit splinefun qqnorm qqline
+#' @importFrom stats plnorm na.omit splinefun qqnorm qqline
 #' @importFrom graphics par grid lines mtext abline
 #' @export
 #' @author Robersy Sanchez (\url{https://genomaths.com}).
@@ -199,7 +210,8 @@ fitCDF <- function(varobj,
                    plot.num = 1,
                    distf = NULL,
                    start = NULL,
-                   rho = FALSE,
+                   loss.fun = c("linear", "huber", "smooth",
+                                "cauchy", "arctg"),
                    only.info = FALSE,
                    maxiter = 1024,
                    maxfev = 1e+5,
@@ -211,493 +223,789 @@ fitCDF <- function(varobj,
                    cex.main = 1,
                    cex.text = 0.8,
                    cex.point = 0.5,
-                   verbose = TRUE, ...) {
+                   verbose = TRUE,
+                   ...) {
+    if (is.numeric(distNames)) {
+        distNames <- as.integer(distNames)
+        if (any(distNames > 20))
+            stop("*** 'distNames' must be a string or a number < 21")
+    }
 
-   if (is.numeric(distNames)) {
-      distNames <- as.integer(distNames)
-      if (any(distNames > 20))
-         stop("*** 'distNames' must be a string or a number < 21")
-   }
+    loss.fun <- match.arg(loss.fun)
 
-   # "count" function from "propagate"
-   counter <- function (i) {
-      if (i%%10 == 0) cat(i) else cat(".")
-      if (i%%50 == 0) cat("\n")
-      flush.console()
-   }
+    # "count" function from "propagate"
+    counter <- function (i) {
+        if (i %% 10 == 0)
+            cat(i)
+        else
+            cat(".")
+        if (i %% 50 == 0)
+            cat("\n")
+        flush.console()
+    }
 
-   options(warn = -1)
-   if (is.vector(varobj))
-      X <- sort( varobj )
-   else stop( "varobj must be a numeric vector!" )
-   MEAN <- mean( X, na.rm = TRUE)
-   VAR <- var( X, na.rm = TRUE)
-   SD <- sd(X, na.rm = TRUE)
-   MIN <- min( X, na.rm = TRUE)
-   MAX <- max( X, na.rm = TRUE)
-   Q = unname( quantile( X, 0.632, na.rm = TRUE ) )
-   Fy = ecdf( X )
-   pX = Fy( X )
+    options(warn = -1)
+    if (is.vector(varobj))
+        X <- sort(varobj)
+    else
+        stop("varobj must be a numeric vector!")
+    MEAN <- mean(X, na.rm = TRUE)
+    VAR <- var(X, na.rm = TRUE)
+    SD <- sd(X, na.rm = TRUE)
+    MIN <- min(X, na.rm = TRUE)
+    MAX <- max(X, na.rm = TRUE)
+    Q = unname(quantile(X, 0.632, na.rm = TRUE))
+    Fy = ecdf(X)
+    pX = Fy(X)
 
-   # *** Generalized normal CDF *** #
-   # https://en.(Wikipedia).org/wiki/Generalized_normal_distribution
-   pgnorm <- function( q , mean = 0, sigma = 1, beta = 1 )  {
-      y = ( abs( q - mean )/sigma )^beta
-      # 1/2 + sign( q - mean ) * pgamma( y, 1/beta )/( 2*gamma( 1/beta ) )
-      1/2 + sign( q - mean ) * pgamma( y, 1/beta )/2
-   }
+    distNAMES <-
+        c(
+            "Normal",
+            "Log-normal",
+            "Half-Normal",
+            "Generalized Normal",
+            "T-Generalized Normal",
+            "Laplace",
+            "Gamma",
+            "3P Gamma",
+            "Generalized 4P Gamma",
+            "Generalized 3P Gamma",
+            "Weibull",
+            "3P Weibull",
+            "Beta",
+            "3P Beta",
+            "4P Beta",
+            "Beta-Weibull",
+            "Generalized Beta",
+            "Rayleigh",
+            "Exponential",
+            "2P Exponential",
+            "Geometric"
+        )
 
-   # *** Thermodynamic based Generalized normal CDF *** #
-   ptgnorm <- function( q , mean = 0, sigma = 1, beta = 1 ) {
-      # pgamma is closely related to the incomplete gamma function.
-      # As defined by Abramowitz and Stegun 6.5.1 (and by 'Numerical Recipes')
-      # this is: P(a,x) = 1/Gamma(a) integral_0^x t^(a-1) exp(-t) dt
-      # P(a, x) is pgamma(x, a).
-      # Abramowitz, M. and Stegun, I. A. (1972) Handbook of Mathematical
-      # Functions. New York: Dover. Chapter 6: Gamma and Related Functions.
-      y = ( abs( q - mean )/( sigma ) )^beta
-      1/2 + sign( q - mean ) * pgamma( y, 1/beta )/2
-   }
+    funLIST <-
+        list(
+            pnorm,
+            plnorm,
+            phnorm,
+            pgnorm,
+            ptgnorm,
+            plaplace,
+            pgamma,
+            pgamma3p,
+            pggamma,
+            pggamma,
+            pweibull,
+            pweibull3p,
+            pbeta,
+            pbeta3,
+            pbeta4,
+            pbweibull,
+            pgbeta,
+            prayleigh,
+            pexp,
+            pexp2,
+            pgeom
+        )
 
-   # *** Definition of Laplace CDF *** #
-   plaplace <- function( q , mean = 0, sigma = 1 ) {
-      1/sqrt( 2 ) + 1/sqrt( 2 ) * ( 1 - exp( -abs( q - mean )/sigma ) )
-   }
+    parLIST <- list(
+        norm = c(mean = MEAN, sd = SD),
+        lnorm = c(
+            meanlog = mean(log1p(X), na.rm = TRUE),
+            sdlog = sd(log1p(X), na.rm = TRUE)
+        ),
+        hnorm = c(theta = sqrt(pi) / (SD * sqrt(2)), mu = 0),
+        gnorm = c(
+            mean = MEAN,
+            sigma = SD,
+            beta = 2
+        ),
+        tgnorm = c(
+            mean = MEAN,
+            sigma = SD,
+            beta = 2
+        ),
+        laplace = c(mean = MEAN, sigma = sqrt(VAR)),
+        gamma = shape_scale(X, gg = FALSE),
+        gamma3p = c(shape_scale(X, gg = FALSE), mu = 0),
+        ggamma = c(shape_scale(X, gg = TRUE), mu = MIN, psi = 1),
+        ggamma = c(shape_scale(X, gg = TRUE), psi = 1),
+        weibull = weibullpars(mu = MEAN, sigma = SD),
+        weibull3p = c(weibullpars(mu = MEAN, sigma = SD), mu = MIN),
+        beta = c(shape1 = 1, shape2 = 2),
+        beta3 = c(
+            shape1 = 1,
+            shape2 = 2,
+            mu = MIN
+        ),
+        beta4 = c(
+            shape1 = 2,
+            shape2 = 3,
+            mu = 0.9 * MIN,
+            b = 1.1 * MAX
+        ),
+        bweibull = c(
+            alpha = 1,
+            beta = 2,
+            shape_scale(X, gg = FALSE)
+        ),
+        gbeta = c(
+            shape1 = 1,
+            shape2 = 2,
+            lambda = 1
+        ),
+        rayleigh = c(sigma = SD),
+        exp = c(rate = 1),
+        exp2 = c(rate = 1, mu = 0),
+        geom = c(prob = ifelse(MEAN > 0, 1 / (1 + MEAN), 1))
+    )
 
-   # *** Generalized beta CDF *** #
-   pgbeta <- function(q, shape1, shape2, lambda = 1, lower.tail = TRUE,
-                      log.p = FALSE ) {
-      ans <- pbeta( q = 1/(1 + (1/q - 1)/lambda ), shape1 = shape1,
-                    shape2 = shape2, lower.tail = lower.tail, log.p = log.p )
-      ans[ lambda <= 0 ] <- NaN
-      return(ans)
-   }
+    if (is.character(distNames))
+        elemt <- is.element(distNames, distNAMES)
+    else if (is.numeric(distNames))
+        elemt <- is.element(distNames, seq_along(distNAMES))
 
-   # *** 3P beta CDF *** #
-   pbeta3 <- function(q, shape1 = 2, shape2 = 3, mu = 0, lower.tail = TRUE,
-                      log.p = FALSE ) {
-      pbeta( q - mu, shape1, shape2, lower.tail = lower.tail, log.p = log.p )
-   }
+    if (missing(distNames))
+        distNames <- seq_along(distNAMES)
 
-   # *** 4P beta CDF *** #
-   pbeta4 <- function(q, shape1 = 2, shape2 = 3, mu = 0, b = 1,
-                      lower.tail = TRUE, log.p = FALSE ) {
-      pbeta( ( q - mu )/( b - mu ), shape1, shape2, lower.tail = lower.tail,
-             log.p = log.p )
-   }
+    if (length(distNames) < 20 && elemt) {
+        if (is.character(distNames))
+            distNames <- as.integer(na.omit(match(distNames, distNAMES)))
 
-   # *** Definition of Rayleigh distribution *** #
-   prayleigh <- function(q, sigma )  1 - exp( -q^2/( 2 * sigma^2 ))
+        if (sum(!is.element(distNames, 1:length(distNAMES))) > 0)
+            stop("At least one CDF is not found between the",
+                 " possible selections \n")
 
-   # *** Definition of 2P Exponential *** #
-   pexp2 <- function(q, rate, mu) pexp(q - mu , rate = 1, lower.tail = TRUE,
-                                       log.p = FALSE)
+        if (is.integer(distNames)) {
+            distnms <- distNAMES
+            distNAMES <- distNAMES[distNames]
+            funLIST <- funLIST[distNames]
 
-   # *** Definition of Beta-Weibull distribution *** #
-   # It is taken from R pacakge "Newdistns"
-   pbweibull <- function( q, alpha, beta, shape, scale )
-      pbeta(pweibull(q, shape = shape, scale = scale), shape1 = alpha,
-            shape2 = beta)
+            if (!is.null(start)) {
+                parLIST <- list(start)
+            } else
+                parLIST <- parLIST[ distNames ]
+        }
+    }
 
-   distNAMES <- c("Normal", "Log-normal", "Half-Normal", "Generalized Normal",
-                  "T-Generalized Normal", "Laplace", "Gamma", "3P Gamma",
-                  "Generalized 4P Gamma", "Generalized 3P Gamma","Weibull",
-                  "3P Weibull", "Beta", "3P Beta", "4P Beta", "Beta-Weibull",
-                  "Generalized Beta", "Rayleigh", "Exponential",
-                  "2P Exponential", "Geometric")
+    if (is.character(distNames) && !elemt) {
+        if (is.null(distf))
+            stop("*** A user defined distribution function must be given")
+        distp <- try(match.fun(paste0("p", distf)), silent = TRUE)
+        if (inherits(distp, "try-error"))
+            stop(
+                "*** 'distf' must a symbol to call a commulative distribution",
+                "function e.g, pnorm, pgamma"
+            )
 
-   funLIST <- list(pnorm, plnorm, phnorm, pgnorm, ptgnorm, plaplace, pgamma,
-                   pgamma3p, pggamma, pggamma, pweibull, pweibull3p, pbeta,
-                   pbeta3, pbeta4, pbweibull, pgbeta, prayleigh, pexp, pexp2,
-                   pgeom)
-
-   parLIST <- list(norm = c( mean = MEAN, sd = SD ),
-                   lnorm = c(meanlog = mean( log1p( X ), na.rm = TRUE ),
-                             sdlog = sd( log1p( X ), na.rm = TRUE ) ),
-                   hnorm = c(theta = sqrt(pi)/(SD * sqrt(2)), mu = 0),
-                   gnorm = c( mean = MEAN, sigma = SD, beta = 2 ),
-                   tgnorm = c( mean = MEAN, sigma = SD, beta = 2 ),
-                   laplace = c( mean = MEAN, sigma = sqrt( VAR ) ),
-                   gamma = shape_scale(X, gg = FALSE),
-                   gamma3p = c( shape_scale(X, gg = FALSE), mu = 0 ),
-                   ggamma = c(shape_scale(X, gg = TRUE), mu = MIN, psi = 1 ),
-                   ggamma = c( shape_scale(X, gg = TRUE), psi = 1 ),
-                   weibull = weibullpars(mu = MEAN, sigma = SD),
-                   weibull3p = c(weibullpars(mu = MEAN, sigma = SD), mu = MIN),
-                   beta = c(shape1 = 1, shape2 = 2 ),
-                   beta3 = c(shape1 = 1, shape2 = 2, mu = MIN ),
-                   beta4 = c(shape1 = 2, shape2 = 3, mu=0.9 * MIN, b=1.1 * MAX),
-                   bweibull = c(alpha=1, beta=2, shape_scale(X, gg = FALSE)),
-                   gbeta = c( shape1 = 1, shape2 = 2, lambda = 1 ),
-                   rayleigh = c( sigma = SD ),
-                   exp = c( rate = 1 ),
-                   exp2 = c( rate = 1, mu = 0 ),
-                   geom = c(prob = ifelse(MEAN > 0, 1/(1 + MEAN), 1))
-   )
-
-   if (is.character(distNames))
-      elemt <- is.element(distNames, distNAMES)
-   else if (is.numeric(distNames))
-             elemt <- is.element(distNames, seq_along(distNAMES))
-
-   if ( missing( distNames ) )
-      distNames <- seq_along(distNAMES)
-
-   if ( length( distNames ) < 20 && elemt ) {
-      if (is.character(distNames))
-         distNames <- as.integer(na.omit(match(distNames, distNAMES)))
-
-      if (sum(!is.element(distNames, 1:length(distNAMES))) > 0)
-         stop("At least one CDF is not found between the",
-              " possible selections \n")
-
-      if (is.integer(distNames)) {
-         distnms <- distNAMES
-         distNAMES <- distNAMES[ distNames ]
-         funLIST <- funLIST[ distNames ]
-
-         if (!is.null(start)) {
+        funLIST <- list(distp)
+        if (is.null(start))
+            stop("*** 'start' parameter values must be provided")
+        else
             parLIST <- list(start)
-         } else parLIST <- parLIST[ distNames ]
-      }
-   }
-
-   if (is.character(distNames) && !elemt) {
-      if (is.null(distf))
-         stop("*** A user defined distribution function must be given")
-      distp <- try(match.fun(paste0("p", distf)), silent = TRUE)
-      if (inherits(distp, "try-error"))
-         stop("*** 'distf' must a symbol to call a commulative distribution",
-              "function e.g, pnorm, pgamma")
-
-      funLIST <- list(distp)
-      if (is.null(start))
-         stop("*** 'start' parameter values must be provided")
-      else parLIST <- list(start)
-      distNAMES <- distNames
-      distnms <- distNAMES
-      rfunLIST <-paste0("r", distf)
-      qfunLIST <- paste0("q", distf)
-   }
+        distNAMES <- distNames
+        distnms <- distNAMES
+        rfunLIST <- paste0("r", distf)
+        qfunLIST <- paste0("q", distf)
+    }
 
 
-   fitLIST <- vector("list", length = length(distNAMES))
-   AICS <- rep(NA, length(distNAMES))
+    fitLIST <- vector("list", length = length(distNAMES))
+    AICS <- rep(NA, length(distNAMES))
 
-   for (i in 1:length(distNAMES)) {
-      if (verbose) cat("Fitting ", distNAMES[i], " distribution..", sep = "")
-      GRID <- matrix(parLIST[[i]], nrow = 1)
-      colnames(GRID) <- names(parLIST[[i]])
-      rssVEC <- rep(NA, nrow(GRID))
-      for (j in 1:nrow(GRID)) {
-         if (verbose) counter(j)
-         PARS <- GRID[j, ]
-         FIT <- try(nls.lm(par = PARS, fn = optFun, probfun = funLIST[[i]],
-                           quantiles = X, prob = pX,
-                           control = nls.lm.control(maxiter=maxiter,
-                                                    maxfev=maxfev, ptol=ptol)),
-                    silent = TRUE)
-         if (inherits(FIT, "try-error")) rssVEC[j] <- NA
-         else rssVEC[j] <- FIT$deviance
-      }
-      if (!is.na(rssVEC[ j ]) ) {
-         WHICH <- which.min( rssVEC[ j ] )
-         bestPAR <- GRID[WHICH, ]
-         FIT <- try(nls.lm( par = bestPAR, fn = optFun, probfun=funLIST[[i]],
-                            quantiles = X, prob = pX,
-                            control = nls.lm.control(maxiter=maxiter,
-                                                     maxfev=maxfev, ptol=ptol)),
-                    silent = TRUE)
-      }
-      if (inherits(FIT, "try-error")) {
-         FIT <- NA
-         if (verbose) cat("Error!\n")
-      }
-      else {
-         fitLIST[[i]] <- FIT
-         AICS[i] <- tryCatch( fitAIC( FIT ), error = function(e) NA )
-         if (verbose) cat("Done.\n")
-      }
-   }
-
-   ORDER <- order(AICS)
-   aicDAT <- data.frame( Distribution = distNAMES, AIC = AICS)
-   aicDAT <- aicDAT[ ORDER, ]
-
-   distNAMES <- distNAMES[ ORDER ]
-   funLIST <- funLIST[ ORDER ]
-   fitLIST <- fitLIST[ ORDER ]
-   bestFIT <- fitLIST[[ 1 ]]
-   evalLIST <- as.list( bestFIT$par )
-   evalLIST$q <- X
-   bestFIT$fitted <- do.call( funLIST[[ 1 ]], evalLIST )
-   bestFIT$info <- distNAMES[ 1 ]
-
-   rfunLIST <- rfunLIST[match(distNAMES, distnms)]
-   qfunLIST <- qfunLIST[match(distNAMES, distnms)]
-
-   if( only.info ){
-      return(list(bestfit = bestFIT, AIC = aicDAT))
-   } else {
-      if( plot ) {
-         opar <- par()
-         for(k in 1:min(plot.num, length(distNames))) {
-            cat(" * Estimating Studentized residuals for",
-                distNAMES[ k ], "distribution\n" )
-            # SEL <- ORDER[ k ]
-            FITs <- fitLIST[[ k ]]
-            evalLIST <- as.list( FITs$par )
-            evalLIST$q <- X
-            evalY <- do.call( funLIST[[ k ]], evalLIST )
-
-
-            #   # Derivative of the best fit function
-            evalLST <- as.list( FITs$par )
-            evalLST$func <- funLIST[[ k ]]
-            evalLST$x <- X
-            evalLST$method <- "simple"
-            gradient <- do.call(grad, evalLST )
-
-            # NaN/missing values are replace by cubic spline interpolation
-            grad.spline = splinefun( X, gradient )
-            ind = which(is.na( gradient))
-            gradient[ ind ] <- grad.spline( X[ ind ] )
-            residuals <- pX - evalY
-
-            rstudent <- nls.rstudent(gradient, residuals, length(bestFIT$par))
-            outliers <- sum(abs(rstudent) > 2, na.rm = TRUE)
-            if (k == 1) {
-               rbestFIT <- residuals
-               rstbestFIT <- rstudent
-               YbestFIT <- evalY
+    for (i in seq_along(distNAMES)) {
+        if (verbose)
+            message("*** Fitting ", distNAMES[i],
+                    " distribution... ", sep = "")
+        GRID <- matrix(parLIST[[i]], nrow = 1)
+        colnames(GRID) <- names(parLIST[[i]])
+        rssVEC <- rep(NA, nrow(GRID))
+        for (j in seq_len(nrow(GRID))) {
+            if (verbose)
+                counter(j)
+            PARS <- GRID[j,]
+            FIT <-
+                try(nls.lm(
+                    par = PARS,
+                    fn = optFun,
+                    probfun = funLIST[[i]],
+                    quantiles = X,
+                    prob = pX,
+                    loss.fun = loss.fun,
+                    control = nls.lm.control(
+                        maxiter = maxiter,
+                        maxfev = maxfev,
+                        ptol = ptol
+                    )
+                ),
+                silent = TRUE)
+            if (inherits(FIT, "try-error")) {
+                rssVEC[j] <- NA
+                message(FIT)
             }
+            else
+                rssVEC[j] <- FIT$deviance
+        }
+        if (!is.na(rssVEC[j])) {
+            WHICH <- which.min(rssVEC[j])
+            bestPAR <- GRID[WHICH,]
+            FIT <-
+                try(nls.lm(
+                    par = bestPAR,
+                    fn = optFun,
+                    probfun = funLIST[[i]],
+                    quantiles = X,
+                    prob = pX,
+                    loss.fun = loss.fun,
+                    control = nls.lm.control(
+                        maxiter = maxiter,
+                        maxfev = maxfev,
+                        ptol = ptol
+                    )
+                ),
+                silent = TRUE)
+        }
+        if (inherits(FIT, "try-error")) {
+            FIT <- NA
+            if (verbose)
+                cat("Error!\n")
+        }
+        else {
+            fitLIST[[i]] <- FIT
+            AICS[i] <-
+                tryCatch(
+                    fitAIC(FIT),
+                    error = function(e)
+                        NA
+                )
+            if (verbose)
+                cat("Done.\n")
+        }
+    }
 
-            cat( " * Plots for", distNAMES[ k ], "distribution...\n" )
-            par(mfrow = c(2, 2), mar = mar, mgp = mgp, las = las, ...)
-            plot(Fy, verticals=TRUE,
-                panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
-                               grid(col="white", lty = 1)},
-                col = "blue", pch = 20, bty = "n",
-                xlab = xlabel, ylab="CDF", cex = cex.point,
-                main = paste( distNAMES[ k ], "Distribution"),
-                cex.main = cex.main)
-            lines( evalLIST$q, evalY, col = 2, lty = 2, lwd = 2)
-            mtext(text=paste("AIC =", round(aicDAT$AIC[ k ], 3 ) ),
-                  cex = cex.text)
+    ORDER <- order(AICS)
+    aicDAT <- data.frame(Distribution = distNAMES, AIC = AICS)
+    aicDAT <- aicDAT[ORDER,]
 
-            ## PP-plot
-            # par(mar = c( 5, 2, 2.2, 1 ) + 0.2, mgp = c( 1.2, 0.4, 0 ),
-            #     las = 1)
-            plot(pX, evalY,
-                 panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
-                    grid(col="white", lty = 1)},
-                 col="blue", bty = "n", main = "P-P Plot", pch = 20,
-                 cex = cex.point, xlab = "Empirical CDF",
-                 ylab = "Theoretical CDF", cex.main = cex.main)
-            abline( 0, 1, col= "red", lwd = 2 ) # Reference line y = x
-            pars <- FITs$par
-            par_n <- names( pars )
-            pars <- unlist(pars)
-            pars <- t( cbind( par_n, format( round ( pars, 3 ), 3 )))
-            mtext( text = paste( pars, collapse = " " ),
-                   cex = cex.text )
+    distNAMES <- distNAMES[ORDER]
+    funLIST <- funLIST[ORDER]
+    fitLIST <- fitLIST[ORDER]
+    bestFIT <- fitLIST[[1]]
+    evalLIST <- as.list(bestFIT$par)
+    evalLIST$q <- X
+    fitted <- do.call(funLIST[[1]], evalLIST)
+    info <- distNAMES[1]
 
-            # par(mar = c( 5, 3, 1, 1 ) + 0.07, mgp = c( 1.2, 0.4, 0 ) )
-            plot( X, rstudent,
-                  panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
-                     grid(col="white", lty = 1)}, bty = "n",
-                  pch = 20, xlab = xlabel,  ylab = "Studentized residuals",
-                  main = "Outliers",
-                  col = "blue", cex = cex.point,
-                  cex.main = cex.main )
-            abline(h = 2, col= "red", lwd = 2, lty=2) # Reference line y = x
-            abline(h = -2, col= "red", lwd = 2, lty=2) # Reference line y = x
-            mtext( text = paste( "Number of outliers (|st| > 2): ",
-                                 outliers, collapse = " " ),
-                  cex = cex.text )
+    rfunLIST <- rfunLIST[match(distNAMES, distnms)]
+    qfunLIST <- qfunLIST[match(distNAMES, distnms)]
 
-            rdistr <- try(get(rfunLIST[[k]], mode = "function",
-                              envir = parent.frame()), silent = TRUE)
-            qdistr <- try(get(qfunLIST[[k]], mode = "function",
-                              envir = parent.frame()), silent = TRUE)
-            ## --- Q-Q plot
-            # par( mar = c( 5, 2, 1, 1 ) + 0.07, mgp = c( 1.2, 0.4, 0 ) )
-            if (!inherits(rdistr, "try-error") &&
-                !inherits(qdistr, "try-error")) {
-               r <- rValues(rfunLIST[[k]], FITs, 1e4)
-               xl <- c(min(r, na.rm = TRUE), max(r, na.rm = TRUE))
-               qqplot( x = r, y = X,
-                     panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
-                                    grid(col="white", lty = 1)},
-                     bty = "n", xlim = xl, ylim = xl,
-                     col="blue" , pch = 20, cex = cex.point,
-                     cex.main = cex.main,
-                     qtype = 6, main = "Q-Q Plot",
-                     xlab = "Theoretical Quantiles",
-                     ylab = "Empirical Quantiles")
-               # Reference line y = x
-               qqline( y = X,
-                       distribution = function(p)
-                          qValues(p, qfunLIST[[k]], FITs),
-                       xlim = xl, ylim = xl, cex = cex.point,
-                       col= "red", lwd = 2, qtype = 6 )
+    if (only.info) {
+        return(list(bestfit = bestFIT, AIC = aicDAT))
+    } else {
+        if (plot) {
+            opar <- par()
+            for (k in 1:min(plot.num, length(distNames))) {
+                cat(
+                    " * Estimating Studentized residuals for",
+                    distNAMES[k],
+                    "distribution\n"
+                )
+                # SEL <- ORDER[ k ]
+                FITs <- fitLIST[[k]]
+                evalLIST <- as.list(FITs$par)
+                evalLIST$q <- X
+                evalY <- do.call(funLIST[[k]], evalLIST)
+
+                rstudent <- rstudents(model = FITs, varobj = X)
+
+                outliers <- sum(abs(rstudent) > 2, na.rm = TRUE)
+
+                cat(" * Plots for", distNAMES[k], "distribution...\n")
+                par(
+                    mfrow = c(2, 2),
+                    mar = mar,
+                    mgp = mgp,
+                    las = las,
+                    ...
+                )
+                plot(
+                    Fy,
+                    verticals = TRUE,
+                    panel.first = {
+                        points(0,
+                               0,
+                               pch = 16,
+                               cex = 1e6,
+                               col = "grey95")
+                        grid(col = "white", lty = 1)
+                    },
+                    col = "blue",
+                    pch = 20,
+                    bty = "n",
+                    xlab = xlabel,
+                    ylab = "CDF",
+                    cex = cex.point,
+                    main = paste(distNAMES[k], "Distribution"),
+                    cex.main = cex.main
+                )
+                lines(
+                    evalLIST$q,
+                    evalY,
+                    col = 2,
+                    lty = 2,
+                    lwd = 2
+                )
+                mtext(text = paste("AIC =", round(aicDAT$AIC[k], 3)),
+                      cex = cex.text)
+
+                ## PP-plot
+                # par(mar = c( 5, 2, 2.2, 1 ) + 0.2, mgp = c( 1.2, 0.4, 0 ),
+                #     las = 1)
+                plot(
+                    pX,
+                    evalY,
+                    panel.first = {
+                        points(0,
+                               0,
+                               pch = 16,
+                               cex = 1e6,
+                               col = "grey95")
+                        grid(col = "white", lty = 1)
+                    },
+                    col = "blue",
+                    bty = "n",
+                    main = "P-P Plot",
+                    pch = 20,
+                    cex = cex.point,
+                    xlab = "Empirical CDF",
+                    ylab = "Theoretical CDF",
+                    cex.main = cex.main
+                )
+                abline(0, 1, col = "red", lwd = 2) # Reference line y = x
+                pars <- FITs$par
+                par_n <- names(pars)
+                pars <- unlist(pars)
+                pars <-
+                    t(cbind(par_n, format(round (
+                        pars, 3
+                    ), 3)))
+                mtext(text = paste(pars, collapse = " "),
+                      cex = cex.text)
+
+                # par(mar = c( 5, 3, 1, 1 ) + 0.07, mgp = c( 1.2, 0.4, 0 ) )
+                plot(
+                    X,
+                    rstudent,
+                    panel.first = {
+                        points(0,
+                               0,
+                               pch = 16,
+                               cex = 1e6,
+                               col = "grey95")
+                        grid(col = "white", lty = 1)
+                    },
+                    bty = "n",
+                    pch = 20,
+                    xlab = xlabel,
+                    ylab = "Studentized residuals",
+                    main = "Outliers",
+                    col = "blue",
+                    cex = cex.point,
+                    cex.main = cex.main
+                )
+                abline(
+                    h = 2,
+                    col = "red",
+                    lwd = 2,
+                    lty = 2
+                ) # Reference line y = x
+                abline(
+                    h = -2,
+                    col = "red",
+                    lwd = 2,
+                    lty = 2
+                ) # Reference line y = x
+                mtext(
+                    text = paste(
+                        "Number of outliers (|st| > 2): ",
+                        outliers,
+                        collapse = " "
+                    ),
+                    cex = cex.text
+                )
+
+                rdistr <- try(get(rfunLIST[[k]],
+                                  mode = "function",
+                                  envir = parent.frame()),
+                              silent = TRUE)
+                qdistr <- try(get(qfunLIST[[k]],
+                                  mode = "function",
+                                  envir = parent.frame()),
+                              silent = TRUE)
+                ## --- Q-Q plot
+                # par( mar = c( 5, 2, 1, 1 ) + 0.07, mgp = c( 1.2, 0.4, 0 ) )
+                if (!inherits(rdistr, "try-error") &&
+                    !inherits(qdistr, "try-error")) {
+                    r <- rValues(rfunLIST[[k]], FITs, 1e4)
+                    xl <- c(min(r, na.rm = TRUE), max(r, na.rm = TRUE))
+                    qqplot(
+                        x = r,
+                        y = X,
+                        panel.first = {
+                            points(
+                                0,
+                                0,
+                                pch = 16,
+                                cex = 1e6,
+                                col = "grey95"
+                            )
+                            grid(col = "white", lty = 1)
+                        },
+                        bty = "n",
+                        xlim = xl,
+                        ylim = xl,
+                        col = "blue" ,
+                        pch = 20,
+                        cex = cex.point,
+                        cex.main = cex.main,
+                        qtype = 6,
+                        main = "Q-Q Plot",
+                        xlab = "Theoretical Quantiles",
+                        ylab = "Empirical Quantiles"
+                    )
+                    # Reference line y = x
+                    qqline(
+                        y = X,
+                        distribution = function(p)
+                            qValues(p, qfunLIST[[k]], FITs),
+                        xlim = xl,
+                        ylim = xl,
+                        cex = cex.point,
+                        col = "red",
+                        lwd = 2,
+                        qtype = 6
+                    )
+                }
+                else {
+                    qqnorm(
+                        rstudent,
+                        panel.first = {
+                            points(
+                                0,
+                                0,
+                                pch = 16,
+                                cex = 1e6,
+                                col = "grey95"
+                            )
+                            grid(col = "white", lty = 1)
+                        },
+                        bty = "n",
+                        main = "Q-Q Plot",
+                        col = "blue" ,
+                        pch = 20,
+                        cex = cex.point,
+                        cex.main = cex.main,
+                        qtype = 6
+                    )
+                    # Reference line y = x
+                    qqline(
+                        rstudent,
+                        col = "red",
+                        lwd = 2,
+                        qtype = 6,
+                        cex.main = cex.main,
+                        cex = cex.point
+                    )
+                }
+                j = j + 1
             }
-            else {
-               qqnorm( rstudent,
-                     panel.first = {points(0, 0, pch=16, cex=1e6, col="grey95")
-                          grid(col="white", lty = 1)},
-                     bty = "n", main = "Q-Q Plot",
-                      col="blue" , pch = 20, cex = cex.point,
-                     cex.main = cex.main, qtype = 6)
-               # Reference line y = x
-               qqline( rstudent, col= "red", lwd = 2, qtype = 6,
-                       cex.main = cex.main, cex = cex.point )
-            }
-            j = j + 1
-         }
-         par(opar)
-         names(fitLIST) <- distNAMES
-         fitLIST = fitLIST[ as.character( aicDAT$Distribution ) ]
-         cat( "** Done ***\n" )
+            par(opar)
+            names(fitLIST) <- distNAMES
+            fitLIST = fitLIST[as.character(aicDAT$Distribution)]
+            cat("** Done ***\n")
 
-         if (rho)
-            rho <- Stein_rho(fit = bestFIT)
-         else rho <- NA
+            rho <- Stein_rho(fit = fitLIST[[1]], varobj = pX)
 
-         bestFIT$fvec <- rbestFIT
-         return(list(aic = aicDAT,
-                     bestfit = bestFIT,
-                     fit = fitLIST,
-                     fitted = YbestFIT,
-                     rstudent = rstbestFIT,
-                     rho = rho))
-      } else {
-         names(fitLIST) <- distNAMES
+            res <- structure(
+                list(
+                    aic = aicDAT,
+                    bestfit = bestFIT,
+                    fit = fitLIST,
+                    fitted = fitted,
+                    info = distNAMES[1],
+                    rstudent = rstudent,
+                    Adj.R.Square = rho[1],
+                    rho = rho[2]
+                ),
+                class = "CDFmodel"
+            )
 
-         evalLIST <- as.list( bestFIT$par )
-         evalLIST$q <- X
-         evalY <- do.call( funLIST[[ 1 ]], evalLIST )
-         bestFIT$fitted <- evalY
-         bestFIT$fvec <-  pX - evalY
-         if (rho)
-            rho <- Stein_rho(fit = bestFIT)
-         else rho <- c(rho = NA )
+            return(res)
+        }
+        else {
+            names(fitLIST) <- distNAMES
 
-         fitLIST = fitLIST[ as.character( aicDAT$Distribution ) ]
-         cat("** Done ***\n")
-         return( list( aic = aicDAT, bestfit = bestFIT,
-                     fit = fitLIST, rho = rho ) )
-      }
-   }
+            # rstudent <- rstudents(model = bestFIT, varobj = X)
+
+            rho <- Stein_rho(fit = bestFIT, varobj = pX)
+
+            fitLIST = fitLIST[as.character(aicDAT$Distribution)]
+            cat("** Done ***\n")
+            res <- structure(
+                list(
+                    aic = aicDAT,
+                    bestfit = bestFIT,
+                    fit = fitLIST,
+                    fitted = fitted,
+                    info = distNAMES[1],
+                    # rstudent = rstudent,
+                    Adj.R.Square = rho[1],
+                    rho = rho[2]
+                ),
+                class = "CDFmodel"
+            )
+            return(res)
+        }
+    }
+}
+
+## ============================ printing CDFmodel
+
+#' @rdname print.CDFmodel
+#' @aliases print.CDFmodel
+#' @title Printing object from \emph{CDFmodel} class by simple print methods
+#' @description An object from \emph{CDFmodel} classes is yielded by
+#' function \emph{fitCDF}. This objects carries the information of a fitted
+#' non-linear model.
+#' @details The definition of these class makes less complex the downstream
+#' analyses.
+#' @param x Object from class \strong{\emph{CDFmodel}}.
+#' @param digits Number of significant digits to be used.
+#' @keywords internal
+#' @export
+print.CDFmodel <- function(x, digits = getOption("digits"), ...) {
+    gof <- cbind(Adj.R.Square = x$Adj.R.Square,
+                 rho = x$rho, x$aic)
+    rownames(gof) <- "gof"
+    print(summary(x$bestfit), digits)
+    cat("\nGoodness of fit:\n")
+    print(gof, digits)
+    invisible(x)
 }
 
 ## ============================= Auxiliary functions ========================= #
 
-optFun <- function(par, probfun, quantiles, prob, eval = FALSE) {
-   START <- as.list(par)
-   START$q <- quantiles
-   EVAL <- try(do.call( probfun, START ), silent = TRUE)
-   if (inherits( EVAL, "try-error" ) ) return( NA )
-   EVAL[ is.nan( EVAL ) ] <- 0
-   if( eval )
-      return( EVAL )
-   else # nls.lm will minimize the sum of squares of vector RSS
-      return( abs(prob - EVAL) )
+optFun <- function(par, probfun, quantiles, prob, eval = FALSE, loss.fun) {
+    START <- as.list(par)
+    START$q <- quantiles
+    EVAL <- try(do.call(probfun, START), silent = TRUE)
+    if (inherits(EVAL, "try-error"))
+        return(NA)
+    EVAL[is.nan(EVAL)] <- 0
+    if (eval)
+        return(EVAL)
+    else {
+        # nls.lm will minimize the sum of squares of vector RSS
+        RSS <- 1/2 * (prob - EVAL)^2
+        RSS <- loss(z = RSS, fun = loss.fun)
+        return(RSS)
+    }
 }
 
-fitAIC <- function( fitobj ) {
-   RESID <- fitobj$fvec
-   sse = sum( RESID^2, na.rm = TRUE )
-   N <- length( RESID )
-   N * (1 + log(2 * pi) + log(sse/N)) + 2 * (1L + length( fitobj$par))
+fitAIC <- function(fitobj) {
+    RESID <- fitobj$fvec
+    sse = sum(RESID ^ 2, na.rm = TRUE)
+    N <- length(RESID)
+    N * (1 + log(2 * pi) + log(sse / N)) + 2 * (1L + length(fitobj$par))
 }
 
-bestFun <- function(par, probfun, quantiles, prob, eval = FALSE) {
-   START <- as.list(par)
-   START$q <- quantiles
-   EVAL <- try(do.call( probfun, START ), silent = TRUE)
-   if (inherits( EVAL, "try-error" ) ) return( NA )
-   EVAL[ is.nan( EVAL ) ] <- 0
-   # nls.lm will minimize the sum of squares of vector RSS
-   RSS <- abs(prob - EVAL)
-   if( eval ) return( EVAL )
-   else return( RSS )
-}
-
-## ------------ *** Standardized residuals for nls *** #
-
-# nls.rstandized <- function( FIT ) {
-#    # grad: derivative of model as obtained from function deriv
-#    # R.S
-#    residuals <- FIT$fvec
-#    num.par <- length(FIT$par)
-#    n <- length( residuals )
-#    s <- sqrt( n * var(residuals, na.rm = TRUE)/( n - num.par ) )
-#    return( residuals / s )
-# }
-
-
-## ------------ *** Studentized residuals for nls *** #
-
-nls.rstudent <- function( grad, residuals, num.par ) {
-   # grad: derivative of model as obtained from function deriv
-   # R.S
-   n = length( residuals )
-   h = diag( grad %*% solve( crossprod( grad ) ) %*% t( grad ) )
-   s = sqrt( n * var(residuals, na.rm = TRUE)/( n - num.par ) )
-   residuals/( s * sqrt( 1 - h ) )
+loss <- function(
+                z,
+                fun = c("linear", "huber",
+                        "smooth", "cauchy",
+                        "arctg")) {
+    fun <- match.arg(fun)
+    fun <- switch (fun,
+            linear = z,
+            huber = ifelse(z <= 1, z, sqrt(z) - 1),
+            smooth = 2*(sqrt(z + 1) - 1),
+            cauchy = log(z + 1),
+            arctg = atan(z)
+    )
+    return(fun)
 }
 
 
 ## ---- parameter estimation of Gamma Dist
 shape_scale <- function(x, gg = TRUE) {
-   n <- length(x)
-   s1 <- n * sum(x * log(x)) - sum(log(x)) * sum(x)
-   alpha <- n * sum(x)/s1
-   scale <- s1/n^2
+    n <- length(x)
+    s1 <- n * sum(x * log(x)) - sum(log(x)) * sum(x)
+    alpha <- n * sum(x) / s1
+    scale <- s1 / n ^ 2
 
-   if (gg) return(c(alpha = alpha, scale = scale))
-   else return(c(c(shape = alpha, scale = scale)))
+    if (gg)
+        return(c(alpha = alpha, scale = scale))
+    else
+        return(c(c(shape = alpha, scale = scale)))
 }
 
 weibullpars <- function(mu, sigma) {
-   return(weibullpar(mu = mu, sigma = sigma)[-3])
+    return(weibullpar(mu = mu, sigma = sigma)[-3])
 }
 
-distr <- c("norm", "lnorm", "hnorm", "gnorm",
-           "tgnorm", "laplace", "gamma", "gamma3p",
-           'ggamma', "ggamma", "weibull", "weibull3p",
-           "beta", "beta3", "beta4", "bweibull", "gbeta",
-           'rayleigh', "exp", "exp2", "geom" )
+distr <- c(
+    "norm",
+    "lnorm",
+    "hnorm",
+    "gnorm",
+    "tgnorm",
+    "laplace",
+    "gamma",
+    "gamma3p",
+    'ggamma',
+    "ggamma",
+    "weibull",
+    "weibull3p",
+    "beta",
+    "beta3",
+    "beta4",
+    "bweibull",
+    "gbeta",
+    'rayleigh',
+    "exp",
+    "exp2",
+    "geom"
+)
 
 
 rfunLIST <- paste0("r", distr)
 qfunLIST <- paste0("q", distr)
 
 rValues <- function(distn, fit , n) {
-   evalLIST <- as.list( fit$par )
-   evalLIST$n <- n
-   return( do.call( distn, evalLIST ) )
+    evalLIST <- as.list(fit$par)
+    evalLIST$n <- n
+    return(do.call(distn, evalLIST))
 }
 
 qValues <- function(p, distn, fit) {
-   evalLIST <- as.list( fit$par )
-   evalLIST$p <- p
-   return( do.call( distn, evalLIST ) )
+    evalLIST <- as.list(fit$par)
+    evalLIST$p <- p
+    return(do.call(distn, evalLIST))
 }
 
 
 ## -------------- Stein adjusted R square ---------------
 
-Stein_rho <- function(fit) {
-   m <- length(fit$par)
-   n <- length(fit$fitted)
-   Adj.R.Square <- 1 - (deviance(fit)/((n - m) *
-                                       var(fit$fitted, use = "everything")))
-   if (m > 2)
-      rho <- ((n - 1)/(n - 4)) * ((n - 2)/(n - 5)) * ((n + 1)/n)
-   else rho <- ((n - 1)/(n - 3)) * ((n - 2)/(n - 4)) * ((n + 1)/n)
-   rho <- 1 - rho * (1 - Adj.R.Square)
-   rho = ifelse(is.na(rho) | rho < 0, 0, rho)
-   return(c(Adj.R.Square = Adj.R.Square, rho = rho))
+Stein_rho <- function(fit, varobj) {
+    m <- length(fit$par)
+    n <- length(fit$fvec)
+    Adj.R.Square <- 1 - (deviance(fit) / ((n - m) *
+                                        var(varobj, use = "everything")))
+    if (m > 2)
+        rho <- ((n - 1) / (n - 4)) * ((n - 2) / (n - 5)) * ((n + 1) / n)
+    else
+        rho <- ((n - 1) / (n - 3)) * ((n - 2) / (n - 4)) * ((n + 1) / n)
+    rho <- 1 - rho * (1 - Adj.R.Square)
+    rho = ifelse(is.na(rho) || rho < 0, 0, rho)
+    return(c(Adj.R.Square = Adj.R.Square, rho = rho))
 }
+
+## ---------------------------------------------------------------------- #
+# *** Generalized normal CDF *** #
+# https://en.(Wikipedia).org/wiki/Generalized_normal_distribution
+pgnorm <- function(q ,
+                   mean = 0,
+                   sigma = 1,
+                   beta = 1)  {
+    y = (abs(q - mean) / sigma) ^ beta
+    # 1/2 + sign( q - mean ) * pgamma( y, 1/beta )/( 2*gamma( 1/beta ) )
+    1 / 2 + sign(q - mean) * pgamma(y, 1 / beta) / 2
+}
+
+# *** Thermodynamic based Generalized normal CDF *** #
+ptgnorm <- function(q ,
+                    mean = 0,
+                    sigma = 1,
+                    beta = 1) {
+    # pgamma is closely related to the incomplete gamma function.
+    # As defined by Abramowitz and Stegun 6.5.1 (and by 'Numerical Recipes')
+    # this is: P(a,x) = 1/Gamma(a) integral_0^x t^(a-1) exp(-t) dt
+    # P(a, x) is pgamma(x, a).
+    # Abramowitz, M. and Stegun, I. A. (1972) Handbook of Mathematical
+    # Functions. New York: Dover. Chapter 6: Gamma and Related Functions.
+    y = (abs(q - mean) / (sigma)) ^ beta
+    1 / 2 + sign(q - mean) * pgamma(y, 1 / beta) / 2
+}
+
+# *** Definition of Laplace CDF *** #
+plaplace <- function(q , mean = 0, sigma = 1) {
+    1 / sqrt(2) + 1 / sqrt(2) * (1 - exp(-abs(q - mean) / sigma))
+}
+
+# *** Generalized beta CDF *** #
+pgbeta <-
+    function(q,
+             shape1,
+             shape2,
+             lambda = 1,
+             lower.tail = TRUE,
+             log.p = FALSE) {
+        ans <- pbeta(
+            q = 1 / (1 + (1 / q - 1) / lambda),
+            shape1 = shape1,
+            shape2 = shape2,
+            lower.tail = lower.tail,
+            log.p = log.p
+        )
+        ans[lambda <= 0] <- NaN
+        return(ans)
+    }
+
+# *** 3P beta CDF *** #
+pbeta3 <-
+    function(q,
+             shape1 = 2,
+             shape2 = 3,
+             mu = 0,
+             lower.tail = TRUE,
+             log.p = FALSE) {
+        pbeta(q - mu,
+              shape1,
+              shape2,
+              lower.tail = lower.tail,
+              log.p = log.p)
+    }
+
+# *** 4P beta CDF *** #
+pbeta4 <- function(q,
+                   shape1 = 2,
+                   shape2 = 3,
+                   mu = 0,
+                   b = 1,
+                   lower.tail = TRUE,
+                   log.p = FALSE) {
+    pbeta((q - mu) / (b - mu),
+          shape1,
+          shape2,
+          lower.tail = lower.tail,
+          log.p = log.p)
+}
+
+# *** Definition of Rayleigh distribution *** #
+prayleigh <- function(q, sigma)
+    1 - exp(-q ^ 2 / (2 * sigma ^ 2))
+
+# *** Definition of 2P Exponential *** #
+pexp2 <-
+    function(q, rate, mu)
+        pexp(q - mu ,
+             rate = 1,
+             lower.tail = TRUE,
+             log.p = FALSE)
+
+# *** Definition of Beta-Weibull distribution *** #
+# It is taken from R pacakge "Newdistns"
+pbweibull <- function(q, alpha, beta, shape, scale)
+    pbeta(pweibull(q, shape = shape, scale = scale),
+          shape1 = alpha,
+          shape2 = beta)

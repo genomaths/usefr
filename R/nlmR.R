@@ -1,3 +1,5 @@
+## ########################################################################## #
+##
 ## Copyright (C) 2019 Robersy Sanchez <https://genomaths.com/>
 ##
 ## This program is free software; you can redistribute it and/or modify it under
@@ -12,6 +14,8 @@
 ##
 ## You should have received a copy of the GNU General Public License along with
 ## this program; if not, see <http://www.gnu.org/licenses/>.
+##
+## ########################################################################## #
 ##
 #' @rdname nlmR
 #' @title Nonlinear Goodness-of-fit and Determination Coefficients

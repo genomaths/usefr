@@ -11,7 +11,7 @@ fitCDF(
   plot.num = 1,
   distf = NULL,
   start = NULL,
-  rho = FALSE,
+  loss.fun = c("linear", "huber", "smooth", "cauchy", "arctg"),
   only.info = FALSE,
   maxiter = 1024,
   maxfev = 1e+05,
@@ -80,9 +80,18 @@ distributions (see  details below). Default is NULL.}
     \item geom = c(prob = ifelse(MEAN > 0, 1/(1 + MEAN), 1))
 }}
 
-\item{rho}{Logical. Default FALSE. If TRUE, then the Stein's rho for
-adjusted R squared (rho) is applied as an estimator of the average
-cross-validation predictive power [1].}
+\item{loss.fun}{Loss function used in the regression (see
+\href{https://en.wikipedia.org/wiki/Loss_function}{(Loss function)}). After
+\eqn{z =  1/2 * sum((f(x) - y)^2)} we have:
+\enumerate{
+    \item "linear": linear function which gives a standard least squares:
+          \eqn{loss(z) = z}.
+    \item "huber": Huber loss, \eqn{loss(z) = ifelse(z <= 1, z, sqrt(z) -1)}.
+    \item "smooth": Smooth approximation to the sum of residues absolute
+          values: \eqn{loss(z) = 2*(sqrt(z + 1) - 1)}.
+    \item "cauchy": Cauchy loss: \eqn{loss(z) = log(z + 1)}.
+    \item "arctg": arc-tangent loss function: \eqn{loss(x) = atan(z)}.
+}}
 
 \item{only.info}{Logic. Default TRUE. If true, only information about the
 parameter estimation is returned.}
@@ -130,21 +139,23 @@ After return the plots, a list with following values is provided:
 And fitting details can be retrieved with summary(cdf$bestfit)
 }
 \description{
-Usually the parameter estimation of a cummulative distribution
-    function (*CDF*) are accomplished using the corresponding probability
-    density function (*PDF*). DIfferent optimization algorithms can be used
-    to accomplished this task and different algorithms can yield different
-    esitmated parameters. Hence, why not try to fit the CDF directly?
+Usually the parameter estimation of a cumulative distribution
+function (*CDF*) are accomplished using the corresponding probability density
+function (*PDF*). Different optimization algorithms can be used to
+accomplished this task and different algorithms can yield different estimated
+parameters. Hence, why not try to fit the CDF directly?
 }
 \details{
 The nonlinear fit (NLF) problem for CDFs is addressed with
 Levenberg-Marquardt algorithm implemented in function
-\code{\link[minpack.lm]{nls.lm}} from package *minpack.lm*. This function is
-inspired in a script for the function \code{\link[propagate]{fitDistr}} from
-the package propagate [2]. Some parts or script ideas from function
+\code{\link[minpack.lm]{nls.lm}} from package *minpack.lm*. The Stein's rho
+for adjusted R squared (rho) is applied as an estimator of the average
+cross-validation predictive power [1]. This function is inspired in a script
+for the function \code{\link[propagate]{fitDistr}} from the package propagate
+[2]. Some parts or script ideas from function
 \code{\link[propagate]{fitDistr}} are used, but here we to estimate CDF and
-not the PDF as in the case of "\code{\link[propagate]{fitDistr}}. A more
-informative are also incorporated. The studentized residuals are provided as
+not the PDF as in the case of "\code{\link[propagate]{fitDistr}}. More
+informative results are given now. The studentized residuals are provided as
 well. The list (so far) of possible CDFs is:
     \enumerate{
         \item Normal \href{https://goo.gl/xaEAdT}{(Wikipedia)}
