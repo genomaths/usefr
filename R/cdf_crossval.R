@@ -45,88 +45,177 @@
 #'     \item Stevens JP. Applied Multivariate Statistics for the Social
 #'           Sciences. Fifth Edit. Routledge Academic; 2009.
 #'  }
+#' @aliases cdf_crossval
+setGeneric(
+    "cdf_crossval",
+    def = function(
+        model,
+        ...) standardGeneric("cdf_crossval"))
 
-cdf_crossval <-  function(
-                        formula,
-                        pars,
-                        X,
-                        maxiter = 1024,
-                        ptol = 1e-12,
-                        minFactor = 1e-6) {
+setOldClass(c("nls", "CDFmodel", "nls.lm"))
+setClassUnion("missingORNULL", c("missing", "NULL"))
 
-    n <- length(X)
-    cros.ind.1 <- sample.int(n, size = round(n/2))
-    cros.ind.2 <- setdiff(seq_len(n), cros.ind.1)
+#' @rdname cdf_crossval
+#' @aliases cdf_crossval
+#' @export
+setMethod("cdf_crossval", signature(model = "missingORNULL"),
+    function(
+            model,
+            formula,
+            pars,
+            X,
+            maxiter = 1024,
+            ptol = 1e-12,
+            minFactor = 1e-6) {
 
-    Fy = ecdf(X)
-    pX = Fy(X)
+        if (!inherits(formula, "formula"))
+            stop("*** Argument for formula must be a 'formula' class object")
 
-    FIT1 <- try(nlsLM(
-                    formula,
-                    data = data.frame(X = X[ cros.ind.1 ],
-                                    Y = pX[ cros.ind.1 ]),
-                    start = as.list(pars),
-                    control = list(maxiter = maxiter, ptol = ptol)),
-                silent = TRUE)
+        n <- length(X)
+        cros.ind.1 <- sample.int(n, size = round(n/2))
+        cros.ind.2 <- setdiff(seq_len(n), cros.ind.1)
 
-    if (inherits(FIT1, "try-error")) {
-        FIT1 <- try(nls2(
+        Fy = ecdf(X)
+        pX = Fy(X)
+
+        FIT1 <- try(nlsLM(
                         formula,
                         data = data.frame(X = X[ cros.ind.1 ],
                                         Y = pX[ cros.ind.1 ]),
-                        start = as.list(pars), algorithm = "plinear-brute",
-                        control = list(maxiter = maxiter, tol = ptol,
-                                    minFactor = minFactor)),
+                        start = as.list(pars),
+                        control = list(maxiter = maxiter, ptol = ptol)),
                     silent = TRUE)
-    }
 
-    FIT2 <- try(nlsLM(
-                    formula,
-                    data = data.frame(
-                                    X = X[ cros.ind.2 ],
-                                    Y = pX[ cros.ind.2 ]),
-                    start = as.list(pars),
-                    control = list(maxiter = maxiter, ptol = ptol)),
-                silent = TRUE)
+        if (inherits(FIT1, "try-error")) {
+            FIT1 <- try(nls2(
+                            formula,
+                            data = data.frame(X = X[ cros.ind.1 ],
+                                            Y = pX[ cros.ind.1 ]),
+                            start = as.list(pars), algorithm = "plinear-brute",
+                            control = list(maxiter = maxiter, tol = ptol,
+                                        minFactor = minFactor)),
+                        silent = TRUE)
+        }
 
-    if (inherits(FIT2, "try-error")) {
-        FIT2 <- try(nls2(
+        FIT2 <- try(nlsLM(
                         formula,
                         data = data.frame(
                                         X = X[ cros.ind.2 ],
                                         Y = pX[ cros.ind.2 ]),
                         start = as.list(pars),
-                        algorithm = "plinear-brute",
-                        control = list(maxiter = maxiter, tol = tol,
-                                    minFactor = minFactor)),
+                        control = list(maxiter = maxiter, ptol = ptol)),
                     silent = TRUE)
+
+        if (inherits(FIT2, "try-error")) {
+            FIT2 <- try(nls2(
+                            formula,
+                            data = data.frame(
+                                            X = X[ cros.ind.2 ],
+                                            Y = pX[ cros.ind.2 ]),
+                            start = as.list(pars),
+                            algorithm = "plinear-brute",
+                            control = list(maxiter = maxiter, tol = ptol,
+                                        minFactor = minFactor)),
+                        silent = TRUE)
+        }
+
+        if (inherits(FIT1, "try-error") || inherits(FIT2, "try-error")) {
+            R.Cross.val <- NA
+            message("\nError!\n",
+                    "*** Model fiting fails. R.Cross.val cannot be estimated ")
+            if (inherits(FIT1, "try-error"))
+                message(FIT1)
+            else
+                message(FIT2)
+        } else {
+            fun <- as.character(formula[[ 3L ]][[ 1L ]])
+
+            ## prediction using model 1
+            evalLIST <- as.list(coef(FIT1)[ seq_along(pars) ])
+            evalLIST$q <- X[ cros.ind.2 ]
+            p.FIT1 <- do.call(fun, evalLIST)
+            R.FIT1 <- cor(p.FIT1, pX[ cros.ind.2 ], use = "complete.obs")
+
+            ## prediction using model 2
+            evalLIST <- as.list(coef(FIT2)[ seq_along(pars) ])
+            evalLIST$q <- X[ cros.ind.1 ]
+            p.FIT2 <- do.call(fun, evalLIST)
+            R.FIT2 <- cor(p.FIT2, pX[ cros.ind.1 ], use = "complete.obs")
+
+            R.Cross.val <- (length(p.FIT1) * R.FIT1 +
+                                length(p.FIT2) * R.FIT2)/(length(p.FIT1) +
+                                                              length(p.FIT2))
+        }
+        return(c(R.Cross.val = R.Cross.val))
     }
+)
 
-    if (inherits(FIT1, "try-error") || inherits(FIT2, "try-error")) {
-        R.Cross.val <- NA
-        message("\nError!\n",
-                "*** Model fiting fails. R.Cross.val cannot be estimated ")
-    } else {
-        fun <- as.character(formula[[ 3L ]][[ 1L ]])
 
-        ## prediction using model 1
-        evalLIST <- as.list(coef(FIT1)[ seq_along(pars) ])
-        evalLIST$q <- X[ cros.ind.2 ]
-        p.FIT1 <- do.call(fun, evalLIST)
-        R.FIT1 <- cor(p.FIT1, pX[ cros.ind.2 ], use = "complete.obs")
+#' @rdname cdf_crossval
+#' @aliases cdf_crossval
+#' @export
+setMethod("cdf_crossval", signature(model = "nls"),
+    function(
+        model,
+        X,
+        maxiter = 1024,
+        ptol = 1e-12,
+        minFactor = 1e-6
+        ) {
 
-        ## prediction using model 2
-        evalLIST <- as.list(coef(FIT2)[ seq_along(pars) ])
-        evalLIST$q <- X[ cros.ind.1 ]
-        p.FIT2 <- do.call(fun, evalLIST)
-        R.FIT2 <- cor(p.FIT2, pX[ cros.ind.1 ], use = "complete.obs")
-
-        R.Cross.val <- (length(p.FIT1) * R.FIT1 +
-                            length(p.FIT2) * R.FIT2)/(length(p.FIT1) +
-                                                          length(p.FIT2))
+        cdf_crossval(
+                    formula = model$m$formula(),
+                    pars = coef(model),
+                    X = X,
+                    maxiter = maxiter,
+                    ptol = ptol,
+                    minFactor = minFactor)
     }
-    return(c(R.Cross.val = R.Cross.val))
-}
+)
+
+#' @rdname cdf_crossval
+#' @aliases cdf_crossval
+#' @export
+setMethod("cdf_crossval", signature(model = "CDFmodel"),
+    function(
+            model,
+            formula,
+            X,
+            maxiter = 1024,
+            ptol = 1e-12,
+            minFactor = 1e-6 ) {
+
+            cdf_crossval(
+                        formula = formula,
+                        pars = coef(model$bestfit),
+                        X = X,
+                        maxiter = maxiter,
+                        ptol = ptol,
+                        minFactor = minFactor)
+    }
+)
+
+#' @rdname cdf_crossval
+#' @aliases cdf_crossval
+#' @export
+setMethod("cdf_crossval", signature(model = "nls.lm"),
+    function(
+            model,
+            formula,
+            X,
+            maxiter = 1024,
+            ptol = 1e-12,
+            minFactor = 1e-6 ) {
+
+            cdf_crossval(
+                        formula = formula,
+                        pars = coef(model),
+                        X = X,
+                        maxiter = maxiter,
+                        ptol = ptol,
+                        minFactor = minFactor)
+    }
+)
 
 
 

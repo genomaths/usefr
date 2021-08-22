@@ -362,13 +362,14 @@ fitCDF <- function(varobj,
 
     if (is.character(distNames))
         elemt <- is.element(distNames, distNAMES)
-    else if (is.numeric(distNames))
-        elemt <- is.element(distNames, seq_along(distNAMES))
+    else
+        if (is.numeric(distNames))
+            elemt <- is.element(distNames, seq_along(distNAMES))
 
     if (missing(distNames))
         distNames <- seq_along(distNAMES)
 
-    if (length(distNames) < 20 && elemt) {
+    if (length(distNames) < 21 && elemt) {
         if (is.character(distNames))
             distNames <- as.integer(na.omit(match(distNames, distNAMES)))
 
@@ -378,8 +379,9 @@ fitCDF <- function(varobj,
 
         if (is.integer(distNames)) {
             distnms <- distNAMES
-            distNAMES <- distNAMES[distNames]
-            funLIST <- funLIST[distNames]
+            distNAMES <- distNAMES[ distNames ]
+            funLIST <- funLIST[ distNames ]
+            distr <- distr[ distNames ]
 
             if (!is.null(start)) {
                 parLIST <- list(start)
@@ -487,6 +489,13 @@ fitCDF <- function(varobj,
     aicDAT <- data.frame(Distribution = distNAMES, AIC = AICS)
     aicDAT <- aicDAT[ORDER,]
 
+    if (!is.null(distf) && is.character(distf))
+        funName <- paste0("p", distf)
+    else {
+        if (elemt)
+            funName <- paste0("p", distr[ORDER])
+    }
+
     distNAMES <- distNAMES[ORDER]
     funLIST <- funLIST[ORDER]
     fitLIST <- fitLIST[ORDER]
@@ -495,6 +504,8 @@ fitCDF <- function(varobj,
     evalLIST$q <- X
     fitted <- do.call(funLIST[[1]], evalLIST)
     info <- distNAMES[1]
+    residuals <- pX - fitted
+    bestFIT$fvec <- residuals
 
     rfunLIST <- rfunLIST[match(distNAMES, distnms)]
     qfunLIST <- qfunLIST[match(distNAMES, distnms)]
@@ -515,9 +526,16 @@ fitCDF <- function(varobj,
                 evalLIST <- as.list(FITs$par)
                 evalLIST$q <- X
                 evalY <- do.call(funLIST[[k]], evalLIST)
+                resids <- pX - evalY
 
-                rstudent <- rstudents(model = FITs, varobj = X)
-
+                rstudent <- try(rstudents(
+                                        model = FITs,
+                                        varobj = X,
+                                        fun = funName[k],
+                                        residuals = resids),
+                                silent = TRUE)
+                if (inherits(rstudent, "try-error"))
+                    rstudent <- NA
                 outliers <- sum(abs(rstudent) > 2, na.rm = TRUE)
 
                 cat(" * Plots for", distNAMES[k], "distribution...\n")
@@ -733,19 +751,37 @@ fitCDF <- function(varobj,
                     fit = fitLIST,
                     fitted = fitted,
                     info = distNAMES[1],
-                    rstudent = rstudent,
-                    Adj.R.Square = rho[1],
-                    rho = rho[2]
+                    rstudent = NA,
+                    cdf = funLIST[[1]],
+                    gof = rho
                 ),
                 class = "CDFmodel"
             )
+
+            res <- rstudents(model = res, varobj = X,
+                             residuals = residuals)
+
+            pars <- names(coef(res$bestfit))
+            pars <- paste(c("X", pars), collapse = ",")
+            formula <- as.formula(
+                paste0(
+                    "Y ~ ", funName,
+                    "(", pars, ")"))
+
+            cross_val <- cdf_crossval(
+                model = res,
+                formula = formula,
+                X = X,
+                maxiter = maxiter,
+                ptol = ptol,
+                minFactor = 1e-6)
+
+            res$gof <- c(res$gof, cross_val)
 
             return(res)
         }
         else {
             names(fitLIST) <- distNAMES
-
-            # rstudent <- rstudents(model = bestFIT, varobj = X)
 
             rho <- Stein_rho(fit = bestFIT, varobj = pX)
 
@@ -758,12 +794,35 @@ fitCDF <- function(varobj,
                     fit = fitLIST,
                     fitted = fitted,
                     info = distNAMES[1],
-                    # rstudent = rstudent,
-                    Adj.R.Square = rho[1],
-                    rho = rho[2]
+                    rstudent = NA,
+                    gof = rho,
+                    cdf = funName
                 ),
                 class = "CDFmodel"
             )
+
+            pars <- names(coef(res$bestfit))
+            pars <- paste(c("X", pars), collapse = ",")
+            formula <- as.formula(
+                                paste0(
+                                    "Y ~ ", funName,
+                                    "(", pars, ")"))
+
+            cross_val <- cdf_crossval(
+                                        model = res,
+                                        formula = formula,
+                                        X = X,
+                                        maxiter = maxiter,
+                                        ptol = ptol,
+                                        minFactor = 1e-6)
+
+            res$gof <- c(res$gof, cross_val)
+
+            res <- rstudents(
+                model = res, varobj = X,
+                residuals = residuals)
+
+
             return(res)
         }
     }
@@ -784,14 +843,21 @@ fitCDF <- function(varobj,
 #' @keywords internal
 #' @export
 print.CDFmodel <- function(x, digits = getOption("digits"), ...) {
-    gof <- cbind(Adj.R.Square = x$Adj.R.Square,
-                 rho = x$rho, x$aic)
+    if (length(x$gof) > 2)
+        gof <- cbind(
+                    Adj.R.Square = x$gof[1],
+                    rho = x$gof[2], R.Cross.val = x$gof[3], x$aic)
+    else
+        gof <- cbind(
+                    Adj.R.Square = x$gof[1],
+                    rho = x$gof[2], x$aic)
     rownames(gof) <- "gof"
     print(summary(x$bestfit), digits)
     cat("\nGoodness of fit:\n")
     print(gof, digits)
     invisible(x)
 }
+
 
 ## ============================= Auxiliary functions ========================= #
 

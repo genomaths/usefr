@@ -2,9 +2,43 @@
 % Please edit documentation in R/cdf_crossval.R
 \name{cdf_crossval}
 \alias{cdf_crossval}
+\alias{cdf_crossval,missingORNULL-method}
+\alias{cdf_crossval,nls-method}
+\alias{cdf_crossval,CDFmodel-method}
+\alias{cdf_crossval,nls.lm-method}
 \title{Cross validation of Cumulative Distribution Function model}
 \usage{
-cdf_crossval(formula, pars, X, maxiter = 1024, ptol = 1e-12, minFactor = 1e-06)
+cdf_crossval(model, ...)
+
+\S4method{cdf_crossval}{missingORNULL}(
+  model,
+  formula,
+  pars,
+  X,
+  maxiter = 1024,
+  ptol = 1e-12,
+  minFactor = 1e-06
+)
+
+\S4method{cdf_crossval}{nls}(model, X, maxiter = 1024, ptol = 1e-12, minFactor = 1e-06)
+
+\S4method{cdf_crossval}{CDFmodel}(
+  model,
+  formula,
+  X,
+  maxiter = 1024,
+  ptol = 1e-12,
+  minFactor = 1e-06
+)
+
+\S4method{cdf_crossval}{nls.lm}(
+  model,
+  formula,
+  X,
+  maxiter = 1024,
+  ptol = 1e-12,
+  minFactor = 1e-06
+)
 }
 \arguments{
 \item{formula}{a nonlinear model formula including variables and parameters.

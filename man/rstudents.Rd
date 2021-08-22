@@ -4,6 +4,8 @@
 \alias{rstudents}
 \alias{rstudents,missingORNULL-method}
 \alias{rstudents,nls-method}
+\alias{rstudents,CDFmodel-method}
+\alias{rstudents,nls.lm-method}
 \title{Studentized Residuals from a Nonlinear Model}
 \usage{
 rstudents(model, varobj, method = c("Richardson", "simple", "complex"), ...)
@@ -12,12 +14,32 @@ rstudents(model, varobj, method = c("Richardson", "simple", "complex"), ...)
   model,
   varobj,
   method = c("Richardson", "simple", "complex"),
-  par,
+  pars,
   fun,
   residuals
 )
 
-\S4method{rstudents}{nls}(model, varobj, method = c("Richardson", "simple", "complex"))
+\S4method{rstudents}{nls}(
+  model,
+  varobj,
+  method = c("Richardson", "simple", "complex"),
+  residuals = NULL
+)
+
+\S4method{rstudents}{CDFmodel}(
+  model,
+  varobj,
+  method = c("Richardson", "simple", "complex"),
+  residuals = NULL
+)
+
+\S4method{rstudents}{nls.lm}(
+  model,
+  varobj,
+  method = c("Richardson", "simple", "complex"),
+  fun,
+  residuals = NULL
+)
 }
 \arguments{
 \item{model}{An object from the ""nls" class. It can be derived. e.g., from
@@ -30,7 +52,7 @@ the R packages \emph{stats} and \emph{minpack.lm}, respectively.}
 \emph{numDeriv} package. One of "Richardson", "simple", or "complex"
 indicating the method to use for the approximation.}
 
-\item{par}{\strong{model} parameters.}
+\item{pars}{\strong{model} parameters.}
 
 \item{fun}{The named expression (not a character string) of the
 fitted model. For example, the normal distribution function is given by
@@ -39,13 +61,26 @@ pnorm (see ?pnorm).}
 \item{residuals}{Residuals from the model fitting.}
 }
 \value{
-A vector of studentized residuals.
+A vector of studentized residuals when model is missing, NULL, or
+\strong{\emph{"nls"}} class object. If \eqn{model="CDFmodel}, then it will
+update the information carried on model$rstudent and the model will be
+returned.
 }
 \description{
 Given a fitted model and additional information, this function
-computes the corresponding studentized residuals.
+computes the corresponding internally studentized residuals.
 }
 \details{
 If the \strong{model} argument is provided, then only the
-argument \strong{varobj} are required.
+argument \strong{varobj} are required. The internally studentized residuals
+are computed as \eqn{t = residuals/(s * sqrt(1 - h))}, where \eqn{h} is the
+diagonal of the hat matrix and \eqn{s} is the estimation of the residual
+variation (\href{https://is.gd/2SINWt}{(see Wikipedia)}).
+
+If the hat matrix cannot be estimated, the standardized residual are
+estimated as equal to the value of a residual, divided by an estimation of
+its standard deviation, i.e., \eqn{t = residuals/s}.
+
+Studentized/Standardized residuals greater than 2 and less than -2 are
+usually considered large.
 }
