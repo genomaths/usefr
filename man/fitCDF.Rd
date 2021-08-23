@@ -2,12 +2,42 @@
 % Please edit documentation in R/fitCDF.R
 \name{fitCDF}
 \alias{fitCDF}
+\alias{cdf_crossval}
+\alias{fitCDF,numeric-method}
+\alias{fitCDF,list_OR_matrix_OR_dataframe-method}
 \title{Nonlinear fit of a commulative distribution function}
 \usage{
-fitCDF(
+fitCDF(varobj, ...)
+
+\S4method{fitCDF}{numeric}(
   varobj,
   distNames,
-  plot = TRUE,
+  plot = FALSE,
+  plot.num = 1L,
+  distf = NULL,
+  start = NULL,
+  loss.fun = c("linear", "huber", "smooth", "cauchy", "arctg"),
+  only.info = FALSE,
+  maxiter = 1024,
+  maxfev = 1e+05,
+  ptol = 1e-12,
+  nls.model = FALSE,
+  algorithm = "default",
+  xlabel = "x",
+  mar = c(4, 4, 3, 1),
+  mgp = c(2.5, 0.6, 0),
+  las = 1,
+  cex.main = 1,
+  cex.text = 0.8,
+  cex.point = 0.5,
+  verbose = TRUE,
+  ...
+)
+
+\S4method{fitCDF}{list_OR_matrix_OR_dataframe}(
+  varobj,
+  distNames,
+  plot = FALSE,
   plot.num = 1,
   distf = NULL,
   start = NULL,
@@ -23,25 +53,33 @@ fitCDF(
   cex.main = 1,
   cex.text = 0.8,
   cex.point = 0.5,
+  num.cores = 1L,
+  tasks = 0L,
   verbose = TRUE,
   ...
 )
 }
 \arguments{
-\item{varobj}{A a vector containing observations, the variable for which the
-CDF parameters will be estimated.}
+\item{varobj}{A a vector, a named list, a matrix or a data.frame, containing
+the observations from the variable for which the CDF parameters will be
+estimated. When the argument is a matrix or a data.frame, the columns must be
+named, carrying the objective variables.}
+
+\item{...}{(Optional) Further graphical parameters (see
+\code{\link[graphics]{par}}). Graphical parameter will simultaneously affect
+all the plots.}
 
 \item{distNames}{a vector of distribution numbers to select from the listed
 below in details section, e.g. c(1:10, 15). If 'distNames' is not any of
 current 20 named distributions, then it can be any arbitrary character
 string, but the argument 'distf' must be given (see below).}
 
-\item{plot}{Logical. Default TRUE. Whether to produce the plots for the best
+\item{plot}{Logical. Default FALSE Whether to produce the plots for the best
 fitted CDF.}
 
 \item{plot.num}{The number of distributions to be plotted.}
 
-\item{distf}{A character string naming a cumulative distribution function
+\item{distf}{A character string naming a cumulative distribution function(s)
 (CDF) present in the R session environment . For example, \strong{gamma} or
 \strong{norm}, etc, from where, internally, we can get: density, distribution
 function, quantile function and random generation as: \strong{dnorm},
@@ -51,9 +89,11 @@ It must given only if 'distNames' is not any of current 20 named
 distributions (see  details below). Default is NULL.}
 
 \item{start}{A named numerical vector giving the parameters to be optimized
-    with initial values. This can be omitted for some of the named
-    distributions (see Details). This argument will be used if provided for
-    only one distribution. The default parameter values are:
+with initial values or a list of numerical vectors (only when
+\emph{\strong{varobj}} is a list, a matrix or a data.frame). This can be
+omitted for some of the named distributions (see Details). This argument will
+be used if provided for only one distribution. The default parameter values
+are:
 \enumerate{
     \item norm = c( mean = MEAN, sd = SD )
     \item lnorm = c(meanlog = mean( log1p(X), na.rm = TRUE),
@@ -80,7 +120,7 @@ distributions (see  details below). Default is NULL.}
     \item geom = c(prob = ifelse(MEAN > 0, 1/(1 + MEAN), 1))
 }}
 
-\item{loss.fun}{Loss function used in the regression (see
+\item{loss.fun}{Loss function(s) used in the regression (see
 \href{https://en.wikipedia.org/wiki/Loss_function}{(Loss function)}). After
 \eqn{z =  1/2 * sum((f(x) - y)^2)} we have:
 \enumerate{
@@ -100,6 +140,14 @@ parameter estimation is returned.}
 Levenberg-Marquardt algorithm through function
 \code{\link[minpack.lm]{nls.lm.control}} from *minpack.lm* package.}
 
+\item{nls.model}{Logical. Whether to return the best fitted model as an
+object from \strong{nlsModel} class. Default is FALSE. If TRUE, then
+the estimated parameters are used new fitting with \code{\link[stats]{nls}}
+function.}
+
+\item{algorithm}{Only if \strong{nls.model} = TRUE. The same as for
+\code{\link[stats]{nls}} function.}
+
 \item{xlabel}{(Optional) Label for variable \strong{\emph{varobj}}.
 Default is \emph{xlabel = "x"}.}
 
@@ -110,9 +158,11 @@ Default is \emph{xlabel = "x"}.}
 
 \item{verbose}{Logic. If TRUE, prints the function log to stdout}
 
-\item{...}{(Optional) Further graphical parameters (see
-\code{\link[graphics]{par}}). Graphical parameter will simultaneously affect
-all the plots.}
+\item{num.cores, tasks}{Parameters for parallel computation using package
+\code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to use,
+i.e. at most how many child processes will be run simultaneously (see
+\code{\link[BiocParallel]{bplapply}} and the number of tasks per job (only
+for Linux OS).}
 }
 \value{
 After return the plots, a list with following values is provided:
