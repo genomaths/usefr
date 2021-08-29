@@ -42,6 +42,8 @@ print.CDFmodel <- function(x, digits = getOption("digits"), ...) {
             Adj.R.Square = x$gof[1],
             rho = x$gof[2], x$aic)
     rownames(gof) <- "gof"
+    cat(x$cdf, "CDF model")
+    cat("\n------")
     print(summary(x$bestfit), digits)
     cat("\nGoodness of fit:\n")
     print(gof, digits)
@@ -65,9 +67,10 @@ print.CDFmodel <- function(x, digits = getOption("digits"), ...) {
 print.CDFmodelList <- function(x, digits = getOption("digits"), ...) {
     cat("List of CDFmodel with", length(x), "elements\n")
     cat("------\n")
+    cat(names(x)[1])
     print(x[[ 1L ]])
     cat("\n------\n")
-    cat( length(x), "more 'CDFmodel' elements\n")
+    cat( length(x) - 1, "more 'CDFmodel' elements\n")
     invisible(x)
 }
 

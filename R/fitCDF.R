@@ -79,6 +79,8 @@
 #'     \item "cauchy": Cauchy loss: \eqn{loss(z) = log(z + 1)}.
 #'     \item "arctg": arc-tangent loss function: \eqn{loss(x) = atan(z)}.
 #' }
+#' @param min.val A number denoting the lower bound of the domain where CDF
+#' is defined. For example, for Weibull and GGamma \strong{\emph{min.val = 0}}.
 #' @param plot Logical. Default FALSE Whether to produce the plots for the best
 #' fitted CDF.
 #' @param plot.num The number of distributions to be plotted.
@@ -239,6 +241,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
         loss.fun = c(
                     "linear", "huber", "smooth",
                     "cauchy", "arctg"),
+        min.val = NULL,
         only.info = FALSE,
         maxiter = 1024,
         maxfev = 1e+5,
@@ -278,6 +281,10 @@ setMethod("fitCDF", signature(varobj = "numeric"),
             X <- sort(varobj)
         else
             stop("varobj must be a numeric vector!")
+
+        if (!is.null(min.val))
+            X <- X[ which(X > min.val) ]
+
         MEAN <- mean(X, na.rm = TRUE)
         VAR <- var(X, na.rm = TRUE)
         SD <- sd(X, na.rm = TRUE)
@@ -434,9 +441,9 @@ setMethod("fitCDF", signature(varobj = "numeric"),
             else
                 parLIST <- if (is.list(start)) start else list(start)
 
-            if (length(distf) != length(parLIST))
-                stop("*** The lengths of 'start' and 'distf' arguments",
-                     " must be equal")
+            # if (length(distf) != length(parLIST))
+            #     stop("*** The lengths of 'start' and 'distf' arguments",
+            #          " must be equal")
 
             if (length(distf) != length(distNames))
                 stop("*** The lengths of 'distNames' and 'distf' arguments",
@@ -459,8 +466,9 @@ setMethod("fitCDF", signature(varobj = "numeric"),
 
         for (i in seq_along(distNAMES)) {
             if (verbose)
-                message("*** Fitting ", distNAMES[i],
-                        " distribution... ", sep = "")
+                message("\n*** Fitting ", distNAMES[i],
+                        " distribution ... ", sep = "")
+
             PARS <- matrix(parLIST[[ i ]], nrow = 1)
             colnames(PARS) <- names(parLIST[[i]])
             PARS <- PARS[1,]
@@ -491,7 +499,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                 pars <- paste(c("X", pars), collapse = ",")
                 formula <- as.formula(
                                     paste0(
-                                        "Y ~ ", funName,
+                                        "Y ~ ", funName[ i ],
                                         "(", pars, ")"))
 
                 FIT1 <- try(nls(
@@ -527,7 +535,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                         NA
                 )
                 if (verbose)
-                    cat("Done.\n")
+                    cat("Fitting Done.\n")
             } else {
                 FIT <- NA
                 if (verbose)
@@ -557,8 +565,9 @@ setMethod("fitCDF", signature(varobj = "numeric"),
         qfunLIST <- qfunLIST[match(distNAMES, distnms)]
 
         if (only.info) {
-            return(list(bestfit = bestFIT, AIC = aicDAT))
+            res <- list(bestfit = bestFIT, AIC = aicDAT)
         } else {
+            ## ------------------------ Start Graphics --------------------- ##
             if (plot) {
                 opar <- par()
                 for (k in 1:min(plot.num, length(distNames))) {
@@ -577,7 +586,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                     rstudent <- try(rstudents(
                                             model = FITs,
                                             varobj = X,
-                                            fun = funName[k],
+                                            fun = funName[ k ],
                                             residuals = resids),
                                     silent = TRUE)
                     if (inherits(rstudent, "try-error"))
@@ -623,7 +632,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                           cex = cex.text)
 
                     ## PP-plot
-                    # par(mar = c( 5, 2, 2.2, 1 ) + 0.2, mgp = c( 1.2, 0.4, 0 ),
+                    # par(mar = c( 5, 2, 2.2, 1 ) + 0.2, mgp = c(1.2, 0.4,0),
                     #     las = 1)
                     plot(
                         pX,
@@ -656,7 +665,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                     mtext(text = paste(pars, collapse = " "),
                           cex = cex.text)
 
-                    # par(mar = c( 5, 3, 1, 1 ) + 0.07, mgp = c( 1.2, 0.4, 0 ) )
+                    # par(mar = c( 5, 3, 1, 1 ) + 0.07, mgp = c(1.2, 0.4, 0))
                     plot(
                         X,
                         rstudent,
@@ -707,7 +716,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                                       envir = parent.frame()),
                                   silent = TRUE)
                     ## --- Q-Q plot
-                    # par( mar = c( 5, 2, 1, 1 ) + 0.07, mgp = c( 1.2, 0.4, 0 ) )
+                    # par( mar = c( 5, 2, 1, 1) + 0.07, mgp = c(1.2,0.4,0))
                     if (!inherits(rdistr, "try-error") &&
                         !inherits(qdistr, "try-error")) {
                         r <- rValues(rfunLIST[[k]], FITs, 1e4)
@@ -786,7 +795,6 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                 par(opar)
                 names(fitLIST) <- distNAMES
                 fitLIST = fitLIST[as.character(aicDAT$Distribution)]
-                cat("** Done ***\n")
 
                 rho <- Stein_rho(fit = fitLIST[[1]], varobj = pX)
 
@@ -798,7 +806,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                         fitted = fitted,
                         info = distNAMES[ 1 ],
                         rstudent = NA,
-                        cdf = funName[[ 1 ]],
+                        cdf = funName[ 1 ],
                         gof = rho
                     ),
                     class = "CDFmodel"
@@ -824,7 +832,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
 
                 res$gof <- c(res$gof, cross_val)
 
-                return(res)
+            ## ------------------------ End Graphics --------------------- ##
             }
             else {
                 names(fitLIST) <- distNAMES
@@ -832,17 +840,16 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                 rho <- Stein_rho(fit = bestFIT, varobj = pX)
 
                 fitLIST = fitLIST[as.character(aicDAT$Distribution)]
-                cat("** Done ***\n")
                 res <- structure(
                     list(
                         aic = aicDAT[ 1, ],
                         bestfit = bestFIT,
                         fit = fitLIST,
                         fitted = fitted,
-                        info = distNAMES[1],
+                        info = distNAMES[ 1 ],
                         rstudent = NA,
                         gof = rho,
-                        cdf = funName[[ 1 ]]
+                        cdf = funName[ 1 ]
                     ),
                     class = "CDFmodel"
                 )
@@ -851,7 +858,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                 pars <- paste(c("X", pars), collapse = ",")
                 formula <- as.formula(
                                     paste0(
-                                        "Y ~ ", funName,
+                                        "Y ~ ", funName[ 1 ],
                                         "(", pars, ")"))
 
                 cross_val <- cdf_crossval(
@@ -867,10 +874,11 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                 res <- rstudents(
                     model = res, varobj = X,
                     residuals = RESIDUAL)
-
-                return(res)
+                if (verbose)
+                    cat("** Done ***\n")
             }
         }
+        return(res)
     }
 )
 
@@ -922,7 +930,7 @@ setMethod("fitCDF", signature(varobj = "list_OR_matrix_OR_dataframe"),
         if (is.list(varobj))
             num_samp <- length(varobj)
         if (inherits(varobj, c("matrix", "data.frame")))
-            num_samp <- ncols(varobj)
+            num_samp <- ncol(varobj)
 
         if (is.character(distNames)) {
             distNames <- list(distNames)
@@ -945,22 +953,20 @@ setMethod("fitCDF", signature(varobj = "list_OR_matrix_OR_dataframe"),
             if (!all(sapply(start, is.numeric)))
                 stop("*** 'start' must be a list of numerical vectors")
 
-        if (is.numeric(start)){
+        if (is.numeric(start)) {
             start <- list(start)
             if (length(start) < num_samp)
                 start <- rep(start, num_samp)
         }
 
         if (is.list(start) && length(start) < num_samp)
-            start <- rep(start, num_samp)
+            start <- list(start)[ rep(1, num_samp) ]
 
         nms <- (length(loss.fun) < num_samp )
         if (num_samp > 1 && nms)
             loss.fun <- rep(loss.fun, num_samp)
 
-
-
-        if (is.list(varobj))
+        if (inherits(varobj, "list"))
             res <- bplapply(seq_along(varobj),
                     function(k) {
                         fitCDF(
@@ -968,7 +974,7 @@ setMethod("fitCDF", signature(varobj = "list_OR_matrix_OR_dataframe"),
                             distNames = distNames[[ k ]],
                             plot = plot,
                             plot.num = plot.num,
-                            distf = distf[ k ],
+                            distf = distf[[ k ]],
                             start = start[[ k ]],
                             loss.fun = loss.fun[ k ],
                             only.info = only.info,
@@ -997,7 +1003,7 @@ setMethod("fitCDF", signature(varobj = "list_OR_matrix_OR_dataframe"),
                                     distNames = distNames[[ k ]],
                                     plot = plot,
                                     plot.num = plot.num,
-                                    distf = distf[ k ],
+                                    distf = distf[[ k ]],
                                     start = start[[ k ]],
                                     loss.fun = loss.fun[ k ],
                                     only.info = only.info,
@@ -1013,7 +1019,7 @@ setMethod("fitCDF", signature(varobj = "list_OR_matrix_OR_dataframe"),
                                     cex.point = cex.point,
                                     num.cores = num.cores,
                                     tasks = tasks,
-                                    verbose = verbose,
+                                    verbose = FALSE,
                                     ...)
                             },
                             BPPARAM = bpparam)
@@ -1044,13 +1050,6 @@ optFun <- function(par, probfun, quantiles, prob, eval = FALSE, loss.fun) {
     }
 }
 
-# fitAIC <- function(fitobj) {
-#     RESID <- fitobj$fvec
-#     sse = sum(RESID ^ 2, na.rm = TRUE)
-#     N <- length(RESID)
-#     N * (1 + log(2 * pi) + log(sse / N)) + 2 * (1L + length(fitobj$par))
-# }
-
 loss <- function(
                 z,
                 fun = c("linear", "huber",
@@ -1066,7 +1065,6 @@ loss <- function(
     )
     return(fun)
 }
-
 
 ## ---- parameter estimation of Gamma Dist
 shape_scale <- function(x, gg = TRUE) {

@@ -17,6 +17,7 @@ fitCDF(varobj, ...)
   distf = NULL,
   start = NULL,
   loss.fun = c("linear", "huber", "smooth", "cauchy", "arctg"),
+  min.val = NULL,
   only.info = FALSE,
   maxiter = 1024,
   maxfev = 1e+05,
@@ -132,6 +133,9 @@ are:
     \item "cauchy": Cauchy loss: \eqn{loss(z) = log(z + 1)}.
     \item "arctg": arc-tangent loss function: \eqn{loss(x) = atan(z)}.
 }}
+
+\item{min.val}{A number denoting the lower bound of the domain where CDF
+is defined. For example, for Weibull and GGamma \strong{\emph{min.val = 0}}.}
 
 \item{only.info}{Logic. Default TRUE. If true, only information about the
 parameter estimation is returned.}
