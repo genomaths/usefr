@@ -259,7 +259,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
         ...) {
         if (is.numeric(distNames)) {
             distNames <- as.integer(distNames)
-            if (any(distNames > 20))
+            if (any(distNames > 21))
                 stop("*** 'distNames' must be a string or a number < 21")
         }
 
@@ -368,15 +368,13 @@ setMethod("fitCDF", signature(varobj = "numeric"),
             weibull3p = c(weibullpars(mu = MEAN, sigma = SD), mu = MIN),
             beta = c(shape1 = 1, shape2 = 2),
             beta3 = c(
-                shape1 = 1,
-                shape2 = 2,
+                beta_start_par(MEAN, VAR),
                 mu = MIN
             ),
             beta4 = c(
-                shape1 = 2,
-                shape2 = 3,
-                mu = 0.9 * MIN,
-                b = 1.1 * MAX
+                        beta_start_par(MEAN, VAR),
+                        mu = 0.9 * MIN,
+                        b = 1.1 * MAX
             ),
             bweibull = c(
                 alpha = 1,
@@ -397,9 +395,10 @@ setMethod("fitCDF", signature(varobj = "numeric"),
         if (is.character(distNames))
             elemt <- all(is.element(distNames, distNAMES))
         else
-            if (is.numeric(distNames))
+            if (is.numeric(distNames)) {
                 elemt <- all(is.element(distNames, seq_along(distNAMES)))
-
+                distNames <- as.integer(distNames)
+            }
         if (missing(distNames))
             distNames <- seq_along(distNAMES)
 
@@ -440,10 +439,6 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                 stop("*** 'start' parameter values must be provided")
             else
                 parLIST <- if (is.list(start)) start else list(start)
-
-            # if (length(distf) != length(parLIST))
-            #     stop("*** The lengths of 'start' and 'distf' arguments",
-            #          " must be equal")
 
             if (length(distf) != length(distNames))
                 stop("*** The lengths of 'distNames' and 'distf' arguments",
@@ -491,12 +486,12 @@ setMethod("fitCDF", signature(varobj = "numeric"),
             )
 
             if (inherits(FIT, "try-error"))
-                message(FIT, "Function model: ", distNAMES[i])
+                message("\n",FIT, "Function model: ", distNAMES[i])
 
             if (nls.model && !inherits(FIT, "try-error")) {
 
                 pars <- names(coef(FIT))
-                pars <- paste(c("X", pars), collapse = ",")
+                pars <- paste(c("q", pars), collapse = ",")
                 formula <- as.formula(
                                     paste0(
                                         "Y ~ ", funName[ i ],
@@ -504,7 +499,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
 
                 FIT1 <- try(nls(
                             formula,
-                            data = data.frame(X = X, Y = pX),
+                            data = data.frame(q = X, Y = pX),
                             start = as.list(coef(FIT)),
                             control = list(maxiter = maxiter, tol = ptol)),
                         silent = TRUE)
@@ -512,14 +507,25 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                 if (inherits(FIT1, "try-error")) {
                     FIT1 <- try(nlsLM(
                             formula,
-                            data = data.frame(X = X, Y = pX),
+                            data = data.frame(q = X, Y = pX),
                             start = as.list(coef(FIT)),
                             control = list(maxiter = maxiter, ptol = ptol)),
                             silent = TRUE)
                 }
 
-                if (!inherits(FIT1, "try-error"))
-                    FIT <- FIT1
+                if (!inherits(FIT1, "try-error")) {
+                    evalLIST <- as.list(coef(FIT))
+                    evalLIST$q <- X
+                    fitted <- do.call(funLIST[[i]], evalLIST)
+                    sqRESIDUAL <- sum(pX - fitted)^2
+
+                    evalLIST <- as.list(coef(FIT1))
+                    fitted <- do.call(funLIST[[i]], evalLIST)
+                    sqRESIDUAL1 <- sum(pX - fitted)^2
+
+                    if (sqRESIDUAL1 < sqRESIDUAL )
+                        FIT <- FIT1
+                }
             }
             if (!inherits(FIT, "try-error")) {
                 fitLIST[[ i ]] <- FIT
@@ -537,7 +543,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                 if (verbose)
                     cat("Fitting Done.\n")
             } else {
-                FIT <- NA
+                fitLIST[[ i ]]  <- "Error"
                 if (verbose)
                     cat("Error!\n")
             }
@@ -553,6 +559,8 @@ setMethod("fitCDF", signature(varobj = "numeric"),
         funName <- funName[ ORDER ]
         bestFIT <- fitLIST[[ 1 ]]
 
+        names(fitLIST) <- funName
+
         evalLIST <- as.list(coef(fitLIST[[ 1 ]]))
         evalLIST$q <- X
         fitted <- do.call(funLIST[[ 1 ]], evalLIST)
@@ -565,7 +573,21 @@ setMethod("fitCDF", signature(varobj = "numeric"),
         qfunLIST <- qfunLIST[match(distNAMES, distnms)]
 
         if (only.info) {
-            res <- list(bestfit = bestFIT, AIC = aicDAT)
+            rho <- Stein_rho(fit = bestFIT, varobj = pX)
+            res <- list(bestfit = bestFIT, gof = rho, AIC = aicDAT)
+            res <- structure(
+                list(
+                    aic = aicDAT,
+                    bestfit = bestFIT,
+                    fit = fitLIST,
+                    fitted = fitted,
+                    info = distNAMES[ 1 ],
+                    rstudent = NA,
+                    gof = c(res$gof, R.Cross.val = NA, AIC = aicDAT[ 1, 2 ]),
+                    cdf = funName[ 1 ]
+                ),
+                class = "CDFmodel"
+            )
         } else {
             ## ------------------------ Start Graphics --------------------- ##
             if (plot) {
@@ -790,7 +812,6 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                             cex = cex.point
                         )
                     }
-                    j = j + 1
                 }
                 par(opar)
                 names(fitLIST) <- distNAMES
@@ -800,14 +821,16 @@ setMethod("fitCDF", signature(varobj = "numeric"),
 
                 res <- structure(
                     list(
-                        aic = aicDAT[ 1, ],
+                        aic = aicDAT,
                         bestfit = bestFIT,
                         fit = fitLIST,
                         fitted = fitted,
                         info = distNAMES[ 1 ],
                         rstudent = NA,
                         cdf = funName[ 1 ],
-                        gof = rho
+                        gof = rho,
+                        cdf = funName[ 1 ],
+                        formula = NA
                     ),
                     class = "CDFmodel"
                 )
@@ -816,7 +839,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                                  residuals = RESIDUAL)
 
                 pars <- names(coef(res$bestfit))
-                pars <- paste(c("X", pars), collapse = ",")
+                pars <- paste(c("q", pars), collapse = ",")
                 formula <- as.formula(
                     paste0(
                         "Y ~ ", funName,
@@ -830,7 +853,8 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                     ptol = ptol,
                     minFactor = 1e-6)
 
-                res$gof <- c(res$gof, cross_val)
+                res$gof <- c(res$gof, cross_val, AIC = aicDAT[ 1, 2 ])
+                res$formula <- formula
 
             ## ------------------------ End Graphics --------------------- ##
             }
@@ -842,20 +866,21 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                 fitLIST = fitLIST[as.character(aicDAT$Distribution)]
                 res <- structure(
                     list(
-                        aic = aicDAT[ 1, ],
+                        aic = aicDAT,
                         bestfit = bestFIT,
                         fit = fitLIST,
                         fitted = fitted,
                         info = distNAMES[ 1 ],
                         rstudent = NA,
                         gof = rho,
-                        cdf = funName[ 1 ]
+                        cdf = funName[ 1 ],
+                        formula = NA
                     ),
                     class = "CDFmodel"
                 )
 
                 pars <- names(coef(res$bestfit))
-                pars <- paste(c("X", pars), collapse = ",")
+                pars <- paste(c("q", pars), collapse = ",")
                 formula <- as.formula(
                                     paste0(
                                         "Y ~ ", funName[ 1 ],
@@ -869,11 +894,14 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                                             ptol = ptol,
                                             minFactor = 1e-6)
 
-                res$gof <- c(res$gof, cross_val)
+                res$gof <- c(res$gof, cross_val, AIC = aicDAT[ 1, 2 ])
 
                 res <- rstudents(
                     model = res, varobj = X,
                     residuals = RESIDUAL)
+
+                res$formula <- formula
+
                 if (verbose)
                     cat("** Done ***\n")
             }
@@ -932,14 +960,24 @@ setMethod("fitCDF", signature(varobj = "list_OR_matrix_OR_dataframe"),
         if (inherits(varobj, c("matrix", "data.frame")))
             num_samp <- ncol(varobj)
 
+        if (!is.numeric(distNames) && !is.character(distNames))
+            stop("*** 'distNames' argument must be a 'character'",
+                 " or numeric.")
+
         if (is.character(distNames)) {
             distNames <- list(distNames)
             if (length(distNames) < num_samp)
                 distNames <- rep(distNames, num_samp)
         }
-        else
-            stop("*** 'distNames' argument must be a 'character' class",
-                "object.")
+
+        if (is.numeric(distNames)) {
+             distNames <- as.integer(distNames)
+             if (any(distNames > 21))
+                  stop("*** 'distNames' must be a string or a number < 21")
+             distNames <- list(distNames)
+             if (length(distNames) < num_samp)
+                  distNames <- rep(distNames, num_samp)
+        }
 
         if (!is.character(distf) && !is.null(distf))
             stop("*** 'distf' argument must be a 'character' class",
@@ -1025,10 +1063,52 @@ setMethod("fitCDF", signature(varobj = "list_OR_matrix_OR_dataframe"),
                             BPPARAM = bpparam)
 
         names(res) <- var_nms
+        res$AICs <-  summary_aic(res)
         res <- structure(res, class = "CDFmodelList")
         return(res)
     }
 )
+
+#' @rdname fitCDF
+#' @aliases coef
+#' @param object An object for which the extraction of model coefficients
+#' is meaningful.
+#' @description See \code{\link[stats]{coef}}.
+#' @details See \code{\link[stats]{coef}}.
+#' @keywords internal
+#' @export
+coef <- function(object, ...) UseMethod("coef", object)
+
+#' @rdname fitCDF
+#' @aliases coef.default
+#' @keywords internal
+#' @export
+coef.default <- function(object, ...)
+    stats::coef(object, ...)
+
+#' @rdname fitCDF
+#' @aliases coef.nls.lm
+#' @export
+coef.nls.lm <- function(object) {
+    object$par
+}
+
+#' @rdname fitCDF
+#' @aliases coef.CDFmodel
+#' @export
+coef.CDFmodel <- function(object) {
+    coef(object$bestfit)
+}
+
+#' @rdname fitCDF
+#' @aliases coef.CDFmodelList
+#' @export
+coef.CDFmodelList <- function(object) {
+    object <- object[ seq_len(length(object) - 1) ]
+    sapply(object, function(m) coef(m))
+}
+
+
 
 
 ## ============================= Auxiliary functions ========================= #
@@ -1076,7 +1156,7 @@ shape_scale <- function(x, gg = TRUE) {
     if (gg)
         return(c(alpha = alpha, scale = scale))
     else
-        return(c(c(shape = alpha, scale = scale)))
+        return(c(shape = alpha, scale = scale))
 }
 
 weibullpars <- function(mu, sigma) {
@@ -1143,6 +1223,7 @@ Stein_rho <- function(fit, varobj) {
 ## ---------------------------------------------------------------------- #
 # *** Generalized normal CDF *** #
 # https://en.(Wikipedia).org/wiki/Generalized_normal_distribution
+
 pgnorm <- function(q ,
                    mean = 0,
                    sigma = 1,
@@ -1153,6 +1234,7 @@ pgnorm <- function(q ,
 }
 
 # *** Thermodynamic based Generalized normal CDF *** #
+
 ptgnorm <- function(q ,
                     mean = 0,
                     sigma = 1,
@@ -1168,11 +1250,13 @@ ptgnorm <- function(q ,
 }
 
 # *** Definition of Laplace CDF *** #
+
 plaplace <- function(q , mean = 0, sigma = 1) {
     1 / sqrt(2) + 1 / sqrt(2) * (1 - exp(-abs(q - mean) / sigma))
 }
 
 # *** Generalized beta CDF *** #
+
 pgbeta <-
     function(q,
              shape1,
@@ -1192,21 +1276,26 @@ pgbeta <-
     }
 
 # *** 3P beta CDF *** #
+
 pbeta3 <-
-    function(q,
-             shape1 = 2,
-             shape2 = 3,
-             mu = 0,
-             lower.tail = TRUE,
-             log.p = FALSE) {
-        pbeta(q - mu,
-              shape1,
-              shape2,
-              lower.tail = lower.tail,
-              log.p = log.p)
-    }
+    function(
+            q,
+            shape1 = 2,
+            shape2 = 3,
+            mu = 0,
+            lower.tail = TRUE,
+            log.p = FALSE) {
+
+        pbeta(
+            q - mu,
+            shape1,
+            shape2,
+            lower.tail = lower.tail,
+            log.p = log.p)
+}
 
 # *** 4P beta CDF *** #
+
 pbeta4 <- function(q,
                    shape1 = 2,
                    shape2 = 3,
@@ -1222,20 +1311,45 @@ pbeta4 <- function(q,
 }
 
 # *** Definition of Rayleigh distribution *** #
+
 prayleigh <- function(q, sigma)
     1 - exp(-q ^ 2 / (2 * sigma ^ 2))
 
 # *** Definition of 2P Exponential *** #
-pexp2 <-
-    function(q, rate, mu)
-        pexp(q - mu ,
-             rate = 1,
-             lower.tail = TRUE,
-             log.p = FALSE)
+pexp2 <- function(q, rate, mu)
+            pexp(
+                q - mu,
+                rate = 1,
+                lower.tail = TRUE,
+                log.p = FALSE)
 
 # *** Definition of Beta-Weibull distribution *** #
-# It is taken from R pacakge "Newdistns"
+# It is taken from R package "Newdistns"
+
 pbweibull <- function(q, alpha, beta, shape, scale)
-    pbeta(pweibull(q, shape = shape, scale = scale),
-          shape1 = alpha,
-          shape2 = beta)
+                pbeta(
+                    pweibull(
+                            q,
+                            shape = shape,
+                            scale = scale),
+                    shape1 = alpha,
+                    shape2 = beta)
+
+## Initial parameters estimation by Method of Moments
+
+beta_start_par <- function(MEAN, VAR) {
+    shape1 <- MEAN * (MEAN * (1 - MEAN)/VAR - 1)
+    shape2 <- shape1 * (1 - MEAN)/MEAN
+    return(c(shape1 = shape1, shape2 = shape2))
+}
+
+summary_aic <- function(m) {
+    nms <- m[[ 1 ]]$aic[, 1 ]
+    res <- do.call(cbind, lapply(m, function(x) {
+                idx <- match(nms, x$aic$Distribution)
+                x$aic[ idx, 2]
+    }))
+    rownames(res) <- nms
+    return(res)
+}
+

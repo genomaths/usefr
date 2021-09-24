@@ -5,6 +5,11 @@
 \alias{cdf_crossval}
 \alias{fitCDF,numeric-method}
 \alias{fitCDF,list_OR_matrix_OR_dataframe-method}
+\alias{coef}
+\alias{coef.default}
+\alias{coef.nls.lm}
+\alias{coef.CDFmodel}
+\alias{coef.CDFmodelList}
 \title{Nonlinear fit of a commulative distribution function}
 \usage{
 fitCDF(varobj, ...)
@@ -59,6 +64,16 @@ fitCDF(varobj, ...)
   verbose = TRUE,
   ...
 )
+
+coef(object, ...)
+
+\method{coef}{default}(object, ...)
+
+\method{coef}{nls.lm}(object)
+
+\method{coef}{CDFmodel}(object)
+
+\method{coef}{CDFmodelList}(object)
 }
 \arguments{
 \item{varobj}{A a vector, a named list, a matrix or a data.frame, containing
@@ -167,6 +182,9 @@ Default is \emph{xlabel = "x"}.}
 i.e. at most how many child processes will be run simultaneously (see
 \code{\link[BiocParallel]{bplapply}} and the number of tasks per job (only
 for Linux OS).}
+
+\item{object}{An object for which the extraction of model coefficients
+is meaningful.}
 }
 \value{
 After return the plots, a list with following values is provided:
@@ -198,6 +216,8 @@ function (*CDF*) are accomplished using the corresponding probability density
 function (*PDF*). Different optimization algorithms can be used to
 accomplished this task and different algorithms can yield different estimated
 parameters. Hence, why not try to fit the CDF directly?
+
+See \code{\link[stats]{coef}}.
 }
 \details{
 The nonlinear fit (NLF) problem for CDFs is addressed with
@@ -238,6 +258,8 @@ well. The list (so far) of possible CDFs is:
         \item 2P Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
         \item Geometric \href{https://is.gd/94HW4w}{(Wikipedia)}
     }
+
+See \code{\link[stats]{coef}}.
 }
 \examples{
 set.seed(1230)
@@ -279,3 +301,4 @@ cdfp <- fitCDF(x1, distNames = "3P Weibull",
 \author{
 Robersy Sanchez (\url{https://genomaths.com}).
 }
+\keyword{internal}

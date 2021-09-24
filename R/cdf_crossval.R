@@ -26,18 +26,22 @@
 #' @details The cross-validation correlation coefficient R (R.Cross.val) is
 #' an estimator of the average cross-validation predictive power (1).
 #' @param formula a nonlinear model formula including variables and parameters.
-#' It will be coerced to a formula if necessary.
+#' It will be coerced to a formula if necessary. For example, for a Gamma
+#' model the formula will be: "Y ~ pgamma(q, shape, scale)", where
+#' \code{\link[stats]{pgamma}} function is available in 'stats' R package.
 #' @param pars Estimated model parameters.
 #' @param X Objective variable used to build the model.
-#' @param maxiter,ptol Arguments for function
-#' \code{\link[minpack.lm]{nlsLM}}
+#' @param min.val A number denoting the lower bound of the domain where CDF
+#' is defined. For example, for Weibull and GGamma \strong{\emph{min.val = 0}}.
+#' @param loss.fun Described in \code{\link{fitCDF}}.
+#' @param maxiter,ptol,maxfev Arguments for function
+#' \code{\link[minpack.lm]{nlsLM}} and/or \code{\link[minpack.lm]{nls.lm}}.
 #' @param minFactor A positive numeric value specifying the minimum step-size
 #' factor allowed on any step in the iteration. The increment is calculated
 #' with a Gauss-Newton algorithm and successively halved until the residual sum
 #' of squares has been decreased or until the step-size factor has been reduced
 #' below this limit. Default value: 10^-6.
 #' @importFrom minpack.lm nlsLM
-#' @importFrom nls2 nls2
 #' @export
 #' @seealso \code{\link{mcgoftest}} for Bootstrap test for Goodness of fit.
 #' @references
@@ -52,7 +56,8 @@ setGeneric(
         model,
         ...) standardGeneric("cdf_crossval"))
 
-setOldClass(c("nls", "CDFmodel", "nls.lm"))
+setOldClass(c("nls", "CDFmodel", "nls.lm",
+              "CDFmodelList", "nlsLM"))
 setClassUnion("missingORNULL", c("missing", "NULL"))
 
 #' @rdname cdf_crossval
@@ -64,12 +69,19 @@ setMethod("cdf_crossval", signature(model = "missingORNULL"),
             formula,
             pars,
             X,
+            min.val = NULL,
+            loss.fun = c("linear", "huber", "smooth",
+                        "cauchy", "arctg"),
             maxiter = 1024,
+            maxfev = 1e5,
             ptol = 1e-12,
             minFactor = 1e-6) {
 
         if (!inherits(formula, "formula"))
             stop("*** Argument for formula must be a 'formula' class object")
+
+        if (!is.null(min.val))
+            X <- X[ which(X > min.val) ]
 
         n <- length(X)
         cros.ind.1 <- sample.int(n, size = round(n/2))
@@ -87,13 +99,19 @@ setMethod("cdf_crossval", signature(model = "missingORNULL"),
                     silent = TRUE)
 
         if (inherits(FIT1, "try-error")) {
-            FIT1 <- try(nls2(
-                            formula,
-                            data = data.frame(X = X[ cros.ind.1 ],
-                                            Y = pX[ cros.ind.1 ]),
-                            start = as.list(pars), algorithm = "plinear-brute",
-                            control = list(maxiter = maxiter, tol = ptol,
-                                        minFactor = minFactor)),
+            probfun <- match.fun(formula[[ 3L ]][[ 1L ]])
+            FIT1 <- try(nls.lm(
+                                par = pars,
+                                fn = optFun,
+                                probfun = probfun,
+                                quantiles = X[ cros.ind.1 ],
+                                prob = pX[ cros.ind.1 ],
+                                loss.fun = loss.fun,
+                                control = nls.lm.control(
+                                    maxiter = maxiter,
+                                    maxfev = maxfev,
+                                    ptol = ptol)
+                        ),
                         silent = TRUE)
         }
 
@@ -107,15 +125,19 @@ setMethod("cdf_crossval", signature(model = "missingORNULL"),
                     silent = TRUE)
 
         if (inherits(FIT2, "try-error")) {
-            FIT2 <- try(nls2(
-                            formula,
-                            data = data.frame(
-                                            X = X[ cros.ind.2 ],
-                                            Y = pX[ cros.ind.2 ]),
-                            start = as.list(pars),
-                            algorithm = "plinear-brute",
-                            control = list(maxiter = maxiter, tol = ptol,
-                                        minFactor = minFactor)),
+            probfun <- match.fun(formula[[ 3L ]][[ 1L ]])
+            FIT2 <- try(nls.lm(
+                                par = pars,
+                                fn = optFun,
+                                probfun = probfun,
+                                quantiles = X[ cros.ind.2 ],
+                                prob = pX[ cros.ind.2 ],
+                                loss.fun = loss.fun,
+                                control = nls.lm.control(
+                                    maxiter = maxiter,
+                                    maxfev = maxfev,
+                                    ptol = ptol
+                                )),
                         silent = TRUE)
         }
 
@@ -158,6 +180,7 @@ setMethod("cdf_crossval", signature(model = "nls"),
     function(
         model,
         X,
+        min.val = NULL,
         maxiter = 1024,
         ptol = 1e-12,
         minFactor = 1e-6
@@ -167,6 +190,7 @@ setMethod("cdf_crossval", signature(model = "nls"),
                     formula = model$m$formula(),
                     pars = coef(model),
                     X = X,
+                    min.val =  min.val,
                     maxiter = maxiter,
                     ptol = ptol,
                     minFactor = minFactor)
@@ -179,19 +203,28 @@ setMethod("cdf_crossval", signature(model = "nls"),
 setMethod("cdf_crossval", signature(model = "CDFmodel"),
     function(
             model,
-            formula,
+            formula = NULL,
             X,
+            min.val = NULL,
             maxiter = 1024,
             ptol = 1e-12,
             minFactor = 1e-6 ) {
 
-            cdf_crossval(
-                        formula = formula,
-                        pars = coef(model$bestfit),
-                        X = X,
-                        maxiter = maxiter,
-                        ptol = ptol,
-                        minFactor = minFactor)
+        if (is.null(formula)) {
+            pars <- names(coef(model$bestfit))
+            pars <- paste(c("X", pars), collapse = ",")
+            formula <- as.formula(
+                paste0(
+                    "Y ~ ", model$cdf, "(", pars, ")"))
+        }
+        cdf_crossval(
+                    formula = formula,
+                    pars = coef(model$bestfit),
+                    X = X,
+                    min.val =  min.val,
+                    maxiter = maxiter,
+                    ptol = ptol,
+                    minFactor = minFactor)
     }
 )
 
@@ -203,6 +236,7 @@ setMethod("cdf_crossval", signature(model = "nls.lm"),
             model,
             formula,
             X,
+            min.val = NULL,
             maxiter = 1024,
             ptol = 1e-12,
             minFactor = 1e-6 ) {
@@ -211,11 +245,10 @@ setMethod("cdf_crossval", signature(model = "nls.lm"),
                         formula = formula,
                         pars = coef(model),
                         X = X,
+                        min.val =  min.val,
                         maxiter = maxiter,
                         ptol = ptol,
                         minFactor = minFactor)
     }
 )
-
-
 

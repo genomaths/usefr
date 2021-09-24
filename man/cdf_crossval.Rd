@@ -15,17 +15,28 @@ cdf_crossval(model, ...)
   formula,
   pars,
   X,
+  min.val = NULL,
+  loss.fun = c("linear", "huber", "smooth", "cauchy", "arctg"),
+  maxiter = 1024,
+  maxfev = 1e+05,
+  ptol = 1e-12,
+  minFactor = 1e-06
+)
+
+\S4method{cdf_crossval}{nls}(
+  model,
+  X,
+  min.val = NULL,
   maxiter = 1024,
   ptol = 1e-12,
   minFactor = 1e-06
 )
 
-\S4method{cdf_crossval}{nls}(model, X, maxiter = 1024, ptol = 1e-12, minFactor = 1e-06)
-
 \S4method{cdf_crossval}{CDFmodel}(
   model,
-  formula,
+  formula = NULL,
   X,
+  min.val = NULL,
   maxiter = 1024,
   ptol = 1e-12,
   minFactor = 1e-06
@@ -35,6 +46,7 @@ cdf_crossval(model, ...)
   model,
   formula,
   X,
+  min.val = NULL,
   maxiter = 1024,
   ptol = 1e-12,
   minFactor = 1e-06
@@ -48,8 +60,13 @@ It will be coerced to a formula if necessary.}
 
 \item{X}{Objective variable used to build the model.}
 
-\item{maxiter, ptol}{Arguments for function
-\code{\link[minpack.lm]{nlsLM}}}
+\item{min.val}{A number denoting the lower bound of the domain where CDF
+is defined. For example, for Weibull and GGamma \strong{\emph{min.val = 0}}.}
+
+\item{loss.fun}{Described in \code{\link{fitCDF}}.}
+
+\item{maxiter, ptol, maxfev}{Arguments for function
+\code{\link[minpack.lm]{nlsLM}} and/or \code{\link[minpack.lm]{nls.lm}}.}
 
 \item{minFactor}{A positive numeric value specifying the minimum step-size
 factor allowed on any step in the iteration. The increment is calculated
