@@ -840,21 +840,19 @@ setMethod("fitCDF", signature(varobj = "numeric"),
 
                 pars <- names(coef(res$bestfit))
                 pars <- paste(c("q", pars), collapse = ",")
-                formula <- as.formula(
-                    paste0(
-                        "Y ~ ", funName,
-                        "(", pars, ")"))
+                res$formula <- as.formula(
+                                    paste0(
+                                        "Y ~ ", funName,
+                                        "(", pars, ")"))
 
                 cross_val <- cdf_crossval(
-                    model = res,
-                    formula = formula,
-                    X = X,
-                    maxiter = maxiter,
-                    ptol = ptol,
-                    minFactor = 1e-6)
+                                        model = res,
+                                        X = X,
+                                        maxiter = maxiter,
+                                        ptol = ptol,
+                                        minFactor = 1e-6)
 
                 res$gof <- c(res$gof, cross_val, AIC = aicDAT[ 1, 2 ])
-                res$formula <- formula
 
             ## ------------------------ End Graphics --------------------- ##
             }
@@ -881,14 +879,13 @@ setMethod("fitCDF", signature(varobj = "numeric"),
 
                 pars <- names(coef(res$bestfit))
                 pars <- paste(c("q", pars), collapse = ",")
-                formula <- as.formula(
+                res$formula <- as.formula(
                                     paste0(
                                         "Y ~ ", funName[ 1 ],
                                         "(", pars, ")"))
 
                 cross_val <- cdf_crossval(
                                             model = res,
-                                            formula = formula,
                                             X = X,
                                             maxiter = maxiter,
                                             ptol = ptol,
@@ -899,8 +896,6 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                 res <- rstudents(
                     model = res, varobj = X,
                     residuals = RESIDUAL)
-
-                res$formula <- formula
 
                 if (verbose)
                     cat("** Done ***\n")

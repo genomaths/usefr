@@ -25,8 +25,10 @@
 #' (R.Cross.val).
 #' @details The cross-validation correlation coefficient R (R.Cross.val) is
 #' an estimator of the average cross-validation predictive power (1).
-#' @param formula a nonlinear model formula including variables and parameters.
-#' It will be coerced to a formula if necessary. For example, for a Gamma
+#' @param formula No required for when a model from class
+#' \code{\link{CDFmodel}} or \code{\link[stats]{nls}} is provided. Otherwise,
+#' it will be nonlinear model formula including variables and parameters,
+#' which will be coerced to a formula if necessary. For example, for a Gamma
 #' model the formula will be: "Y ~ pgamma(q, shape, scale)", where
 #' \code{\link[stats]{pgamma}} function is available in 'stats' R package.
 #' @param pars Estimated model parameters.
@@ -203,20 +205,15 @@ setMethod("cdf_crossval", signature(model = "nls"),
 setMethod("cdf_crossval", signature(model = "CDFmodel"),
     function(
             model,
-            formula = NULL,
             X,
             min.val = NULL,
             maxiter = 1024,
             ptol = 1e-12,
             minFactor = 1e-6 ) {
 
-        if (is.null(formula)) {
-            pars <- names(coef(model$bestfit))
-            pars <- paste(c("X", pars), collapse = ",")
-            formula <- as.formula(
-                paste0(
-                    "Y ~ ", model$cdf, "(", pars, ")"))
-        }
+
+        formula <- model$formula
+
         cdf_crossval(
                     formula = formula,
                     pars = coef(model$bestfit),
