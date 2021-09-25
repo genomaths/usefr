@@ -2,20 +2,85 @@
 % Please edit documentation in R/mcgoftest.R
 \name{mcgoftest}
 \alias{mcgoftest}
+\alias{mcgoftest,missingORNULL-method}
+\alias{mcgoftest,CDFmodel-method}
+\alias{mcgoftest,CDFmodelList-method}
+\alias{mcgoftest,NLM-method}
+\alias{mcgoftest,nls.lm-method}
 \title{Bootstrap test for Goodness of fit (GoF)}
 \usage{
-mcgoftest(
+mcgoftest(model, varobj, ...)
+
+\S4method{mcgoftest}{missingORNULL}(
+  model,
   varobj,
   distr = NULL,
   pars = NULL,
   num.sampl = 999,
-  sample.size,
+  sample.size = NULL,
   stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
   breaks = NULL,
   par.names = NULL,
   seed = 1,
-  num.cores = 1,
-  tasks = 0,
+  num.cores = 1L,
+  tasks = 0L,
+  verbose = TRUE
+)
+
+\S4method{mcgoftest}{CDFmodel}(
+  model,
+  varobj,
+  num.sampl = 999,
+  sample.size = NULL,
+  stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+  breaks = NULL,
+  par.names = NULL,
+  seed = 1,
+  num.cores = 1L,
+  tasks = 0L,
+  verbose = TRUE
+)
+
+\S4method{mcgoftest}{CDFmodelList}(
+  model,
+  varobj,
+  num.sampl = 999,
+  sample.size = NULL,
+  stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+  breaks = NULL,
+  par.names = NULL,
+  seed = 1,
+  num.cores = 1L,
+  tasks = 0L,
+  verbose = TRUE
+)
+
+\S4method{mcgoftest}{NLM}(
+  model,
+  varobj,
+  num.sampl = 999,
+  sample.size = NULL,
+  stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+  breaks = NULL,
+  par.names = NULL,
+  seed = 1,
+  num.cores = 1L,
+  tasks = 0L,
+  verbose = TRUE
+)
+
+\S4method{mcgoftest}{nls.lm}(
+  model,
+  varobj,
+  distr,
+  num.sampl = 999,
+  sample.size = NULL,
+  stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+  breaks = NULL,
+  par.names = NULL,
+  seed = 1,
+  num.cores = 1L,
+  tasks = 0L,
   verbose = TRUE
 )
 }
@@ -326,7 +391,6 @@ chisq.test(rbind(x1, x3), simulate.p.value = TRUE, B = 2e3)$p.value
 ## We will always fail in to detect differences between 'crude' probability
 ## vectors without additional information.
 chisq.test(x= x1, y = x3, simulate.p.value = TRUE, B = 2e3)$p.value
-
 }
 \references{
 \enumerate{
