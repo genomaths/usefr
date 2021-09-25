@@ -1109,6 +1109,12 @@ coef.CDFmodelList <- function(object) {
 ## ============================= Auxiliary functions ========================= #
 
 optFun <- function(par, probfun, quantiles, prob, eval = FALSE, loss.fun) {
+
+    if (identical(probfun, plnorm)) {
+        Fy = ecdf(quantiles)
+        prob = Fy(quantiles)
+    }
+
     START <- as.list(par)
     START$q <- quantiles
     EVAL <- try(do.call(probfun, START), silent = TRUE)
