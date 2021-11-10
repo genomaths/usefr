@@ -620,7 +620,7 @@ setMethod("mcgoftest", signature(model = "CDFmodelList"),
      }
 )
 
-setClassUnion("NLM", c("nls", "nlsLM"))
+setClassUnion("NLM", c("nls", "nlsModel"))
 
 #' @rdname mcgoftest
 #' @aliases mcgoftest

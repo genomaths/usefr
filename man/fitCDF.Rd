@@ -233,7 +233,10 @@ informative results are given now. The studentized residuals are provided as
 well. The list (so far) of possible CDFs is:
     \enumerate{
         \item Normal \href{https://goo.gl/xaEAdT}{(Wikipedia)}
-        \item Log-normal \href{https://goo.gl/a7MtYq}{(Wikipedia)}
+        \item Log-normal \href{https://goo.gl/a7MtYq}{(Wikipedia)}. This
+        This function is set to fit \eqn{log(1+x)}. Users can transform their
+        variable by themself and then try the fitting to Normal
+        distribution.
         \item Half-normal \href{https://goo.gl/yxMF6T}{(Wikipedia)}. An
             Alternatively using a scaled precision (inverse of the variance)
             parametrization (to avoid issues if \eqn{\sigma} is near zero),

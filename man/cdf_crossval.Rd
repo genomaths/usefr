@@ -53,7 +53,7 @@ cdf_crossval(model, ...)
 }
 \arguments{
 \item{formula}{No required for when a model from class
-\code{\link{CDFmodel}} or \code{\link[stats]{nls}} is provided. Otherwise,
+\strong{\emph{CDFmodel}} or \code{\link[stats]{nls}} is provided. Otherwise,
 it will be nonlinear model formula including variables and parameters,
 which will be coerced to a formula if necessary. For example, for a Gamma
 model the formula will be: "Y ~ pgamma(q, shape, scale)", where

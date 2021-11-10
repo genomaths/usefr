@@ -26,7 +26,7 @@
 #' @details The cross-validation correlation coefficient R (R.Cross.val) is
 #' an estimator of the average cross-validation predictive power (1).
 #' @param formula No required for when a model from class
-#' \code{\link{CDFmodel}} or \code{\link[stats]{nls}} is provided. Otherwise,
+#' \strong{\emph{CDFmodel}} or \code{\link[stats]{nls}} is provided. Otherwise,
 #' it will be nonlinear model formula including variables and parameters,
 #' which will be coerced to a formula if necessary. For example, for a Gamma
 #' model the formula will be: "Y ~ pgamma(q, shape, scale)", where
@@ -59,7 +59,7 @@ setGeneric(
         ...) standardGeneric("cdf_crossval"))
 
 setOldClass(c("nls", "CDFmodel", "nls.lm",
-              "CDFmodelList", "nlsLM"))
+              "CDFmodelList", "nlsModel"))
 setClassUnion("missingORNULL", c("missing", "NULL"))
 
 #' @rdname cdf_crossval
