@@ -78,13 +78,13 @@ estimateDirichDist <- function( x,
     p <- x/rsum(x)
 
     if (is.null(start)) {
+        start <- matrix(1, d[1], d[2])
+    }
+    else {
         if (length(start) != ncol(x))
             warning("*** Wrong 'start' parameter length.",
                     " The length(start) == ncol(x) \n",
                     "The 'start' values will be ignored")
-        start <- matrix(1, d[1], d[2])
-    }
-    else {
         alfa <- sum(start)
         start <- cbind(shape1 = start,
                     shape2 = sapply(start, function(x) alfa - x))
@@ -147,6 +147,12 @@ estimateDirichDist <- function( x,
     else names(pars) <- cn
     return(pars)
 }
+
+#' @rdname estimateDirichDist
+#' @aliases estimateDirichDist
+#' @title Nonlinear Parameter Estimation for Dirichlet Distribution \eqn{}
+
+
 
 ### ===================== Auxiliary function =================
 

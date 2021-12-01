@@ -2,6 +2,7 @@
 % Please edit documentation in R/estimateDirichDist.R
 \name{estimateDirichDist}
 \alias{estimateDirichDist}
+\alias{rsum}
 \title{Nonlinear Parameter Estimation for Dirichlet Distribution \eqn{}}
 \usage{
 estimateDirichDist(
@@ -12,6 +13,8 @@ estimateDirichDist(
   verbose = TRUE,
   ...
 )
+
+rsum(x)
 }
 \arguments{
 \item{x}{A matrix or a data.frame object carrying count data.}

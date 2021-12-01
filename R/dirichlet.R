@@ -43,6 +43,12 @@
 #' The density is computed directly from the logarithm of Dirichlet PDF
 #' \eqn{log(Dir(\alpha))}.
 #'
+#' if \eqn{x = (x_1, x_2, ...x_n)} are observed counts, then they are
+#' transformed estimated probability \eqn{p_i} of the observation \eqn{x_i} is
+#' estimated as: \eqn{p_i = (x_i + \alpha_i)/(\sum x_i + sum \alpa_i)}.
+#'
+#' @param x A numerical matrix \eqn{x_ij >= 0} or vector \eqn{x_i >= 0} of
+#' observed counts  or relative frequencies \eqn{\sum x_i = 1}.
 #' @param q numeric vector.
 #' @param n number of observations.
 #' @param p vector of probabilities.
@@ -68,6 +74,11 @@
 #' @aliases ddirichlet
 #' @export
 #' @author Robersy Sanchez (\url{https://genomaths.com}).
+#' @references
+#' 1. Sjolander K, Karplus K, Brown M, Hughey R, Krogh A, Saira Mian I, et al.
+#'    Dirichlet mixtures: A method for improved detection of weak but
+#'    significant protein sequence homology. Bioinformatics. 1996;12: 327–345.
+#'    doi:10.1093/bioinformatics/12.4.327.
 #' @examples
 #' ## A random generation of numerical vectors
 #' x = rdirichlet(n = 1e3, alpha = rbind(c(2.1, 3.1, 1.2),
@@ -122,6 +133,12 @@ ddirichlet <- function( x,
             stop("\n*** 'alpha' must be a matrix or a numerical vector",
                  " with length(alpha) = ncol(x).")
     }
+
+
+    if (any.greater(x)) {
+        p <- (x + alpha)/(rsum(x) + rsum(alpha))
+    }
+
 
     logConst <- function(a) {
         if (is.null(dim(a)))
@@ -304,4 +321,10 @@ mc_pdir <- function(q, alpha, n = 1e4, seed = 1) {
                 sum(apply(x[,l], 1, function(x) prod(x <= q[l]))) / n
 }
 
-
+any.greater <- function(x, value, d = 1) {
+    if (d > 1) {
+        res <- any(colSums(x) > value)
+    } else
+        res <- any(rowSums(x) > value)
+    return(res)
+}

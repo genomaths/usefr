@@ -14,6 +14,9 @@ pdirichlet(q, alpha, lower.tail = TRUE, log.p = FALSE, log.base = exp(1), ...)
 rdirichlet(n, alpha)
 }
 \arguments{
+\item{x}{A numerical matrix \eqn{x_ij >= 0} or vector \eqn{x_i >= 0} of
+observed counts  or relative frequencies \eqn{\sum x_i = 1}.}
+
 \item{alpha}{Dirichlet distribution's parameters. A numerical parameter
 vector, strictly positive (default 1):
 \eqn{\lapha = \alpha_1, ... , \alpha_n}.}
@@ -67,6 +70,10 @@ Beta distribution and \eqn{\alpha_0 = \sum \alpha_i}.
 
 The density is computed directly from the logarithm of Dirichlet PDF
 \eqn{log(Dir(\alpha))}.
+
+if \eqn{x = (x_1, x_2, ...x_n)} are observed counts, then they are
+transformed estimated probability \eqn{p_i} of the observation \eqn{x_i} is
+estimated as: \eqn{p_i = (x_i + \alpha_i)/(\sum x_i + sum \alpa_i)}.
 }
 \examples{
 ## A random generation of numerical vectors
@@ -89,6 +96,12 @@ set.seed(123)
 q = rdirichlet(10, alpha = c(2.1, 3.2, 3.3))
 pdirichlet(q, alpha = c(2.1, 3.2, 3.3))
 
+}
+\references{
+1. Sjolander K, Karplus K, Brown M, Hughey R, Krogh A, Saira Mian I, et al.
+   Dirichlet mixtures: A method for improved detection of weak but
+   significant protein sequence homology. Bioinformatics. 1996;12: 327–345.
+   doi:10.1093/bioinformatics/12.4.327.
 }
 \author{
 Robersy Sanchez (\url{https://genomaths.com}).
