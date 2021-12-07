@@ -54,7 +54,7 @@
 #' \code{\link[stats]{optim}}. In all the cases the list element carrying
 #' the estimated parameters values is named \strong{\emph{parameters}}.
 #'
-#' @importFrom stats ecdf optim nlm pbeta rbeta
+#' @importFrom stats ecdf optim nlm pbeta rbeta var pt
 #' @author Robersy Sanchez <https://genomaths.com>
 #' @export
 #' @seealso \code{\link{betaBinPost}} and \code{\link{estimateDirichDist}}
@@ -79,6 +79,7 @@ betaDistEstimation <- function(
                                               abstol = (10^-8)),
                                lower = -Inf,
                                upper = Inf,
+                               seed = 123,
                                ...) {
     ## q: prior probabilities
     ## init.pars: initial parameter values. Defaults to alpha = 1 & beta = 1,
@@ -87,7 +88,7 @@ betaDistEstimation <- function(
     Q <- ecdf(q)  ## Empirical Cumulative Distribution Function
     dat <- data.frame(Q = Q(q), q = q)
 
-    #### Beta fitting In order to obtain the estimates for
+    #### Beta fitting. In order to obtain the estimates for
     #### shape paramaters the squared of the difference
     #### between the ecdf & the theoretical cdf is
     #### minimized
@@ -101,7 +102,7 @@ betaDistEstimation <- function(
     }
 
     if (!force.optim) {
-        pars <- try(suppressWarnings(
+        fit <- try(suppressWarnings(
                                     nlm(f = min.RSS,
                                         p = init.pars,
                                         data = dat,
@@ -109,18 +110,17 @@ betaDistEstimation <- function(
                                         ...)),
                     silent = TRUE)
 
-        if (!inherits(pars, "try-error")) {
-            nms <- names(pars)
-            nms[nms == "estimate"] <- "parameters"
-            names(pars) <- nms
-            pars$opt.fun <- "nlm"
+        if (!inherits(fit, "try-error")) {
+            nms <- names(fit)
+            nms[nms == "estimate"] <- "estimate"
+            names(fit) <- nms
+            fit$opt.fun <- "nlm"
         }
-    } else pars = init.pars
+    }
 
+    if (inherits(fit, "try-error") || force.optim) {
 
-    if (inherits(pars, "try-error") || force.optim) {
-
-        pars <- try(suppressWarnings(optim( par = init.pars,
+        fit <- try(suppressWarnings(optim(  par = init.pars,
                                             fn = min.RSS,
                                             gr = gr,
                                             data = dat,
@@ -130,12 +130,131 @@ betaDistEstimation <- function(
                                             lower = lower,
                                             upper = upper)),
             silent = TRUE)
-        if (!inherits(pars, "try-error")) {
-            nms <- names(pars)
-            nms[nms == "par"] <- "parameters"
-            names(pars) <- nms
-            pars$opt.fun <- "optim"
+        if (!inherits(fit, "try-error")) {
+            names(fit) <- c("estimate", "value", "counts",
+                            "convergence", "message")
+        }
+
+    }
+
+    ## ========================= Cross validation =========================
+
+    set.seed(seed)
+    l <- length(q)
+    cros.ind.1 <- sample.int(l, size=round(l / 2))
+    cros.ind.2 <- setdiff(1:l, cros.ind.1)
+
+    x1 <- q[ cros.ind.1 ]
+    x2 <- q[ cros.ind.2 ]
+    y1 <- Q(x1)
+    y2 <- Q(x2)
+
+    FIT1 <- try(suppressWarnings(
+        nlm(f = min.RSS,
+            p = init.pars,
+            data = data.frame(Q = y1, q = x1),
+            hessian = hessian,
+            ...)),
+        silent = TRUE)
+
+    FIT2 <- try(suppressWarnings(
+        nlm(f = min.RSS,
+            p = init.pars,
+            data = data.frame(Q = y2, q = x2),
+            hessian = hessian,
+            ...)),
+        silent = TRUE)
+
+    if (inherits(FIT1, "try-error") || inherits(FIT2, "try-error"))
+        R.cross.FIT <- 0
+    else {
+        ## prediction using model 1
+        p.FIT1 <- pbeta(q = x2,
+                        shape1 = FIT1$estimate[1],
+                        shape2 = FIT1$estimate[2])
+        R.FIT1 <- try(cor(p.FIT1, y2, use = "complete.obs"), silent = TRUE)
+        if (inherits(R.FIT1, "try-error")) {
+            R.FIT1 <- try(cor(p.FIT1, y2, use = "pairwise.complete.obs"),
+                          silent = TRUE)
+        }
+        ## prediction using model 2
+        p.FIT2 <- pbeta(q = x1,
+                        shape1 = FIT2$estimate[1],
+                        shape2 = FIT2$estimate[2])
+        R.FIT2 <- try(cor(p.FIT2, y1, use = "complete.obs"), silent = TRUE)
+        if (inherits(R.FIT2, "try-error")) {
+            R.FIT2 <- try(cor(p.FIT2, y1, use = "pairwise.complete.obs"),
+                          silent = TRUE)
+        }
+
+        if (inherits(R.FIT1, "try-error") && inherits(R.FIT2, "try-error")) {
+            R.cross.FIT <- 0
+        } else {
+            term1 <- length(p.FIT1) * R.FIT1
+            term2 <- length(p.FIT2) * R.FIT2
+            R.cross.FIT <- (term1 + term2)/(length(p.FIT1) + length(p.FIT2))
         }
     }
-    return(pars)
+
+
+    ## ====================== Adjusted R^2 =============================
+    fitted <- pbeta(q = q,
+                    shape1 = fit$estimate[1],
+                    shape2 = fit$estimate[2])
+    residuals <- dat$Q - fitted
+    N <- length(fitted)
+    aic <- AICmodel(residuals = residuals, np = 2)
+    bic <- BICmodel(residuals = residuals, np = 2)
+
+    X <- cbind(1, q)
+    betaHat <- solve(t(X) %*% X) %*% t(X) %*% q
+    var_betaHat <- var(q) * solve(t(X) %*% X)
+    se_beta <- sqrt(diag(var_betaHat))
+    t_value <- fit$estimate[1:2]/se_beta
+    wald_test <- pt(q = t_value, df = N - 2 , lower.tail = FALSE)
+    wald_test[ wald_test < 1e-16 ] <- "<1e-16"
+
+
+    if (!inherits( fit, "try-error" )) {
+        ## **** R squares ****
+        Adj.R.Square <- (1 - sum(residuals^2) / ((N - 2)) *
+                                                 var(q, use="everything"))
+
+        Adj.R.Square <- ifelse(is.na(Adj.R.Square) || Adj.R.Square < 0,
+                               0, Adj.R.Square)
+
+        ## Stein adjusted R square
+        rho = (1 - ((N - 2) / (N - 3)) * ((N + 1) / (N)) *
+                   (1 - Adj.R.Square))
+        rho = ifelse( is.na( rho ) | rho < 0, 0, rho )
+    }
+
+    stats <- data.frame(Estimate = c(shape1 = fit$estimate[1],
+                                     shape2 = fit$estimate[2]),
+                        Std.Error = se_beta,
+                        t_value = t_value,
+                        "Pr(>|t|)" = wald_test,
+                        Adj.R.Square = c(Adj.R.Square, NA),
+                        rho = c(rho, NA),
+                        R.Cross.val = c(R.cross.FIT, NA),
+                        AIC = c(aic, NA),
+                        BIC = c(bic, NA),
+                        n = c(N , NA))
+    names(stats) <- c(
+                    "Estimate", "Std.Error", "t_value", "Pr(>|t|)",
+                    "Adj.R.Square", "rho", "R.Cross.val", "AIC",
+                    "BIC", "n")
+
+    stats <- structure(stats, class = c("BetaModel", "data.frame"))
+    return(stats)
 }
+
+#' @rdname betaDistEstimation
+#' @aliases coef.BetaModel
+#' @export
+coef.BetaModel <- function(object) {
+    coefs <- object$Estimate
+    names(coefs) <- c("shape1", "shape2")
+    return(coefs)
+}
+

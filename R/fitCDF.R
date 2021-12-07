@@ -369,7 +369,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
             ggamma = c(shape_scale(X, gg = TRUE), psi = 1),
             weibull = weibullpars(mu = MEAN, sigma = SD),
             weibull3p = c(weibullpars(mu = MEAN, sigma = SD), mu = MIN),
-            beta = c(shape1 = 1, shape2 = 2),
+            beta = beta_start_par(MEAN, VAR),
             beta3 = c(
                 beta_start_par(MEAN, VAR),
                 mu = MIN

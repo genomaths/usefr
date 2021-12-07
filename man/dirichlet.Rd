@@ -63,7 +63,8 @@ distribution.
 The computation of the function 'pdirichlet' is accomplished
 using Monte Carlo integration of the density 'dirichlet'. The estimation are
 based on the fact that if a variable \eqn{x = (x_1, x_2, ...x_n)} follows
-Dirichlet Distribution with parameters \eqn{\alpha = \alpha_1, ... ,
+\href{https://handwiki.org/wiki/Dirichlet_distribution}{Dirichlet Distribution}
+ with parameters \eqn{\alpha = \alpha_1, ... ,
 \alpha_n} (all positive reals), in short, \eqn{x ~ Dir(\alpha)}, then
 \eqn{x_i ~ Beta(\alpha_i, \alpha_0 - \alpha_i)}, where Beta(.) stands for the
 Beta distribution and \eqn{\alpha_0 = \sum \alpha_i}.
@@ -85,7 +86,7 @@ lapply(x, estimateDirichDist)
 ### Density computation
 alpha = cbind(1:10, 5, 10:1)
 x = rdirichlet(10, c(5, 5, 10))
-ddirichlet(x = x, alpha = a.mat)
+ddirichlet(x = x, alpha = alpha)
 
 ### Or just one vector alpha
 x = rdirichlet(n = 10, alpha = c(2.1, 3.1, 1.2))

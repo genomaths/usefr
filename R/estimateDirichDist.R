@@ -26,7 +26,7 @@
 #' @title Nonlinear Parameter Estimation for Dirichlet Distribution \eqn{}
 #' @description The parameter estimation is accomplished using a count data
 #' matrix. The estimation is based on the fact that if a variable \eqn{x = (x_1,
-#' x_2, ...x_n)} follows Dirichlet Distribution with parameters \eqn{\lapha =
+#' x_2, ...x_n)} follows Dirichlet Distribution with parameters \eqn{\alpha =
 #' \alpha_1, ... , \alpha_n} (all positive reals), in short, \eqn{x ~
 #' Dir(\alpha)}, then \eqn{x_i ~ Beta(\alpha_i, \alpha_0 - \alpha_i)}, where
 #' Beta(.) stands for the Beta distribution and \eqn{\alpha_0 = \sum \alpha_i}.
@@ -64,6 +64,8 @@ estimateDirichDist <- function( x,
                                 start = NULL,
                                 num.cores = 1L,
                                 tasks = 0L,
+                                seed = 123,
+                                refit = TRUE,
                                 verbose = TRUE,
                                  ...) {
 
@@ -78,7 +80,7 @@ estimateDirichDist <- function( x,
     p <- x/rsum(x)
 
     if (is.null(start)) {
-        start <- matrix(1, d[1], d[2])
+        start <- matrix(1, d[1], 2)
     }
     else {
         if (length(start) != ncol(x))
@@ -90,6 +92,91 @@ estimateDirichDist <- function( x,
                     shape2 = sapply(start, function(x) alfa - x))
     }
 
+    FIT <- beta_fitting(
+                        p = p,
+                        start = start,
+                        num.cores = num.cores,
+                        tasks = tasks,
+                        seed = seed,
+                        verbose = verbose,
+                        ...)
+
+    if (refit) {
+        start <- coefs.DirchModel(FIT)$shape1
+        alfa_0 <- sum(start)
+        start <- cbind(shape1 = start,
+                        shape2 = sapply(start, function(x) alfa_0 - x))
+
+        FIT <- beta_fitting(
+                            p = p,
+                            start = start,
+                            num.cores = num.cores,
+                            tasks = tasks,
+                            seed = seed,
+                            verbose = verbose,
+                            ...)
+    }
+
+    FIT <- structure(FIT, class = c("DirchModel","list"))
+
+    return(FIT)
+}
+
+#' @rdname estimateDirichDist
+#' @aliases coefs.default
+#' @aliases coefs
+#' @keywords internal
+#' @importFrom stats coef
+#' @export
+coefs.default <- function(object, ...)
+    stats::coef(object, ...)
+
+
+#' @rdname estimateDirichDist
+#' @aliases coefs.DirchModel
+#' @aliases coefs
+#' @param object an object for which the extraction of model
+#' coefficients is meaningful.
+#' @param ... Additional parameter not in use yet.
+#' @keywords internal
+#' @export
+coefs.DirchModel <- function(object) {
+    coefs <- lapply(object, function(x) {
+        x$Estimate
+    })
+    if (length(coefs) > 1)
+        coefs <- data.frame(do.call(rbind, coefs))
+    else {
+        if (is.list(object))
+            coefs <- object[[1]]$Estimate
+        else
+            coefs <- object$Estimate
+    }
+    colnames(coefs) <- c("shape1", "shape2")
+    return(coefs)
+}
+
+### ===================== Auxiliary function =================
+
+rsum <- function(x) {
+    if (length(dim(x)) > 1)  return(rowSums(x, na.rm = TRUE))
+    else  return(sum(x, na.rm = TRUE))
+}
+
+
+## ================ Auxiliary function ======================
+
+beta_fitting <- function(
+                        p,
+                        start = NULL,
+                        num.cores = 1L,
+                        tasks = 0L,
+                        seed = 123,
+                        verbose = TRUE,
+                        ...) {
+    cn <- colnames(p)
+    d <- dim(p)
+
     if (num.cores > 1) {
         cn <- colnames(p)
         # Set parallel computation
@@ -97,66 +184,64 @@ estimateDirichDist <- function( x,
         if (verbose) progressbar = TRUE
         if (Sys.info()['sysname'] == "Linux") {
             bpparam <- MulticoreParam(workers = num.cores,
-                                      tasks = tasks,
-                                      progressbar = progressbar)
-        } else bpparam <- SnowParam(workers = num.cores, type = "SOCK",
+                                    tasks = tasks,
+                                    progressbar = progressbar)
+        }
+        else bpparam <- SnowParam(workers = num.cores, type = "SOCK",
                                     progressbar = progressbar)
 
-        pars <- bplapply(seq_len(d[2]), function(k) {
+        FIT <- bplapply(seq_len(d[2]), function(k) {
 
-            parm <- try(betaDistEstimation( q = p[, k],
+            fit <- try(betaDistEstimation( q = p[, k],
+                                           init.pars = start[k,],
+                                           seed = seed,
+                                           ...),
+                       silent = TRUE)
+            if (inherits(fit, "try-error")) {
+                fit <- try(betaDistEstimation(
+                                            q = p[, k],
                                             init.pars = start[k,],
-                                            ...)$parameters[1],
-                        silent = TRUE)
-            if (!inherits(parm, "try-error")) {
-                parm <- try(betaDistEstimation( q = p[, k],
-                                                init.pars = start[k,],
-                                                force.optim = TRUE,
-                                                ...)$parameters[1],
+                                            force.optim = TRUE,
+                                            seed = seed,
+                                            ...),
                             silent = TRUE)
             }
 
-            if (inherits(parm, "try-error"))
-                stop("\n*** Parameter for marginal '", k, "' failed")
+            if (inherits(fit, "try-error"))
+                stop("\n*** Model for marginal '", k, "' failed")
 
-            return(parm)
+            return(fit)
         }, ..., BPPARAM = bpparam)
-        pars <- unlist(pars)
-    } else {
+    }
+    else {
         pars <- vector(mode = "numeric", length = d[2])
+        FIT <- vector(mode = "list", length = d[2])
         for (k in seq_len(d[2])) {
             # if (verbose)
-            parm <- try(betaDistEstimation(q = p[, k],
-                                           init.pars = start[k,],
-                                           ...)$parameters[1],
-                        silent = TRUE)
-            if (!inherits(parm, "try-error")) {
-                parm <- try(betaDistEstimation( q = p[, k],
-                                                init.pars = start[k,],
-                                                force.optim = TRUE,
-                                                ...)$parameters[1],
-                            silent = TRUE)
+            fit <- try(betaDistEstimation(
+                q = p[, k],
+                init.pars = start[k,],
+                seed = seed,
+                ...),
+                silent = TRUE)
+            if (inherits(fit, "try-error")) {
+                fit <- try(betaDistEstimation(
+                    q = p[, k],
+                    init.pars = start[k,],
+                    force.optim = TRUE,
+                    seed = seed,
+                    ...),
+                    silent = TRUE)
             }
 
-            if (inherits(parm, "try-error"))
+            if (inherits(fit, "try-error"))
                 stop("\n*** Parameter for marginal '", k, "' failed")
-            pars[k] <- parm
+            FIT[[ k ]] <- fit
         }
     }
-    if (is.null(cn)) names(pars) <- paste0("a", seq_len(d[2]))
-    else names(pars) <- cn
-    return(pars)
-}
-
-#' @rdname estimateDirichDist
-#' @aliases estimateDirichDist
-#' @title Nonlinear Parameter Estimation for Dirichlet Distribution \eqn{}
-
-
-
-### ===================== Auxiliary function =================
-
-rsum <- function(x) {
-    if (length(dim(x)) > 1)  return(rowSums(x, na.rm = TRUE))
-    else  return(sum(x, na.rm = TRUE))
+    if (is.null(cn))
+        names(FIT) <- paste0("beta_", seq_len(d[2]))
+    else
+        names(FIT) <- cn
+    return(FIT)
 }

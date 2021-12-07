@@ -35,7 +35,8 @@
 #' @details The computation of the function 'pdirichlet' is accomplished
 #' using Monte Carlo integration of the density 'dirichlet'. The estimation are
 #' based on the fact that if a variable \eqn{x = (x_1, x_2, ...x_n)} follows
-#' Dirichlet Distribution with parameters \eqn{\alpha = \alpha_1, ... ,
+#' \href{https://handwiki.org/wiki/Dirichlet_distribution}{Dirichlet Distribution}
+#'  with parameters \eqn{\alpha = \alpha_1, ... ,
 #' \alpha_n} (all positive reals), in short, \eqn{x ~ Dir(\alpha)}, then
 #' \eqn{x_i ~ Beta(\alpha_i, \alpha_0 - \alpha_i)}, where Beta(.) stands for the
 #' Beta distribution and \eqn{\alpha_0 = \sum \alpha_i}.
@@ -56,7 +57,7 @@
 #' vector, strictly positive (default 1):
 #' \eqn{\lapha = \alpha_1, ... , \alpha_n}.
 #' @param lower.tail logical; if TRUE (default), probabilities are
-#'     \eqn{P(X<=x)}, otherwise, \eqn{P(X > x)}
+#' \eqn{P(X<=x)}, otherwise, \eqn{P(X > x)}
 #' @param log.p logical; if TRUE, probabilities/densities p are returned as
 #'     log(p).
 #' @param log.base (Optional) The logarithm's base if log.p = TRUE.
@@ -89,7 +90,7 @@
 #' ### Density computation
 #' alpha = cbind(1:10, 5, 10:1)
 #' x = rdirichlet(10, c(5, 5, 10))
-#' ddirichlet(x = x, alpha = a.mat)
+#' ddirichlet(x = x, alpha = alpha)
 #'
 #' ### Or just one vector alpha
 #' x = rdirichlet(n = 10, alpha = c(2.1, 3.1, 1.2))
@@ -110,6 +111,8 @@ ddirichlet <- function( x,
 
     d1 <- is.null(dim(x))
     d2 <- is.null(dim(alpha))
+    x <- x/rsum(x)
+
     if (d2)
         l <- length(alpha)
     else
@@ -134,13 +137,7 @@ ddirichlet <- function( x,
                  " with length(alpha) = ncol(x).")
     }
 
-
-    if (any.greater(x)) {
-        p <- (x + alpha)/(rsum(x) + rsum(alpha))
-    }
-
-
-    logConst <- function(a) {
+    logBeta <- function(a) {
         if (is.null(dim(a)))
             sum(lgamma(a)) - lgamma(sum(a))
         else
@@ -161,9 +158,9 @@ ddirichlet <- function( x,
     }
 
     if (log.p)
-        pdf <- (s - logConst(alpha))
+        pdf <- (s - logBeta(alpha))
     else
-        pdf <- (exp(s - logConst(alpha)))
+        pdf <- (exp(s - logBeta(alpha)))
 
     if (d1) {
         pdf[ !all.equal(sum(x), 1) ] <- 0
@@ -324,7 +321,16 @@ mc_pdir <- function(q, alpha, n = 1e4, seed = 1) {
 any.greater <- function(x, value, d = 1) {
     if (d > 1) {
         res <- any(colSums(x) > value)
-    } else
-        res <- any(rowSums(x) > value)
+    } else{
+        if (!is.null(dim(x)))
+            res <- any(rowSums(x) > value)
+        else
+            res <- (sum(x) > value)
+    }
     return(res)
+}
+
+rsum <- function(x) {
+    if (length(dim(x)) > 1)  return(rowSums(x, na.rm = TRUE))
+    else  return(sum(x, na.rm = TRUE))
 }

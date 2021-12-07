@@ -2,7 +2,9 @@
 % Please edit documentation in R/estimateDirichDist.R
 \name{estimateDirichDist}
 \alias{estimateDirichDist}
-\alias{rsum}
+\alias{coefs.default}
+\alias{coefs}
+\alias{coefs.DirchModel}
 \title{Nonlinear Parameter Estimation for Dirichlet Distribution \eqn{}}
 \usage{
 estimateDirichDist(
@@ -10,11 +12,15 @@ estimateDirichDist(
   start = NULL,
   num.cores = 1L,
   tasks = 0L,
+  seed = 123,
+  refit = TRUE,
   verbose = TRUE,
   ...
 )
 
-rsum(x)
+coefs.default(object, ...)
+
+coefs.DirchModel(object)
 }
 \arguments{
 \item{x}{A matrix or a data.frame object carrying count data.}
@@ -30,7 +36,10 @@ use, i.e. at most how many child processes will be run simultaneously
 
 \item{verbose}{if TRUE, prints the function log to stdout and a progress bar}
 
-\item{...}{Further arguments for \code{\link{betaDistEstimation}} function.}
+\item{...}{Additional parameter not in use yet.}
+
+\item{object}{an object for which the extraction of model
+coefficients is meaningful.}
 }
 \value{
 A vector of estimated parameter values
@@ -38,7 +47,7 @@ A vector of estimated parameter values
 \description{
 The parameter estimation is accomplished using a count data
 matrix. The estimation is based on the fact that if a variable \eqn{x = (x_1,
-x_2, ...x_n)} follows Dirichlet Distribution with parameters \eqn{\lapha =
+x_2, ...x_n)} follows Dirichlet Distribution with parameters \eqn{\alpha =
 \alpha_1, ... , \alpha_n} (all positive reals), in short, \eqn{x ~
 Dir(\alpha)}, then \eqn{x_i ~ Beta(\alpha_i, \alpha_0 - \alpha_i)}, where
 Beta(.) stands for the Beta distribution and \eqn{\alpha_0 = \sum \alpha_i}.
@@ -65,3 +74,4 @@ estimateDirichDist(x)
 \author{
 Robersy Sanchez <https://genomaths.com>
 }
+\keyword{internal}

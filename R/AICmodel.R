@@ -61,13 +61,15 @@ AICmodel <- function(model=NULL, residuals=NULL, np=NULL) {
                " or 'residual' must be provided"))
    }
    if (!is.null(model)) {
-       if (is.null(np)) np <- length(coef(model))
+       if (is.null(np))
+          np <- length(coef(model))
        RESID <- resid(model)
    }
    if (is.null(np)) {
        stop("The number of model parameters 'np' must be provided")
    }
-   if (!is.null(residuals)) RESID <- residuals
+   if (!is.null(residuals))
+      RESID <- residuals
 
    sse <- sum(RESID^2, na.rm=TRUE)
    N <- length( RESID )
