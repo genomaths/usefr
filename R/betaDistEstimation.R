@@ -225,7 +225,7 @@ betaDistEstimation <- function(
 
         ## Stein adjusted R square
         rho = (1 - ((N - 2) / (N - 3)) * ((N + 1) / (N)) *
-                   (1 - Adj.R.Square))
+                    (1 - Adj.R.Square))
         rho = ifelse( is.na( rho ) | rho < 0, 0, rho )
     }
 
@@ -247,14 +247,5 @@ betaDistEstimation <- function(
 
     stats <- structure(stats, class = c("BetaModel", "data.frame"))
     return(stats)
-}
-
-#' @rdname betaDistEstimation
-#' @aliases coef.BetaModel
-#' @export
-coef.BetaModel <- function(object) {
-    coefs <- object$Estimate
-    names(coefs) <- c("shape1", "shape2")
-    return(coefs)
 }
 

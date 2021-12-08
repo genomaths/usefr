@@ -1067,47 +1067,6 @@ setMethod("fitCDF", signature(varobj = "list_OR_matrix_OR_dataframe"),
     }
 )
 
-#' @rdname fitCDF
-#' @aliases coef
-#' @param object An object for which the extraction of model coefficients
-#' is meaningful.
-#' @description See \code{\link[stats]{coef}}.
-#' @details See \code{\link[stats]{coef}}.
-#' @keywords internal
-#' @export
-coef <- function(object, ...) UseMethod("coef", object)
-
-#' @rdname fitCDF
-#' @aliases coef.default
-#' @keywords internal
-#' @export
-coef.default <- function(object, ...)
-    stats::coef(object, ...)
-
-#' @rdname fitCDF
-#' @aliases coef.nls.lm
-#' @export
-coef.nls.lm <- function(object) {
-    object$par
-}
-
-#' @rdname fitCDF
-#' @aliases coef.CDFmodel
-#' @export
-coef.CDFmodel <- function(object) {
-    coef(object$bestfit)
-}
-
-#' @rdname fitCDF
-#' @aliases coef.CDFmodelList
-#' @export
-coef.CDFmodelList <- function(object) {
-    object <- object[ seq_len(length(object) - 1) ]
-    sapply(object, function(m) coef(m))
-}
-
-
-
 
 ## ============================= Auxiliary functions ========================= #
 

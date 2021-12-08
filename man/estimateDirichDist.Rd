@@ -2,9 +2,6 @@
 % Please edit documentation in R/estimateDirichDist.R
 \name{estimateDirichDist}
 \alias{estimateDirichDist}
-\alias{coefs.default}
-\alias{coefs}
-\alias{coefs.DirchModel}
 \title{Nonlinear Parameter Estimation for Dirichlet Distribution \eqn{}}
 \usage{
 estimateDirichDist(
@@ -17,10 +14,6 @@ estimateDirichDist(
   verbose = TRUE,
   ...
 )
-
-coefs.default(object, ...)
-
-coefs.DirchModel(object)
 }
 \arguments{
 \item{x}{A matrix or a data.frame object carrying count data.}
@@ -36,10 +29,7 @@ use, i.e. at most how many child processes will be run simultaneously
 
 \item{verbose}{if TRUE, prints the function log to stdout and a progress bar}
 
-\item{...}{Additional parameter not in use yet.}
-
-\item{object}{an object for which the extraction of model
-coefficients is meaningful.}
+\item{...}{Further arguments for \code{\link{betaDistEstimation}} function.}
 }
 \value{
 A vector of estimated parameter values
@@ -74,4 +64,3 @@ estimateDirichDist(x)
 \author{
 Robersy Sanchez <https://genomaths.com>
 }
-\keyword{internal}

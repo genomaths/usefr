@@ -102,7 +102,7 @@ estimateDirichDist <- function( x,
                         ...)
 
     if (refit) {
-        start <- coefs.DirchModel(FIT)$shape1
+        start <- coefs(FIT)
         alfa_0 <- sum(start)
         start <- cbind(shape1 = start,
                         shape2 = sapply(start, function(x) alfa_0 - x))
@@ -117,44 +117,9 @@ estimateDirichDist <- function( x,
                             ...)
     }
 
-    FIT <- structure(FIT, class = c("DirchModel","list"))
-
     return(FIT)
 }
 
-#' @rdname estimateDirichDist
-#' @aliases coefs.default
-#' @aliases coefs
-#' @keywords internal
-#' @importFrom stats coef
-#' @export
-coefs.default <- function(object, ...)
-    stats::coef(object, ...)
-
-
-#' @rdname estimateDirichDist
-#' @aliases coefs.DirchModel
-#' @aliases coefs
-#' @param object an object for which the extraction of model
-#' coefficients is meaningful.
-#' @param ... Additional parameter not in use yet.
-#' @keywords internal
-#' @export
-coefs.DirchModel <- function(object) {
-    coefs <- lapply(object, function(x) {
-        x$Estimate
-    })
-    if (length(coefs) > 1)
-        coefs <- data.frame(do.call(rbind, coefs))
-    else {
-        if (is.list(object))
-            coefs <- object[[1]]$Estimate
-        else
-            coefs <- object$Estimate
-    }
-    colnames(coefs) <- c("shape1", "shape2")
-    return(coefs)
-}
 
 ### ===================== Auxiliary function =================
 
@@ -210,20 +175,23 @@ beta_fitting <- function(
             if (inherits(fit, "try-error"))
                 stop("\n*** Model for marginal '", k, "' failed")
 
+            fit <- structure(fit, class = c("BetaModel","data.frame"))
+
             return(fit)
         }, ..., BPPARAM = bpparam)
     }
     else {
         pars <- vector(mode = "numeric", length = d[2])
+        ALFA <- vector(mode = "numeric", length = d[2])
         FIT <- vector(mode = "list", length = d[2])
+
         for (k in seq_len(d[2])) {
             # if (verbose)
             fit <- try(betaDistEstimation(
-                q = p[, k],
-                init.pars = start[k,],
-                seed = seed,
-                ...),
-                silent = TRUE)
+                                q = p[, k],
+                                init.pars = start[k,],
+                                seed = seed),
+                                silent = TRUE)
             if (inherits(fit, "try-error")) {
                 fit <- try(betaDistEstimation(
                     q = p[, k],
@@ -236,6 +204,10 @@ beta_fitting <- function(
 
             if (inherits(fit, "try-error"))
                 stop("\n*** Parameter for marginal '", k, "' failed")
+
+            fit <- structure(fit, class = c("BetaModel","data.frame"))
+
+            ALFA[ k ] <- fit$Estimate[1]
             FIT[[ k ]] <- fit
         }
     }
@@ -243,5 +215,9 @@ beta_fitting <- function(
         names(FIT) <- paste0("beta_", seq_len(d[2]))
     else
         names(FIT) <- cn
+
+    FIT <- list(alpha = ALFA,
+                marginals = FIT)
+    FIT <- structure(FIT, class = c("DirchModel","list"))
     return(FIT)
 }

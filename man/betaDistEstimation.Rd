@@ -2,7 +2,6 @@
 % Please edit documentation in R/betaDistEstimation.R
 \name{betaDistEstimation}
 \alias{betaDistEstimation}
-\alias{coef.BetaModel}
 \title{Nonlinear Parameter Estimation for Beta Distribution}
 \usage{
 betaDistEstimation(
@@ -18,8 +17,6 @@ betaDistEstimation(
   seed = 123,
   ...
 )
-
-\method{coef}{BetaModel}(object)
 }
 \arguments{
 \item{q}{prior probabilities}
