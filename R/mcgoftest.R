@@ -209,7 +209,8 @@
 #'
 #' # MC KS test accept the null hypothesis that variable x comes
 #' # from N(x | mean = 0.5, sd = 1.2), while the standard
-#' # Kolmogorov-Smirnov test reject the Null Hypothesis.
+#' # Kolmogorov-Smirnov test reject the Null Hypothesis. This an old KS issue,
+#' # well known by statisticians since the 1970s.
 #' mcgoftest(x, distr = "norm", pars = c(1.5, 2), num.sampl = 500,
 #'           sample.size = 1000, num.cores = 1)
 #'
@@ -344,280 +345,285 @@
 
 #' @aliases mcgoftest
 setGeneric(
-     "mcgoftest",
-     def = function(
-                    model,
+    "mcgoftest",
+    def = function(
                     varobj,
+                    model,
                     ...) standardGeneric("mcgoftest"))
 
 
+setClassUnion("numeric_OR_matrix", c("numeric", "matrix"))
+
 #' @rdname mcgoftest
 #' @aliases mcgoftest
 #' @export
-setMethod("mcgoftest", signature(model = "missingORNULL"),
-     function(
-               model,
-               varobj,
-               distr = NULL,
-               pars = NULL,
-               num.sampl = 999,
-               sample.size = NULL,
-               stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
-               breaks = NULL,
-               par.names = NULL,
-               seed = 1,
-               num.cores = 1L,
-               tasks = 0L,
-               verbose = TRUE) {
-   ## A starting permutation script for permutation test used the idea published
-   ## on \href{https://goo.gl/hfnNy8}{Alastair Sanderson} An idea presented in
-   ## his post: \emph{Using R to analyse data statistical and numerical data
-   ## analysis with R}. Herein, it is modified and extended.
-          set.seed( seed )
-          stat <- match.arg(stat)
-          require_pars <- grepl(stat, c("ks", "ad", "rmse", "chisq", "hd"))
-          if (require_pars && is.null(pars) && is.character(distr))
-               stop("\n*** A list of parameter values is required for ",
-                    "the application of '",
-                    c("ks", "ad", "rmse", "chisq", "hd")[require_pars],
-                    "' approach.",
-                    "\nYou can see the examples.")
+setMethod("mcgoftest", signature(varobj = "numeric_OR_matrix",
+                                model = "missing"),
+    function(
+        varobj,
+        model = NULL,
+        distr = NULL,
+        pars = NULL,
+        num.sampl = 999,
+        sample.size = NULL,
+        stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+        breaks = NULL,
+        par.names = NULL,
+        seed = 1,
+        num.cores = 1L,
+        tasks = 0L,
+        verbose = TRUE) {
+        ## A starting permutation script for permutation test used the idea
+        ## published on \href{https://goo.gl/hfnNy8}{Alastair Sanderson} An idea
+        ## presented in his post: \emph{Using R to analyse data statistical and
+        ## numerical data analysis with R}. Herein, it is modified and extended.
+        set.seed( seed )
+        stat <- match.arg(stat)
+        require_pars <- grepl(stat, c("ks", "ad", "rmse", "chisq", "hd"))
+        if (require_pars && is.null(pars) && is.character(distr))
+            stop("\n*** A list of parameter values is required for ",
+                 "the application of '",
+                 c("ks", "ad", "rmse", "chisq", "hd")[require_pars],
+                 "' approach.",
+                 "\nYou can see the examples.")
 
-          if (is.null(distr) && stat != "sw") {
-               if (length(varobj) < 7)
-                    stop("\n*** At least 7 observation/values must be provided")
-               stat <- "sw"
-               message("--> Applying Shapiro-Wilk test of normality.")
-          }
+        if (is.null(distr) && stat != "sw") {
+            if (length(varobj) < 7)
+                stop("\n*** At least 7 observation/values must be provided")
+            stat <- "sw"
+            message("--> Applying Shapiro-Wilk test of normality.")
+        }
 
-          if (stat == "sw") {
-               parametric <- TRUE
-               distr <- NULL
-               num.sampl <- length(varobj)
-               if (is.null(sample.size))
-                    sample.size <- length(varobj) - 1
-               if (sample.size > 2000)
-                    stop("\n*** For Shapiro-Wilk test sample size  must be",
-                         " between 7 and 2000")
-          }
+        if (stat == "sw") {
+            parametric <- TRUE
+            distr <- NULL
+            num.sampl <- length(varobj)
+            if (is.null(sample.size))
+                sample.size <- length(varobj) - 1
+            if (sample.size > 2000)
+                stop("\n*** For Shapiro-Wilk test sample size  must be",
+                     " between 7 and 2000")
+        }
 
-          if (stat == "sw" && !is.null(distr)) {
-               distr <- NULL
-               warning("*** 'sw' approach does not require for ",
-               "a 'distr' value, since it is a test of normality without ",
-               "further assumptions.\n")
-          }
+        if (stat == "sw" && !is.null(distr)) {
+            distr <- NULL
+            warning("*** 'sw' approach does not require for ",
+                    "a 'distr' value, since it is a test of normality without ",
+                    "further assumptions.\n")
+        }
 
-          if (distr == "dirichlet" && is.element(stat, c("ks", "ad")))
-               stop("\n*** 'ks' and 'ad' approaches are not available for ",
-                    "n-dimensional distributions")
+        if (distr == "dirichlet" && is.element(stat, c("ks", "ad")))
+            stop("\n*** 'ks' and 'ad' approaches are not available for ",
+                 "n-dimensional distributions")
 
-          if (is.numeric(distr)) {
-               if (is.element(stat, c("ks", "ad"))) {
-                    distr <- "chisq"
-                    warning("*** 'ks' and 'ad' approaches are not",
-                         " available for discrete distributions",
-                         "\n'chisq' approach was applied")
-               }
+        if (is.numeric(distr)) {
+            if (is.element(stat, c("ks", "ad"))) {
+                distr <- "chisq"
+                warning("*** 'ks' and 'ad' approaches are not",
+                        " available for discrete distributions",
+                        "\n'chisq' approach was applied")
+            }
 
-               if (!is.null(dim(distr)))
-                    stop(
-                         "*** 'distr' must be a character string naming a ",
-                    "distribution function e.g, 'norm' will permit accessing ",
-                     "functions 'pnorm' and 'rnorm', or a numerical vector"
-                    )
-               if (!is.null(dim(varobj)))
-                    stop("\n*** if 'distr' is a numerical vector,",
-                         " then 'varobj' must be a numerical vector as well")
-               if (length(distr) != length(varobj))
-                    stop("\n*** if 'distr' is a numeric vector,",
-                         " then length(distr) == length(varobj)")
-               parametric <- FALSE
-          }
-
-          if (is.character(distr)) {
-               is.discr <- is.element(distr, c("dirichlet", "multinom"))
-               pdistr <- paste0("p", distr)
-               pdistr <- try(get(pdistr, mode = "function",
-                                 envir = parent.frame()), silent = TRUE)
-
-               if (inherits(pdistr, "try-error") && !is.discr)
-                    stop(
-                         "*** 'distr' must be a character string naming a ",
+            if (!is.null(dim(distr)))
+                stop(
+                    "*** 'distr' must be a character string naming a ",
                     "distribution function e.g, 'norm' will permit accessing ",
                     "functions 'pnorm' and 'rnorm', or a numerical vector"
-                    )
+                )
+            if (!is.null(dim(varobj)))
+                stop("\n*** if 'distr' is a numerical vector,",
+                     " then 'varobj' must be a numerical vector as well")
+            if (length(distr) != length(varobj))
+                stop("\n*** if 'distr' is a numeric vector,",
+                     " then length(distr) == length(varobj)")
+            parametric <- FALSE
+        }
 
-               rdistr <- paste0("r", distr)
-               rdistr <- try(get(rdistr, mode = "function",
-                                 envir = parent.frame()), silent = TRUE)
+        if (is.character(distr)) {
+            is.discr <- is.element(distr, c("dirichlet", "multinom"))
+            pdistr <- paste0("p", distr)
+            pdistr <- try(get(pdistr, mode = "function",
+                              envir = parent.frame()), silent = TRUE)
 
-               if (inherits(rdistr, "try-error") && !is.discr)
-                    stop(
+            if (inherits(pdistr, "try-error") && !is.discr)
+                stop(
+                    "*** 'distr' must be a character string naming a ",
+                    "distribution function e.g, 'norm' will permit accessing ",
+                    "functions 'pnorm' and 'rnorm', or a numerical vector"
+                )
+
+            rdistr <- paste0("r", distr)
+            rdistr <- try(get(rdistr, mode = "function",
+                              envir = parent.frame()), silent = TRUE)
+
+            if (inherits(rdistr, "try-error") && !is.discr)
+                stop(
                     "*** 'distr' must be a character string naming a ",
                     "distribution function e.g, 'norm' will permit accessing ",
                     "functions 'pnorm' and 'rnorm'"
-                    )
-               parametric <- TRUE
-          }
+                )
+            parametric <- TRUE
+        }
 
-          if (inherits(varobj, c("matrix", "data.frame")))
-               l <- nrow(varobj)
-          else
-               l <- length(varobj)
+        if (inherits(varobj, c("matrix", "data.frame")))
+            l <- nrow(varobj)
+        else
+            l <- length(varobj)
 
-          if (is.null(sample.size))
-               sample.size = l
+        if (is.null(sample.size))
+            sample.size = l
 
-          if (sample.size > l && !parametric)
-               sample.size = l
-          statis <- switch(stat,
-                           ks = "Kolmogorov-Smirnov",
-                           ad = "Anderson–Darling",
-                           sw = "Shapiro-Wilk",
-                           rmse = "Root Mean Square",
-                           chisq = "Pearson's Chi-squared",
-                           hd = "Hellinger test"
-          )
+        if (sample.size > l && !parametric)
+            sample.size = l
+        statis <- switch(stat,
+                         ks = "Kolmogorov-Smirnov",
+                         ad = "Anderson–Darling",
+                         sw = "Shapiro-Wilk",
+                         rmse = "Root Mean Square",
+                         chisq = "Pearson's Chi-squared",
+                         hd = "Hellinger test"
+        )
 
-          if (verbose) {
-               method <- ifelse(sample.size < length(varobj),
-                                "Monte Carlo GoF testing",
-                                "Permutation GoF testing")
+        if (verbose) {
+            method <- ifelse(sample.size < length(varobj),
+                             "Monte Carlo GoF testing",
+                             "Permutation GoF testing")
 
-               approach <- ifelse(parametric, "parametric approach",
-                                  "non-parametric approach")
+            approach <- ifelse(parametric, "parametric approach",
+                               "non-parametric approach")
 
-               cat( "***", method,"based on" ,
-                    statis,"statistic",
-                    "(", approach, ")",
-                    " ...\n")
-          }
+            cat( "***", method,"based on" ,
+                 statis,"statistic",
+                 "(", approach, ")",
+                 " ...\n")
+        }
 
-          if (stat == "ks" && !parametric && sample.size < length(varobj)) {
-               warning("*** ", method," based on ", statis," statistic ",
-                       "(", approach, ") ", "is not reliable. \n",
-                       "Use the parametric approach or permutation instead.")
-          }
+        if (stat == "ks" && !parametric && sample.size < length(varobj)) {
+            warning("*** ", method," based on ", statis," statistic ",
+                    "(", approach, ") ", "is not reliable. \n",
+                    "Use the parametric approach or permutation instead.")
+        }
 
-          if (parametric) {
-               res <-    GoFtest(x = varobj,
-                                 R = num.sampl,
-                                 distr = distr,
-                                 szise = sample.size,
-                                 pars = pars,
-                                 stat = stat,
-                                 breaks = breaks,
-                                 par.names = par.names,
-                                 num.cores = num.cores,
-                                 tasks = tasks,
-                                 verbose = verbose)
-          }
-          else {
-               if (is.numeric(distr))
-                    res <- tableBoots(rbind(varobj, distr),
-                                      stat = stat,
-                                      num.permut = num.sampl )
-          }
-          return(res)
-     }
+        if (parametric) {
+            res <-    GoFtest(
+                            x = varobj,
+                            R = num.sampl,
+                            distr = distr,
+                            szise = sample.size,
+                            pars = pars,
+                            stat = stat,
+                            breaks = breaks,
+                            par.names = par.names,
+                            num.cores = num.cores,
+                            tasks = tasks,
+                            verbose = verbose)
+        }
+        else {
+            if (is.numeric(distr))
+                res <- tableBoots(
+                                rbind(varobj, distr),
+                                stat = stat,
+                                num.permut = num.sampl )
+        }
+        return(res)
+    }
 )
 
 
 #' @rdname mcgoftest
 #' @aliases mcgoftest
 #' @export
-setMethod("mcgoftest", signature(model = "CDFmodel"),
-     function(
-               model,
-               varobj,
-               num.sampl = 999,
-               sample.size = NULL,
-               stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
-               breaks = NULL,
-               par.names = NULL,
-               seed = 1,
-               num.cores = 1L,
-               tasks = 0L,
-               verbose = TRUE) {
+setMethod("mcgoftest", signature(varobj = "numeric", model = "CDFmodel"),
+    function(
+        varobj,
+        model,
+        num.sampl = 999,
+        sample.size = NULL,
+        stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+        breaks = NULL,
+        par.names = NULL,
+        seed = 1,
+        num.cores = 1L,
+        tasks = 0L,
+        verbose = TRUE) {
 
-          res <- mcgoftest(
-                         varobj = varobj,
-                         distr = sub("^p", "", model$cdf),
-                         pars = coef(model),
-                         num.sampl = num.sampl,
-                         sample.size = sample.size,
-                         stat = stat,
-                         breaks = breaks,
-                         par.names = par.names,
-                         seed = seed,
-                         num.cores = num.cores,
-                         tasks = tasks,
-                         verbose = verbose)
+        res <- mcgoftest(
+            varobj = varobj,
+            distr = sub("^p", "", model$cdf),
+            pars = coef(model),
+            num.sampl = num.sampl,
+            sample.size = sample.size,
+            stat = stat,
+            breaks = breaks,
+            par.names = par.names,
+            seed = seed,
+            num.cores = num.cores,
+            tasks = tasks,
+            verbose = verbose)
 
 
-          return(res)
-     }
+        return(res)
+    }
 )
 
 #' @rdname mcgoftest
 #' @aliases mcgoftest
 #' @export
-setMethod("mcgoftest", signature(model = "CDFmodelList"),
-     function(
-               model,
-               varobj,
-               num.sampl = 999,
-               sample.size = NULL,
-               stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
-               breaks = NULL,
-               par.names = NULL,
-               seed = 1,
-               num.cores = 1L,
-               tasks = 0L,
-               verbose = TRUE) {
+setMethod("mcgoftest", signature(varobj = "numeric", model = "CDFmodelList"),
+    function(
+        varobj,
+        model,
+        num.sampl = 999,
+        sample.size = NULL,
+        stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+        breaks = NULL,
+        par.names = NULL,
+        seed = 1,
+        num.cores = 1L,
+        tasks = 0L,
+        verbose = TRUE) {
 
-          l <- seq_len(length(model)-1)
-          nms <- names(model[ l ])
+        l <- seq_len(length(model)-1)
+        nms <- names(model[ l ])
 
-          if (inherits(varobj, c("matrix", "data.frame")))
-               res <- lapply(l,
-                    function(k) {
-                         mcgoftest(model = model[[ k ]],
-                                   varobj = varobj[, k ],
-                                   num.sampl = num.sampl,
-                                   sample.size = sample.size,
-                                   stat = stat,
-                                   breaks = breaks,
-                                   par.names = par.names,
-                                   seed = seed,
-                                   num.cores = num.cores,
-                                   tasks = tasks,
-                                   verbose = verbose)
-                    }
-               )
+        if (inherits(varobj, c("matrix", "data.frame")))
+            res <- lapply(l,
+                          function(k) {
+                              mcgoftest(model = model[[ k ]],
+                                        varobj = varobj[, k ],
+                                        num.sampl = num.sampl,
+                                        sample.size = sample.size,
+                                        stat = stat,
+                                        breaks = breaks,
+                                        par.names = par.names,
+                                        seed = seed,
+                                        num.cores = num.cores,
+                                        tasks = tasks,
+                                        verbose = verbose)
+                          }
+            )
 
-          if (inherits(varobj, "list"))
-               res <- lapply(l,
-                    function(k) {
-                         mcgoftest(model = model[[ k ]],
-                                   varobj = varobj[[ k ]],
-                                   num.sampl = num.sampl,
-                                   sample.size = sample.size,
-                                   stat = stat,
-                                   breaks = breaks,
-                                   par.names = par.names,
-                                   seed = seed,
-                                   num.cores = num.cores,
-                                   tasks = tasks,
-                                   verbose = verbose)
-                    }
-               )
+        if (inherits(varobj, "list"))
+            res <- lapply(l,
+                          function(k) {
+                              mcgoftest(model = model[[ k ]],
+                                        varobj = varobj[[ k ]],
+                                        num.sampl = num.sampl,
+                                        sample.size = sample.size,
+                                        stat = stat,
+                                        breaks = breaks,
+                                        par.names = par.names,
+                                        seed = seed,
+                                        num.cores = num.cores,
+                                        tasks = tasks,
+                                        verbose = verbose)
+                          }
+            )
 
-          names(res) <- nms
-          res <- do.call(rbind, res)
-          return(res)
-     }
+        names(res) <- nms
+        res <- do.call(rbind, res)
+        return(res)
+    }
 )
 
 setClassUnion("NLM", c("nls", "nlsModel"))
@@ -626,75 +632,75 @@ setClassUnion("NLM", c("nls", "nlsModel"))
 #' @aliases mcgoftest
 #' @export
 setMethod("mcgoftest", signature(model = "NLM"),
-     function(
-               model,
-               varobj,
-               num.sampl = 999,
-               sample.size = NULL,
-               stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
-               breaks = NULL,
-               par.names = NULL,
-               seed = 1,
-               num.cores = 1L,
-               tasks = 0L,
-               verbose = TRUE) {
+    function(
+        varobj,
+        model,
+        num.sampl = 999,
+        sample.size = NULL,
+        stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+        breaks = NULL,
+        par.names = NULL,
+        seed = 1,
+        num.cores = 1L,
+        tasks = 0L,
+        verbose = TRUE) {
 
-          form <- model$m$formula()
+        form <- model$m$formula()
 
-          res <- mcgoftest(
-                         varobj = varobj,
-                         distr = form[[ 3L ]][[ 1L ]],
-                         pars = coef(model),
-                         num.sampl = num.sampl,
-                         sample.size = sample.size,
-                         stat = stat,
-                         breaks = breaks,
-                         par.names = par.names,
-                         seed = seed,
-                         num.cores = num.cores,
-                         tasks = tasks,
-                         verbose = verbose)
+        res <- mcgoftest(
+            varobj = varobj,
+            distr = form[[ 3L ]][[ 1L ]],
+            pars = coef(model),
+            num.sampl = num.sampl,
+            sample.size = sample.size,
+            stat = stat,
+            breaks = breaks,
+            par.names = par.names,
+            seed = seed,
+            num.cores = num.cores,
+            tasks = tasks,
+            verbose = verbose)
 
-          return(res)
-     }
+        return(res)
+    }
 )
 
 #' @rdname mcgoftest
 #' @aliases mcgoftest
 #' @export
 setMethod("mcgoftest", signature(model = "nls.lm"),
-          function(
-               model,
-               varobj,
-               distr,
-               num.sampl = 999,
-               sample.size = NULL,
-               stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
-               breaks = NULL,
-               par.names = NULL,
-               seed = 1,
-               num.cores = 1L,
-               tasks = 0L,
-               verbose = TRUE) {
+    function(
+        varobj,
+        model,
+        distr,
+        num.sampl = 999,
+        sample.size = NULL,
+        stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+        breaks = NULL,
+        par.names = NULL,
+        seed = 1,
+        num.cores = 1L,
+        tasks = 0L,
+        verbose = TRUE) {
 
-               form <- model$m$formula()
+        form <- model$m$formula()
 
-               res <- mcgoftest(
-                              varobj = varobj,
-                              distr = distr,
-                              pars = coef(model),
-                              num.sampl = num.sampl,
-                              sample.size = sample.size,
-                              stat = stat,
-                              breaks = breaks,
-                              par.names = par.names,
-                              seed = seed,
-                              num.cores = num.cores,
-                              tasks = tasks,
-                              verbose = verbose)
+        res <- mcgoftest(
+            varobj = varobj,
+            distr = distr,
+            pars = coef(model),
+            num.sampl = num.sampl,
+            sample.size = sample.size,
+            stat = stat,
+            breaks = breaks,
+            par.names = par.names,
+            seed = seed,
+            num.cores = num.cores,
+            tasks = tasks,
+            verbose = verbose)
 
-               return(res)
-          }
+        return(res)
+    }
 )
 
 

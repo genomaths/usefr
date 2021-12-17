@@ -183,7 +183,7 @@ fitMixDist <- function(X,
                      args = list(norm = c(mean = NA, sd = NA),
                                         weibull = c(shape = NA, scale = NA)),
                      dens = TRUE,
-                     npoints = 100,
+                     npoints = NULL,
                      kmean = FALSE,
                      maxiter=1024,
                      prior = priorControl(),
@@ -303,28 +303,26 @@ fitMixDist <- function(X,
                            MAX = max(Z, na.rm = TRUE),
                            SIMPLIFY = FALSE)
 
-            # arg <- try(startParComp(div = Z, args, cl = fit$classification),
-            #             silent = TRUE)
-
-            # if (!inherits(arg, "try-error"))
-            #     args <- arg
-
             rm(Z); gc()
         } else {
             algorithm <- match.arg(algorithm)
             cl <- mixture_stat(u = X, m = length(dfns), iter.max = iter.max,
                                nstart = nstart, algorithm = algorithm)
 
-            args <- try(startParComp(div = X, args, cl = cl$cluster),
-                        silent = TRUE)
+            # args <- try(startParComp(div = X, args, cl = cl$cluster),
+            #             silent = TRUE)
 
-            if (inherits(args, "try-error")) {
-                mu <- cl$mu
-                sigma <- cl$sigma
-                phi <- cl$prop
-                args <- mapply(parLIST, dfns, MEAN = mu, SD = sigma,
-                               SIMPLIFY = FALSE)
-            }
+            mu <- cl$mu
+            sigma <- cl$sigma
+            phi <- cl$prop
+            args <- mapply(
+                parLIST, dfns,
+                MEAN = mu,
+                SD = sigma,
+                VAR = sigma^2,
+                MIN = min(X, na.rm = TRUE),
+                MAX = max(X, na.rm = TRUE),
+                SIMPLIFY = FALSE)
         }
     }
 
@@ -391,9 +389,8 @@ fitMixDist <- function(X,
                                                 maxfev = maxfev,
                                                 ptol = ptol)),
                 silent = TRUE)
-    } else {
-        # optFun(par = unlist(args), objFun = pmixtdistr, quantiles = x,
-        #        obsVals = y)
+    }
+    else {
 
         FIT <- try(nls.lm(par = unlist(args), fn = optFun, objFun = pmixtdistr,
                           quantiles = x, obsVals = y,
@@ -542,7 +539,6 @@ fitMixDist <- function(X,
         }
         gaps <- rep(NA, length(coef(FIT)) - 1)
         fit_summary <- try(summary(FIT)$coefficients, silent = TRUE)
-        # if (!kmean) bic <- fit$bic else bic <- NA
 
         if (inherits(fit_summary, "try-error")) {
             stats <- data.frame(Estimate = c("Choleski Decomposition fail", NA),
@@ -624,26 +620,26 @@ mixture_stat <- function( u, m, iter.max, nstart, algorithm) {
 ## -------------------------------------------------------------------- ##
 ## To estimate starting values for the parameters of the mixture components
 
-startParComp <- function(div, args, cl) {
-   nams <- match(names(args), distNames)
-   ## To try the estimation of parameter starting values
-   if (!any(is.na(nams))) {
-      fit0 <- try(lapply(seq_along(nams), function(k)
-                     fitCDF(div[cl == k], distNames = nams[k], plot = FALSE,
-                  verbose = FALSE)),
-               silent = TRUE)
+# startParComp <- function(div, args, cl) {
+#    nams <- match(names(args), distNames)
+#    ## To try the estimation of parameter starting values
+#    if (!any(is.na(nams))) {
+#       fit0 <- try(lapply(seq_along(nams), function(k)
+#                      fitCDF(div[cl == k], distNames = nams[k], plot = FALSE,
+#                   verbose = FALSE)),
+#                silent = TRUE)
+#
+#       if (!inherits(fit0, "try-error")) {
+#          args <- lapply(seq_along(args), function(nms)
+#                         coef(fit0[[nms]]$bestfit))
+#          names(args) <- distNames[nams]
+#       }
+#    }
+#
+#    return(args)
+# }
 
-      if (!inherits(fit0, "try-error")) {
-         args <- lapply(seq_along(args), function(nms)
-                        coef(fit0[[nms]]$bestfit))
-         names(args) <- distNames[nams]
-      }
-   }
-
-   return(args)
-}
-
-## ======= Auxiliry function for parameter estimation of Gamma Dist ===== #
+## ======= Auxiliary function for parameter estimation of Gamma Dist ===== #
 
 shape_scale <- function(x, gg = TRUE) {
    n <- length(x)

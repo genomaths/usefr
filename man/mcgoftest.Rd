@@ -2,18 +2,18 @@
 % Please edit documentation in R/mcgoftest.R
 \name{mcgoftest}
 \alias{mcgoftest}
-\alias{mcgoftest,missingORNULL-method}
-\alias{mcgoftest,CDFmodel-method}
-\alias{mcgoftest,CDFmodelList-method}
-\alias{mcgoftest,NLM-method}
-\alias{mcgoftest,nls.lm-method}
+\alias{mcgoftest,numeric_OR_matrix,missing-method}
+\alias{mcgoftest,numeric,CDFmodel-method}
+\alias{mcgoftest,numeric,CDFmodelList-method}
+\alias{mcgoftest,ANY,NLM-method}
+\alias{mcgoftest,ANY,nls.lm-method}
 \title{Bootstrap test for Goodness of fit (GoF)}
 \usage{
-mcgoftest(model, varobj, ...)
+mcgoftest(varobj, model, ...)
 
-\S4method{mcgoftest}{missingORNULL}(
-  model,
+\S4method{mcgoftest}{numeric_OR_matrix,missing}(
   varobj,
+  model = NULL,
   distr = NULL,
   pars = NULL,
   num.sampl = 999,
@@ -27,9 +27,9 @@ mcgoftest(model, varobj, ...)
   verbose = TRUE
 )
 
-\S4method{mcgoftest}{CDFmodel}(
-  model,
+\S4method{mcgoftest}{numeric,CDFmodel}(
   varobj,
+  model,
   num.sampl = 999,
   sample.size = NULL,
   stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
@@ -41,9 +41,9 @@ mcgoftest(model, varobj, ...)
   verbose = TRUE
 )
 
-\S4method{mcgoftest}{CDFmodelList}(
-  model,
+\S4method{mcgoftest}{numeric,CDFmodelList}(
   varobj,
+  model,
   num.sampl = 999,
   sample.size = NULL,
   stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
@@ -55,9 +55,9 @@ mcgoftest(model, varobj, ...)
   verbose = TRUE
 )
 
-\S4method{mcgoftest}{NLM}(
-  model,
+\S4method{mcgoftest}{ANY,NLM}(
   varobj,
+  model,
   num.sampl = 999,
   sample.size = NULL,
   stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
@@ -69,9 +69,9 @@ mcgoftest(model, varobj, ...)
   verbose = TRUE
 )
 
-\S4method{mcgoftest}{nls.lm}(
-  model,
+\S4method{mcgoftest}{ANY,nls.lm}(
   varobj,
+  model,
   distr,
   num.sampl = 999,
   sample.size = NULL,
@@ -259,7 +259,8 @@ x = rnorm(10000, mean = 1.5, sd = 2)
 
 # MC KS test accept the null hypothesis that variable x comes
 # from N(x | mean = 0.5, sd = 1.2), while the standard
-# Kolmogorov-Smirnov test reject the Null Hypothesis.
+# Kolmogorov-Smirnov test reject the Null Hypothesis. This an old KS issue,
+# well known by statisticians since the 1970s.
 mcgoftest(x, distr = "norm", pars = c(1.5, 2), num.sampl = 500,
           sample.size = 1000, num.cores = 1)
 

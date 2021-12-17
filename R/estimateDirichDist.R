@@ -179,6 +179,7 @@ beta_fitting <- function(
 
             return(fit)
         }, ..., BPPARAM = bpparam)
+        ALFA <- sapply(FIT, function(x) x$Estimate[1])
     }
     else {
         pars <- vector(mode = "numeric", length = d[2])

@@ -7,7 +7,7 @@
 \alias{pdirichlet}
 \title{Dirichlet Distribution}
 \usage{
-ddirichlet(x, alpha, log.p = FALSE)
+ddirichlet(x, alpha, log = FALSE)
 
 pdirichlet(q, alpha, lower.tail = TRUE, log.p = FALSE, log.base = exp(1), ...)
 
@@ -21,13 +21,13 @@ observed counts  or relative frequencies \eqn{\sum x_i = 1}.}
 vector, strictly positive (default 1):
 \eqn{\lapha = \alpha_1, ... , \alpha_n}.}
 
-\item{log.p}{logical; if TRUE, probabilities/densities p are returned as
-log(p).}
-
 \item{q}{numeric vector.}
 
 \item{lower.tail}{logical; if TRUE (default), probabilities are
 \eqn{P(X<=x)}, otherwise, \eqn{P(X > x)}}
+
+\item{log.p}{logical; if TRUE, probabilities/densities p are returned as
+log(p).}
 
 \item{log.base}{(Optional) The logarithm's base if log.p = TRUE.}
 

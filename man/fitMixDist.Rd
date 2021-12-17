@@ -8,7 +8,7 @@ fitMixDist(
   X,
   args = list(norm = c(mean = NA, sd = NA), weibull = c(shape = NA, scale = NA)),
   dens = TRUE,
-  npoints = 100,
+  npoints = NULL,
   kmean = FALSE,
   maxiter = 1024,
   prior = priorControl(),

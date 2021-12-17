@@ -104,7 +104,7 @@
 
 ddirichlet <- function( x,
                         alpha,
-                        log.p = FALSE) {
+                        log = FALSE) {
 
     ### The logarithm of the beta function expressed in terms of
     ### gamma functions
@@ -157,7 +157,7 @@ ddirichlet <- function( x,
             s <- ((alpha - 1) %*% log(x))
     }
 
-    if (log.p)
+    if (log)
         pdf <- (s - logBeta(alpha))
     else
         pdf <- (exp(s - logBeta(alpha)))

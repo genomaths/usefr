@@ -28,5 +28,5 @@ meaningful.}
 \item{...}{Additional parameter not in use yet.}
 }
 \description{
-This extend \coef{\link[stats]{coef}}
+This extend \code{\link[stats]{coef}}
 }
