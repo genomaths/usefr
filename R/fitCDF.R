@@ -578,6 +578,8 @@ setMethod("fitCDF", signature(varobj = "numeric"),
         if (only.info) {
             rho <- Stein_rho(fit = bestFIT, varobj = pX)
             res <- list(bestfit = bestFIT, gof = rho, AIC = aicDAT)
+            cdf <- substring(funName[ 1 ], 2, nchar(funName[ 1 ]))
+
             res <- structure(
                 list(
                     aic = aicDAT,
@@ -587,7 +589,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                     info = distNAMES[ 1 ],
                     rstudent = NA,
                     gof = c(res$gof, R.Cross.val = NA, AIC = aicDAT[ 1, 2 ]),
-                    cdf = funName[ 1 ]
+                    cdf = cdf
                 ),
                 class = "CDFmodel"
             )
@@ -821,6 +823,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                 fitLIST = fitLIST[as.character(aicDAT$Distribution)]
 
                 rho <- Stein_rho(fit = fitLIST[[1]], varobj = pX)
+                cdf <- substring(funName[ 1 ], 2, nchar(funName[ 1 ]))
 
                 res <- structure(
                     list(
@@ -830,9 +833,8 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                         fitted = fitted,
                         info = distNAMES[ 1 ],
                         rstudent = NA,
-                        cdf = funName[ 1 ],
+                        cdf = cdf,
                         gof = rho,
-                        cdf = funName[ 1 ],
                         formula = NA
                     ),
                     class = "CDFmodel"
@@ -845,7 +847,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                 pars <- paste(c("q", pars), collapse = ",")
                 res$formula <- as.formula(
                                     paste0(
-                                        "Y ~ ", funName,
+                                        "Y ~ ", funName[ 1 ],
                                         "(", pars, ")"))
 
                 cross_val <- cdf_crossval(
@@ -865,6 +867,8 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                 rho <- Stein_rho(fit = bestFIT, varobj = pX)
 
                 fitLIST = fitLIST[as.character(aicDAT$Distribution)]
+                cdf <- substring(funName[ 1 ], 2, nchar(funName[ 1 ]))
+
                 res <- structure(
                     list(
                         aic = aicDAT,
@@ -874,7 +878,7 @@ setMethod("fitCDF", signature(varobj = "numeric"),
                         info = distNAMES[ 1 ],
                         rstudent = NA,
                         gof = rho,
-                        cdf = funName[ 1 ],
+                        cdf = cdf,
                         formula = NA
                     ),
                     class = "CDFmodel"

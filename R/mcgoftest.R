@@ -114,6 +114,8 @@
 #' @param varobj A a vector containing observations, the variable for which the
 #' CDF parameters was estimated or the discrete absolute frequencies of each
 #' observation category.
+#' @param model A nonlinear regression model from one of the following classes:
+#' "CDFmodel", "CDFmodelList", "NLM", and "nls.lm".
 #' @param distr The possible options are:
 #' \enumerate{
 #'    \item The name of the cumulative distribution function (CDF).
@@ -445,13 +447,20 @@ setMethod("mcgoftest", signature(varobj = "numeric_OR_matrix",
             pdistr <- try(get(pdistr, mode = "function",
                               envir = parent.frame()), silent = TRUE)
 
-            if (inherits(pdistr, "try-error") && !is.discr)
-                stop(
+            if (inherits(pdistr, "try-error") && !is.discr) {
+
+                pdistr <- distr
+                pdistr <- try(get(pdistr, mode = "function",
+                              envir = parent.frame()), silent = TRUE)
+
+                if (inherits(pdistr, "try-error")) {
+                    stop(
                     "*** 'distr' must be a character string naming a ",
                     "distribution function e.g, 'norm' will permit accessing ",
                     "functions 'pnorm' and 'rnorm', or a numerical vector"
-                )
-
+                    )
+                }
+            }
             rdistr <- paste0("r", distr)
             rdistr <- try(get(rdistr, mode = "function",
                               envir = parent.frame()), silent = TRUE)
@@ -549,8 +558,8 @@ setMethod("mcgoftest", signature(varobj = "numeric", model = "CDFmodel"),
 
         res <- mcgoftest(
             varobj = varobj,
-            distr = sub("^p", "", model$cdf),
-            pars = coef(model),
+            distr = model$cdf,
+            pars = coef(model$bestfit),
             num.sampl = num.sampl,
             sample.size = sample.size,
             stat = stat,
@@ -588,8 +597,8 @@ setMethod("mcgoftest", signature(varobj = "numeric", model = "CDFmodelList"),
 
         if (inherits(varobj, c("matrix", "data.frame")))
             res <- lapply(l,
-                          function(k) {
-                              mcgoftest(model = model[[ k ]],
+                        function(k) {
+                            mcgoftest(model = model[[ k ]],
                                         varobj = varobj[, k ],
                                         num.sampl = num.sampl,
                                         sample.size = sample.size,
@@ -600,12 +609,12 @@ setMethod("mcgoftest", signature(varobj = "numeric", model = "CDFmodelList"),
                                         num.cores = num.cores,
                                         tasks = tasks,
                                         verbose = verbose)
-                          }
+                        }
             )
 
         if (inherits(varobj, "list"))
             res <- lapply(l,
-                          function(k) {
+                        function(k) {
                               mcgoftest(model = model[[ k ]],
                                         varobj = varobj[[ k ]],
                                         num.sampl = num.sampl,
@@ -617,7 +626,7 @@ setMethod("mcgoftest", signature(varobj = "numeric", model = "CDFmodelList"),
                                         num.cores = num.cores,
                                         tasks = tasks,
                                         verbose = verbose)
-                          }
+                        }
             )
 
         names(res) <- nms

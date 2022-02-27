@@ -89,6 +89,9 @@ mcgoftest(varobj, model, ...)
 CDF parameters was estimated or the discrete absolute frequencies of each
 observation category.}
 
+\item{model}{A nonlinear regression model from one of the following classes:
+"CDFmodel", "CDFmodelList", "NLM", and "nls.lm".}
+
 \item{distr}{The possible options are:
 \enumerate{
    \item The name of the cumulative distribution function (CDF).
