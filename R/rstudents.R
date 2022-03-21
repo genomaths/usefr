@@ -142,11 +142,13 @@ setMethod("rstudents", signature(model = "CDFmodel"),
             method <- match.arg(method)
             if (is.null(residuals))
                 residuals <- resid(model$bestfit)
+
+            cdf <- paste0("p", model$cdf)
             model$rstudent <- rstudents(
                                         varobj = varobj,
                                         method = method,
                                         pars = coef(model$bestfit),
-                                        fun = match.fun(model$cdf),
+                                        fun = cdf,
                                         residuals = residuals
                                         )
             return(model)
