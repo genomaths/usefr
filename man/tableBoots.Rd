@@ -4,13 +4,21 @@
 \alias{tableBoots}
 \title{tableBoots}
 \usage{
-tableBoots(x, stat = c("rmst", "hd", "chisq", "all"), num.permut = 100)
+tableBoots(
+  x,
+  stat = c("rmst", "hd", "chisq", "all"),
+  out.stat = FALSE,
+  num.permut = 100
+)
 }
 \arguments{
 \item{x}{A numerical matrix corresponding to cross tabulation \eqn{n x m}
 table (contingency table).}
 
 \item{stat}{Statistic to be used in the testing: 'rmst','hdiv', or 'all'.}
+
+\item{out.stat}{logical(1). Whether to return the values of the statistics
+used: the bootstrap mean and the original value estimated.}
 
 \item{num.permut}{Number of permutations.}
 }
@@ -111,7 +119,7 @@ site_res
 chisq.test(site_res)$p.bvalue
 chisq.test(site_res, simulate.p.value = TRUE, B = 2e3)$p.value
 
-tableBoots( site_res, stat = 'all', num.permut = 1e3 )
+tableBoots( site_res, stat = 'all', num.permut = 999 )
 
 ## Results above are in border. If we include, third site,
 ## then sinces would different.
@@ -127,7 +135,7 @@ site_res
 ## levels in the treatment are not independent
 chisq.test(site_res)$p.value
 chisq.test(site_res, simulate.p.value = TRUE, B = 2e3)$p.value
-tableBoots( site_res, stat = 'all', num.permut = 1e3 )
+tableBoots( site_res, stat = 'all', num.permut = 999 )
 
 }
 \references{

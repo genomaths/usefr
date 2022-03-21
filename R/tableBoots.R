@@ -34,6 +34,8 @@
 #' table (contingency table).
 #' @param stat Statistic to be used in the testing: 'rmst','hdiv', or 'all'.
 #' @param num.permut Number of permutations.
+#' @param out.stat logical(1). Whether to return the values of the statistics
+#' used: the bootstrap mean and the original value estimated.
 #'
 #' @details For goodness-of-fit the following null hypothesis is tested
 #'     \eqn{H_\theta: p = p(\theta)}
@@ -133,7 +135,7 @@
 #' chisq.test(site_res)$p.bvalue
 #' chisq.test(site_res, simulate.p.value = TRUE, B = 2e3)$p.value
 #'
-#' tableBoots( site_res, stat = 'all', num.permut = 1e3 )
+#' tableBoots( site_res, stat = 'all', num.permut = 999 )
 #'
 #' ## Results above are in border. If we include, third site,
 #' ## then sinces would different.
@@ -149,10 +151,13 @@
 #' ## levels in the treatment are not independent
 #' chisq.test(site_res)$p.value
 #' chisq.test(site_res, simulate.p.value = TRUE, B = 2e3)$p.value
-#' tableBoots( site_res, stat = 'all', num.permut = 1e3 )
+#' tableBoots( site_res, stat = 'all', num.permut = 999 )
 #'
-tableBoots <- function(x, stat = c("rmst", "hd", "chisq", "all"),
-                       num.permut = 100) {
+tableBoots <- function(
+                        x,
+                        stat = c("rmst", "hd", "chisq", "all"),
+                        out.stat = FALSE,
+                        num.permut = 100) {
 
     # obsf_ij is the observed cell count in the ith row and jth column of
     # the table expf_ij is the expected cell count in the ith row and jth
@@ -202,12 +207,12 @@ tableBoots <- function(x, stat = c("rmst", "hd", "chisq", "all"),
         freq <- as.vector(outer(m, n)) / N # Expected frequencies
         ## Compute the specified statistic for the randomly generated table
         st <- switch(stat,
-                     rmst = sum((y - freq)^2)/4,
+                     rmst = sum((y - freq)^2, na.rm = TRUE)/4,
                      hd = HD(y, freq),
-                     chisq = sum((y - freq)^2/freq),
-                     all = c(rmst = sum((y - freq)^2)/4,
+                     chisq = sum((y - freq)^2/freq, na.rm = TRUE),
+                     all = c(rmst = sum((y - freq)^2, na.rm = TRUE)/4,
                              hdiv = HD(y, freq),
-                             chisq = sum((y - freq)^2/freq))
+                             chisq = sum((y - freq)^2/freq, na.rm = TRUE))
         )
 
         return(st)
@@ -229,11 +234,19 @@ tableBoots <- function(x, stat = c("rmst", "hd", "chisq", "all"),
                     (num.permut + 1)
                 )
     } else {
+        st <- unlist(st)
         st0 <- switch(stat,
                       rmst = sum((x - expf)^2, na.rm = TRUE)/4,
-                      hdiv = HD(x, expf),
+                      hd = HD(x, expf),
                       chisq = sum((x - expf)^2/expf, na.rm = TRUE))
-        res <- (sum(st > st0, na.rm = TRUE) + 1)/(num.permut + 1)
+        if (out.stat) {
+            p.value <- (sum(st > st0, na.rm = TRUE) + 1)/(num.permut + 1)
+            boot.stat <- mean(c(st,st0), na.rm = TRUE)
+            res <- data.frame(stat = st0, boot.stat = boot.stat,
+                            p.value = p.value)
+        }
+        else
+            res <- (sum(st > st0, na.rm = TRUE) + 1)/(num.permut + 1)
     }
     return(res)
 }

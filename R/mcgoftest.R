@@ -528,11 +528,13 @@ setMethod("mcgoftest", signature(varobj = "numeric_OR_matrix",
                             verbose = verbose)
         }
         else {
-            if (is.numeric(distr))
+            if (is.numeric(distr)) {
+                if (stat == "rmse") stat <- "rmst"
                 res <- tableBoots(
                                 rbind(varobj, distr),
                                 stat = stat,
                                 num.permut = num.sampl )
+            }
         }
         return(res)
     }
