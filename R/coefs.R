@@ -26,7 +26,12 @@
 #' @title Extract Model Coefficients
 #' @param object an object for which the extraction of model coefficients is
 #' meaningful.
+#' @param column Only if \strong{object} is from \code{\link[base]{data.frame}}
+#' class.
 #' @description This extend \code{\link[stats]{coef}}
+#' @details The extreme case is when \strong{object} is from
+#' \code{\link[base]{data.frame}}. In this case, each row provides the
+#' corresponding coefficient value and the row-names must be provided as well.
 #' @param ... Additional parameter not in use yet.
 setGeneric(
     "coefs",
@@ -114,4 +119,14 @@ setMethod("coefs", signature(object = "CDFmodelList"),
     }
 )
 
-
+#' @rdname coefs
+#' @aliases coefs
+#' @export
+setMethod("coefs", signature(object = "data.frame"),
+    function(object,
+             column = 1L) {
+        coef <- object[, column]
+        names(coef) <- attr(object,"row.names")
+        return(coef)
+    }
+)

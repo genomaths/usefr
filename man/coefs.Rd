@@ -7,6 +7,7 @@
 \alias{coefs,nls.lm-method}
 \alias{coefs,CDFmodel-method}
 \alias{coefs,CDFmodelList-method}
+\alias{coefs,data.frame-method}
 \title{Extract Model Coefficients}
 \usage{
 coefs(object, ...)
@@ -20,13 +21,23 @@ coefs(object, ...)
 \S4method{coefs}{CDFmodel}(object)
 
 \S4method{coefs}{CDFmodelList}(object)
+
+\S4method{coefs}{data.frame}(object, column = 1L)
 }
 \arguments{
 \item{object}{an object for which the extraction of model coefficients is
 meaningful.}
 
 \item{...}{Additional parameter not in use yet.}
+
+\item{column}{Only if \strong{object} is from \code{\link[base]{data.frame}}
+class.}
 }
 \description{
 This extend \code{\link[stats]{coef}}
+}
+\details{
+The extreme case is when \strong{object} is from
+\code{\link[base]{data.frame}}. In this case, each row provides the
+corresponding coefficient value and the row-names must be provided as well.
 }
