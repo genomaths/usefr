@@ -414,9 +414,11 @@ setMethod("mcgoftest", signature(varobj = "numeric_OR_matrix",
                     "further assumptions.\n")
         }
 
-        if (distr == "dirichlet" && is.element(stat, c("ks", "ad")))
-            stop("\n*** 'ks' and 'ad' approaches are not available for ",
-                 "n-dimensional distributions")
+        if (is.character(distr)) {
+            if (distr == "dirichlet" && is.element(stat, c("ks", "ad")))
+                stop("\n*** 'ks' and 'ad' approaches are not available ",
+                    "for n-dimensional distributions")
+        }
 
         if (is.numeric(distr)) {
             if (is.element(stat, c("ks", "ad"))) {
