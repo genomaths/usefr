@@ -720,18 +720,22 @@ setMethod("mcgoftest", signature(model = "nls.lm"),
 # ======================= Anderson–Darling statistic ========================= #
 
 ad_stat <- function(x, distr, pars = NULL, par.names = NULL) {
-   x <- sort(x[complete.cases(x)])
-   if (!missing(distr))  x <- distfn(x = x, dfn = distr,
-                                     type = "p", arg = pars,
-                                     par.names = par.names)
+    x <- sort(x[complete.cases(x)])
+    if (!missing(distr))
+            x <- distfn(x = x,
+                        dfn = distr,
+                        type = "p",
+                        arg = pars,
+                        par.names = par.names)
 
-   n <- length(x)
-   if (n < 8)
-      stop("AD statistic the sample size must be greater than 7")
+    x <- x[ x > 0 ]
+    n <- length(x)
+    if (n < 8)
+        stop("AD statistic the sample size must be greater than 7")
 
-   h <- x * (1 - rev(x))
-   h <- (2 * seq(x) - 1) * log(h)
-   return(-n - mean(h))
+    h <- x * (1 - rev(x))
+    h <- (2 * seq(x) - 1) * log(h)
+    return(-n - mean(h, na.rm = TRUE))
 }
 
 
@@ -774,13 +778,13 @@ freqnd <- function(x, distr, breaks, pars,
                     alfa <- sum(pars)
                     lapply(seq_len(ncol(x)),
                            function(k)
-                              freqs(
-                               x = x[, k],
-                               distr = distr,
-                               pars = list( shape1 = pars[k],
+                                freqs(
+                                x = x[, k],
+                                distr = distr,
+                                pars = list( shape1 = pars[k],
                                             shape2 = alfa - pars[k]),
-                               breaks = breaks,
-                               par.names = par.names))
+                                breaks = breaks,
+                                par.names = par.names))
                  },
             binom = {
                         lapply(seq_len(ncol(x)),
@@ -802,38 +806,38 @@ freqnd <- function(x, distr, breaks, pars,
 
 FREQs <- function(x, distr, pars = NULL, breaks = NULL,
                   par.names = NULL) {
-   if (is.element(distr, c("dirichlet", "multinom"))) {
+    if (is.element(distr, c("dirichlet", "multinom"))) {
       distr <- switch( distr,
-                       dirichlet = "beta",
-                       multinom = "binom")
-      fq <- freqnd(x = x, distr = distr,
-                   breaks = breaks, pars = pars,
-                   par.names = NULL)
-   }
-   else
-      fq <- freqs(x = x, distr, breaks = breaks,
-                  pars = pars, par.names = NULL)
-   return(fq)
+                        dirichlet = "beta",
+                        multinom = "binom")
+        fq <- freqnd(x = x, distr = distr,
+                    breaks = breaks, pars = pars,
+                    par.names = NULL)
+    }
+    else
+        fq <- freqs(x = x, distr, breaks = breaks,
+                   pars = pars, par.names = NULL)
+    return(fq)
 }
 
 # ====================== Root-Mean-Square statistic ========================== #
 
 rmse <- function(x, distr, pars, breaks = NULL, par.names) {
-   freq <- FREQs(x = x, distr = distr, pars = pars,
+    freq <- FREQs(x = x, distr = distr, pars = pars,
                     breaks = breaks, par.names = par.names)
-   return(sqrt(sum((freq$obsf - freq$expf)^2, na.rm = TRUE))/length(freq$obsf))
+    return(sqrt(sum((freq$obsf - freq$expf)^2, na.rm = TRUE))/length(freq$obsf))
 }
 
 # =================== Pearson's Chi-squared  statistic ======================= #
 
 chisq <- function(x, distr, pars, breaks = NULL, par.names) {
-   freq <- FREQs(x = x, distr = distr, pars = pars,
+    freq <- FREQs(x = x, distr = distr, pars = pars,
                 breaks = breaks, par.names = par.names)
-   if (any(freq$expf == 0)) {
-      freq$expf <- freq$expf + 0.5
-      freq$obsf <- freq$obsf + 0.5
-   }
-   return(sum((freq$obsf - freq$expf)^2/freq$expf))
+    if (any(freq$expf == 0)) {
+        freq$expf <- freq$expf + 0.5
+        freq$obsf <- freq$obsf + 0.5
+    }
+    return(sum((freq$obsf - freq$expf)^2/freq$expf))
 }
 
 # ====================== Kolmogorov-Smirnov  statistic ======================= #
@@ -849,13 +853,14 @@ ks_stat <- function(x, distr, pars, par.names) {
 
 distfn <- function(x, dfn, type = "r", arg, par.names = NULL) {
     if (!is.null(par.names))  {
-       args <- list(x, arg)
-       if (type == "r")
-          names(args) <- c("n", par.names)
-       else
-          names(args) <- c("q", par.names)
+        arg <- as.list(arg)
+        args <- c(list(x), arg)
+        if (type == "r")
+            names(args) <- c("n", par.names)
+        else
+            names(args) <- c("q", par.names)
     } else
-       args <-  c(list(x), arg)
+        args <-  c(list(x), arg)
     do.call(paste0(type, dfn), args)
 }
 
@@ -874,8 +879,8 @@ hdiv <- function(x, distr, pars, breaks = NULL, par.names) {
       p$expf <- (p$expf + 1) / (n2 + length(p$expf))
    }
    else {
-      p$expf <- p$expf / n1
-      p$obsf <- p$obsf / n2
+        p$expf <- p$expf / n1
+        p$obsf <- p$obsf / n2
    }
 
    w <- (2 * n[1] * n[2]) / (n[1] + n[2])
@@ -891,17 +896,17 @@ hdiv <- function(x, distr, pars, breaks = NULL, par.names) {
 # ------- To compute the statistic
 
 stat_fun <- function(a, distr, pars, stat, breaks, par.names) {
-   switch(stat,
-          ks = ks_stat(x = a, distr = distr, pars = pars,
-                       par.names = par.names)$stat,
-          ad = ad_stat(x = a, distr = distr, pars = pars,
-                       par.names = par.names),
-          rmse = rmse(x = a, distr = distr, pars = pars,
-                      par.names = par.names,
-                      breaks = breaks),
-          chisq = chisq(x = a, distr = distr, pars = pars,
-                        par.names = par.names, breaks = breaks),
-          hd = hdiv(x = a, distr = distr, pars = pars,
+    switch(stat,
+        ks = ks_stat(x = a, distr = distr, pars = pars,
+                    par.names = par.names)$stat,
+        ad = ad_stat(x = a, distr = distr, pars = pars,
+                    par.names = par.names),
+        rmse = rmse(x = a, distr = distr, pars = pars,
+                    par.names = par.names,
+                    breaks = breaks),
+        chisq = chisq(x = a, distr = distr, pars = pars,
+                    par.names = par.names, breaks = breaks),
+        hd = hdiv(x = a, distr = distr, pars = pars,
                     par.names = par.names,
                     breaks = breaks)
    )
