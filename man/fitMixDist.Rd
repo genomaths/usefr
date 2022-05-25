@@ -147,50 +147,68 @@ The approch tries to fit the proposed mixture distributions using a
 #'
 set.seed(1) # set a seed for random generation
 ## ========= A mixture of three distributions =========
-phi = c(6/10, 4/10) #' Mixture proportions
+phi <- c(6 / 10, 4 / 10) #' Mixture proportions
 ## ---------------------------------------------------------
 
 ## === Named vector of the corresponding distribution function parameters
 ## must be provided
-args <- list(gamma = c(shape = 2, scale = 0.1),
-             weibull = c(shape = 3, scale = 0.5))
+args <- list(
+    gamma = c(shape = 2, scale = 0.1),
+    weibull = c(shape = 3, scale = 0.5)
+)
 ## ------------------------------------------------------------
 
 ## ===== Sampling from the specified mixture distribution ====
-X <- rmixtdistr(n = 1e5, phi = phi , arg = args)
+X <- rmixtdistr(n = 1e5, phi = phi, arg = args)
 ## ------------------------------------------------------------
 
 ## ===== Nonlinear fit of the specified mixture distribution ====
-FIT <- fitMixDist(X, args = list(gamma = c(shape = NA, scale = NA),
-                                 weibull = c(shape = NA, scale = NA)))
+FIT <- fitMixDist(X, args = list(
+    gamma = c(shape = NA, scale = NA),
+    weibull = c(shape = NA, scale = NA)
+))
 
 ## === The graphics for the simulated dataset and the corresponding
 ## theoretical mixture distribution.
-par(bg = "gray98",  mar = c(3, 4, 2, 1) )
-hist(X, 90, freq = FALSE, las = 1, ylim = c(0, 5), xlim = c(0, 1),
-     panel.first={points(0, 0, pch=16, cex=1e6, col="grey95")
-       grid(col="white", lty = 1)},
-     family = "serif", col = rgb(0, 0, 1, 0.),
-     border = "deepskyblue", main = "Histogram of Mixture Distribution")
+par(bg = "gray98", mar = c(3, 4, 2, 1))
+hist(X, 90,
+    freq = FALSE, las = 1, ylim = c(0, 5), xlim = c(0, 1),
+    panel.first = {
+        points(0, 0, pch = 16, cex = 1e6, col = "grey95")
+        grid(col = "white", lty = 1)
+    },
+    family = "serif", col = rgb(0, 0, 1, 0.),
+    border = "deepskyblue", main = "Histogram of Mixture Distribution"
+)
 x1 <- seq(-4, 10, by = 0.001)
 lines(x1, dmixtdistr(x1, phi = phi, arg = args), col = "red")
 lines(x1, dmixtdistr(x1, phi = FIT$phi, arg = FIT$args), col = "blue")
-legend(0.5, 4, legend = c("Theoretical Mixture PDF",
-                          "Estimated Mixture PDF",
-                          "Gamma distribution component",
-                          "Weibull distribution component"),
-       col=c("red", "blue", "magenta", "brown"), lty=1, cex=0.8)
+legend(0.5, 4,
+    legend = c(
+        "Theoretical Mixture PDF",
+        "Estimated Mixture PDF",
+        "Gamma distribution component",
+        "Weibull distribution component"
+    ),
+    col = c("red", "blue", "magenta", "brown"), lty = 1, cex = 0.8
+)
 
 ## The standard definition of dgamma function (see ?dgamma)
-lines(x1, dgamma(x1, shape = FIT$args$gamma[1],
-                 scale = FIT$args$gamma[2]), col = "magenta")
+lines(x1, dgamma(x1,
+    shape = FIT$args$gamma[1],
+    scale = FIT$args$gamma[2]
+), col = "magenta")
 ## The standard definition of dgamma function (see ?dgamma)
-lines(x1, dgamma(x1, shape = args$gamma[1],
-                   scale = args$gamma[2]), col = "brown")
+lines(x1, dgamma(x1,
+    shape = args$gamma[1],
+    scale = args$gamma[2]
+), col = "brown")
 
 ## The accuracy of the fitting depends on the the starting values
-FIT <- fitMixDist(X, args = list(gamma = c(shape = 2.3, scale = 0.12),
-                                 weibull = c(shape = 2.5, scale = 0.4)))
+FIT <- fitMixDist(X, args = list(
+    gamma = c(shape = 2.3, scale = 0.12),
+    weibull = c(shape = 2.5, scale = 0.4)
+))
 FIT$args
 FIT$phi
 

@@ -58,25 +58,26 @@
 
 setGeneric(
     "rstudents",
-    def = function(
-                    model,
-                    varobj,
-                    method = c("Richardson",  "simple", "complex"),
-                    ...) standardGeneric("rstudents"))
+    def = function(model,
+    varobj,
+    method = c("Richardson", "simple", "complex"),
+    ...) {
+        standardGeneric("rstudents")
+    }
+)
 
 #' @rdname rstudents
 #' @aliases rstudents
 #' @export
-setMethod("rstudents", signature(model = "missingORNULL"),
-    function(
-            model,
-            varobj,
-            method = c("Richardson",  "simple", "complex"),
-            pars,
-            fun,
-            residuals) {
-
-        method = match.arg(method)
+setMethod(
+    "rstudents", signature(model = "missingORNULL"),
+    function(model,
+    varobj,
+    method = c("Richardson", "simple", "complex"),
+    pars,
+    fun,
+    residuals) {
+        method <- match.arg(method)
 
         #   # Derivative of the best fit function
         evalLST <- as.list(pars)
@@ -85,46 +86,50 @@ setMethod("rstudents", signature(model = "missingORNULL"),
         evalLST$method <- method
 
         gradient <- try(do.call(grad, evalLST),
-                        silent = TRUE)
+            silent = TRUE
+        )
 
         if (!inherits(gradient, "try-error")) {
             # NaN/missing values are replace by cubic spline interpolation
-            grad.spline = splinefun(varobj, gradient)
-            ind = which(is.na(gradient))
-            gradient[ind] <- grad.spline(varobj[ ind ])
+            grad.spline <- splinefun(varobj, gradient)
+            ind <- which(is.na(gradient))
+            gradient[ind] <- grad.spline(varobj[ind])
 
             rstudent <- try(
                 nls.rstudent(gradient, residuals, length(pars)),
-                silent = TRUE)
+                silent = TRUE
+            )
 
-            if (inherits(gradient, "try-error"))
+            if (inherits(gradient, "try-error")) {
                 rstudent <- NA
+            }
         }
         return(rstudent)
-    })
+    }
+)
 
 #' @rdname rstudents
 #' @aliases rstudents
 #' @export
-setMethod("rstudents", signature(model = "nls"),
-    function(
-            model,
-            varobj,
-            method = c("Richardson",  "simple", "complex"),
-            residuals = NULL) {
+setMethod(
+    "rstudents", signature(model = "nls"),
+    function(model,
+    varobj,
+    method = c("Richardson", "simple", "complex"),
+    residuals = NULL) {
+        method <- match.arg(method)
+        fun <- model$m$formula()[[3L]]
+        if (is.null(residuals)) {
+            residuals <- model$m$resid()
+        }
 
-    method <- match.arg(method)
-    fun <- model$m$formula()[[ 3L ]]
-    if (is.null(residuals))
-        residuals <- model$m$resid()
-
-    return(rstudents(
-                    varobj = varobj,
-                    method = method,
-                    pars = coef(model),
-                    fun = fun[[1]],
-                    residuals = residuals
-                    ))
+        return(rstudents(
+            varobj = varobj,
+            method = method,
+            pars = coef(model),
+            fun = fun[[1]],
+            residuals = residuals
+        ))
     }
 )
 
@@ -132,26 +137,26 @@ setMethod("rstudents", signature(model = "nls"),
 #' @aliases rstudents
 #' @importFrom stats coef
 #' @export
-setMethod("rstudents", signature(model = "CDFmodel"),
-    function(
-            model,
-            varobj,
-            method = c("Richardson",  "simple", "complex"),
-            residuals = NULL) {
+setMethod(
+    "rstudents", signature(model = "CDFmodel"),
+    function(model,
+    varobj,
+    method = c("Richardson", "simple", "complex"),
+    residuals = NULL) {
+        method <- match.arg(method)
+        if (is.null(residuals)) {
+            residuals <- resid(model$bestfit)
+        }
 
-            method <- match.arg(method)
-            if (is.null(residuals))
-                residuals <- resid(model$bestfit)
-
-            cdf <- paste0("p", model$cdf)
-            model$rstudent <- rstudents(
-                                        varobj = varobj,
-                                        method = method,
-                                        pars = coef(model$bestfit),
-                                        fun = cdf,
-                                        residuals = residuals
-                                        )
-            return(model)
+        cdf <- paste0("p", model$cdf)
+        model$rstudent <- rstudents(
+            varobj = varobj,
+            method = method,
+            pars = coef(model$bestfit),
+            fun = cdf,
+            residuals = residuals
+        )
+        return(model)
     }
 )
 
@@ -160,24 +165,24 @@ setMethod("rstudents", signature(model = "CDFmodel"),
 #' @aliases rstudents
 #' @importFrom stats coef
 #' @export
-setMethod("rstudents", signature(model = "nls.lm"),
-    function(
-            model,
-            varobj,
-            method = c("Richardson",  "simple", "complex"),
-            fun,
-            residuals = NULL) {
-
-            method <- match.arg(method)
-            if (is.null(residuals))
-                residuals <- resid(model)
-            return(rstudents(
-                            varobj = varobj,
-                            method = method,
-                            pars = coef(model),
-                            fun = match.fun(fun),
-                            residuals = residuals)
-            )
+setMethod(
+    "rstudents", signature(model = "nls.lm"),
+    function(model,
+    varobj,
+    method = c("Richardson", "simple", "complex"),
+    fun,
+    residuals = NULL) {
+        method <- match.arg(method)
+        if (is.null(residuals)) {
+            residuals <- resid(model)
+        }
+        return(rstudents(
+            varobj = varobj,
+            method = method,
+            pars = coef(model),
+            fun = match.fun(fun),
+            residuals = residuals
+        ))
     }
 )
 
@@ -188,17 +193,19 @@ nls.rstudent <- function(grad, residuals, num.par) {
     # grad: derivative of model as obtained from function deriv
     # R.S
     n <- length(residuals)
-    s = sqrt(n * var(residuals, na.rm = TRUE) / (n - num.par))
+    s <- sqrt(n * var(residuals, na.rm = TRUE) / (n - num.par))
     h <- try(
-            diag(grad %*% solve(crossprod(grad)) %*% t(grad)),
-            silent = TRUE)
-    if (!inherits(h, "try-error"))
+        diag(grad %*% solve(crossprod(grad)) %*% t(grad)),
+        silent = TRUE
+    )
+    if (!inherits(h, "try-error")) {
         res <- residuals / (s * sqrt(1 - h))
-    else {
+    } else {
         res <- residuals / s
-        message("*** Internally studentized residuals cannot be estimated\n",
-            "Trying the estimation of standardized residuals: residuals/s")
+        message(
+            "*** Internally studentized residuals cannot be estimated\n",
+            "Trying the estimation of standardized residuals: residuals/s"
+        )
     }
     return(res)
 }
-

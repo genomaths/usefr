@@ -115,98 +115,129 @@
 #'
 #' @examples
 #' set.seed(12)
-#' margins = c("norm", "norm")
+#' margins <- c("norm", "norm")
 #' ## Random variates from normal distributions
-#' X <- rlnorm(200, meanlog =- 0.5, sdlog = 3.1)
+#' X <- rlnorm(200, meanlog = -0.5, sdlog = 3.1)
 #' Y <- rnorm(200, mean = 0, sd = 6)
-#' cor(X,Y) ## Correlation between X and Y
+#' cor(X, Y) ## Correlation between X and Y
 #'
-#' parMargins = list( list(meanlog = 0.5, sdlog = 3.1),
-#'                    list(mean = 0, sd = 10))
+#' parMargins <- list(
+#'     list(meanlog = 0.5, sdlog = 3.1),
+#'     list(mean = 0, sd = 10)
+#' )
 #'
-#' copula = "normalCopula"
+#' copula <- "normalCopula"
 #'
 #' ## The information to build the graphic is stored in object 'g'.
-#' g <- ppCplot(X = X, Y = Y, copula = "normalCopula", margins = margins,
-#'              paramMargins = parMargins, npoints = 100)
+#' g <- ppCplot(
+#'     X = X, Y = Y, copula = "normalCopula", margins = margins,
+#'     paramMargins = parMargins, npoints = 100
+#' )
 #'
 ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
-               npoints = 100, method = "ml",
-               smoothing = c("none", "beta", "checkerboard"),
-               ties.method = "max", xlab = "Empirical probabilities",
-               ylab = "Theoretical probabilities", glwd = 1.2, bgcol = "grey94",
-               gcol = "white", dcol = "red", dlwd = 0.8, tck = NA, tcl = -0.3,
-               xlwd = 0.8, ylwd = 0.8, xcol = "black", ycol = "black",
-               cex.xtitle = 1.3, cex.ytitle = 1.3, padj = -1, hadj = 0.7,
-               xcex = 1.3, ycex = 1.3, xline = 1.6, yline = 2.1, xfont = 3,
-               yfont = 3, family = "serif", lty = 1, bty="n", col = "black",
-               xlim = c(0, 1), ylim = c(0, 1), pch = 20, las = 1,
-               mar = c(4, 4, 2, 1), font=3, cex = 1, seed = 132, ...) {
-   if (is.null(copula))
-       stop("*** A copula or a character string naming a copula must be given")
-   n <- length(X)
+    npoints = 100, method = "ml",
+    smoothing = c("none", "beta", "checkerboard"),
+    ties.method = "max", xlab = "Empirical probabilities",
+    ylab = "Theoretical probabilities", glwd = 1.2, bgcol = "grey94",
+    gcol = "white", dcol = "red", dlwd = 0.8, tck = NA, tcl = -0.3,
+    xlwd = 0.8, ylwd = 0.8, xcol = "black", ycol = "black",
+    cex.xtitle = 1.3, cex.ytitle = 1.3, padj = -1, hadj = 0.7,
+    xcex = 1.3, ycex = 1.3, xline = 1.6, yline = 2.1, xfont = 3,
+    yfont = 3, family = "serif", lty = 1, bty = "n", col = "black",
+    xlim = c(0, 1), ylim = c(0, 1), pch = 20, las = 1,
+    mar = c(4, 4, 2, 1), font = 3, cex = 1, seed = 132, ...) {
+    if (is.null(copula)) {
+        stop("*** A copula or a character string naming a copula must be given")
+    }
+    n <- length(X)
 
-   if (is.character(copula)) {
-       if (is.null(margins))
-           stop("*** Provide names of probability distribution margins")
-       if (is.null(paramMargins))
-           stop("*** Provide parameters for the margin CDFs")
-       if (missing(X)) stop("*** Provide the numerical vector of X values")
-       if (missing(Y)) stop("*** Provide the numerical vector of Y values")
+    if (is.character(copula)) {
+        if (is.null(margins)) {
+            stop("*** Provide names of probability distribution margins")
+        }
+        if (is.null(paramMargins)) {
+            stop("*** Provide parameters for the margin CDFs")
+        }
+        if (missing(X)) stop("*** Provide the numerical vector of X values")
+        if (missing(Y)) stop("*** Provide the numerical vector of Y values")
 
-       smoothing <- match.arg(smoothing)
-       # Compute the pseudo-observations for the given data matrix through
-       # the margin distributions
-       u <- do.call(paste0("p", margins[1]), c(list(X), paramMargins[[1]]))
-       v <- do.call(paste0("p", margins[2]), c(list(Y), paramMargins[[2]]))
-       U <- cbind(u, v)
-       copula = eval(parse(text=paste0("copula::",copula, "()")))
+        smoothing <- match.arg(smoothing)
+        # Compute the pseudo-observations for the given data matrix through
+        # the margin distributions
+        u <- do.call(paste0("p", margins[1]), c(list(X), paramMargins[[1]]))
+        v <- do.call(paste0("p", margins[2]), c(list(Y), paramMargins[[2]]))
+        U <- cbind(u, v)
+        copula <- eval(parse(text = paste0("copula::", copula, "()")))
 
-       V <- pobs(U, ties.method = ties.method)
-       fit <- fitCopula(copula, V, method = method)
-       copula = mvdc(fit@copula, margins = margins, paramMargins = paramMargins)
-   } else {
-       if (class(copula) != "mvdc")
-           stop("*** 'copula' argument must be an object from 'mvdc' class")
-       u <- do.call(paste0("p", copula@margins[1]),
-                   c(list(X), copula@paramMargins[[1]]))
-       v <- do.call(paste0("p", copula@margins[2]),
-                   c(list(Y), copula@paramMargins[[2]]))
-       U <- cbind(u, v)
-       # U <- pobs(U, ties.method = ties.method)
-   }
+        V <- pobs(U, ties.method = ties.method)
+        fit <- fitCopula(copula, V, method = method)
+        copula <- mvdc(fit@copula, margins = margins, paramMargins = paramMargins)
+    } else {
+        if (class(copula) != "mvdc") {
+            stop("*** 'copula' argument must be an object from 'mvdc' class")
+        }
+        u <- do.call(
+            paste0("p", copula@margins[1]),
+            c(list(X), copula@paramMargins[[1]])
+        )
+        v <- do.call(
+            paste0("p", copula@margins[2]),
+            c(list(Y), copula@paramMargins[[2]])
+        )
+        U <- cbind(u, v)
+        # U <- pobs(U, ties.method = ties.method)
+    }
 
-   set.seed(seed)
-   if (missing(npoints) || is.null(npoints)) npoints <- 100
-   if (is.numeric(npoints)) {
-       u <- do.call(paste0("r", copula@margins[1]),
-                    c(list(npoints), copula@paramMargins[[1]]))
-       v <- do.call(paste0("r", copula@margins[2]),
-                    c(list(npoints), copula@paramMargins[[2]]))
-   }
+    set.seed(seed)
+    if (missing(npoints) || is.null(npoints)) npoints <- 100
+    if (is.numeric(npoints)) {
+        u <- do.call(
+            paste0("r", copula@margins[1]),
+            c(list(npoints), copula@paramMargins[[1]])
+        )
+        v <- do.call(
+            paste0("r", copula@margins[2]),
+            c(list(npoints), copula@paramMargins[[2]])
+        )
+    }
 
-   emprob <- C.n(u = pobs(cbind(u, v), ties.method = ties.method), X = U)
-   thprob <- pCopula(u = pobs(cbind(u, v), ties.method = ties.method),
-                       copula = copula@copula)
-   # pMvdc(x = cbind(u, v), mvdc = copula)
+    emprob <- C.n(u = pobs(cbind(u, v), ties.method = ties.method), X = U)
+    thprob <- pCopula(
+        u = pobs(cbind(u, v), ties.method = ties.method),
+        copula = copula@copula
+    )
+    # pMvdc(x = cbind(u, v), mvdc = copula)
 
-   par(mar = mar, font = font, family = family)
-   plot(x = emprob, y = thprob, pch = pch,
-       panel.first = {points(0, 0, pch=16, cex=1e6, col = bgcol)
-                      grid(col = gcol, lty = lty)},
-       xaxt ="n", yaxt = "n", ann = FALSE, bty = bty, col = col, xlim = xlim,
-       ylim = ylim, cex = cex, ...)
-   abline(a = 0, b =  1, col = dcol, lwd = dlwd, ...)
-   axis(1, padj = padj, tck = tck, tcl = tcl, lwd = xlwd, col = xcol,
-       cex = xcex, ...)
-   axis(2, hadj = hadj, las = las, tck = tck, tcl = tcl, lwd = ylwd,
-       col = ycol, cex = ycex, ...)
-   mtext(side = 1, text = xlab, line = xline, cex = cex.xtitle,
-       font = xfont, ...)
-   mtext(side = 2, text = ylab, line = yline, cex = cex.ytitle,
-       font = yfont, ...)
+    par(mar = mar, font = font, family = family)
+    plot(
+        x = emprob, y = thprob, pch = pch,
+        panel.first = {
+            points(0, 0, pch = 16, cex = 1e6, col = bgcol)
+            grid(col = gcol, lty = lty)
+        },
+        xaxt = "n", yaxt = "n", ann = FALSE, bty = bty, col = col, xlim = xlim,
+        ylim = ylim, cex = cex, ...
+    )
+    abline(a = 0, b = 1, col = dcol, lwd = dlwd, ...)
+    axis(1,
+        padj = padj, tck = tck, tcl = tcl, lwd = xlwd, col = xcol,
+        cex = xcex, ...
+    )
+    axis(2,
+        hadj = hadj, las = las, tck = tck, tcl = tcl, lwd = ylwd,
+        col = ycol, cex = ycex, ...
+    )
+    mtext(
+        side = 1, text = xlab, line = xline, cex = cex.xtitle,
+        font = xfont, ...
+    )
+    mtext(
+        side = 2, text = ylab, line = yline, cex = cex.ytitle,
+        font = yfont, ...
+    )
 
-   invisible(list(data = data.frame(emprob = emprob, thprob = thprob),
-                   copula = copula))
+    invisible(list(
+        data = data.frame(emprob = emprob, thprob = thprob),
+        copula = copula
+    ))
 }
-

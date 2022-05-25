@@ -44,20 +44,25 @@
 
 
 betaBinPost <- function(x, num.cores = 1L, tasks = 0L, verbose = TRUE, ...) {
-
-    if (!((is.vector(x) && is.numeric(x)) || is.matrix(x) || is.data.frame(x)))
+    if (!((is.vector(x) && is.numeric(x)) || is.matrix(x) || is.data.frame(x))) {
         stop("\n*** 'x' must be a numerical vector, a matrix or a data.frame")
+    }
 
     d <- dim(x)
     if (is.null(d)) {
         l <- length(x)
-        if (l < 2) return(NA)
-    } else l = d[2]
+        if (l < 2) {
+            return(NA)
+        }
+    } else {
+        l <- d[2]
+    }
 
     if (is.null(d)) {
-        p <- (x + 1)/(rsum(x) + l)
+        p <- (x + 1) / (rsum(x) + l)
         pars <- try(betaDistEstimation(p, ...)$parameters,
-                    silent = TRUE)
+            silent = TRUE
+        )
         if (!inherits(pars, "try-error")) {
             p <- betaBinPosteriors(
                 x,
@@ -68,32 +73,40 @@ betaBinPost <- function(x, num.cores = 1L, tasks = 0L, verbose = TRUE, ...) {
         }
     } else {
         n <- rsum(x)
-        p <- (x + 1)/(n + l)
+        p <- (x + 1) / (n + l)
 
         if (num.cores > 1) {
             cn <- colnames(p)
             # Set parallel computation
-            progressbar = FALSE
-            if (verbose) progressbar = TRUE
-            if (Sys.info()['sysname'] == "Linux") {
-                bpparam <- MulticoreParam(workers = num.cores,
-                                          tasks = tasks,
-                                          progressbar = progressbar)
-            } else bpparam <- SnowParam(workers = num.cores, type = "SOCK",
-                                        progressbar = progressbar)
+            progressbar <- FALSE
+            if (verbose) progressbar <- TRUE
+            if (Sys.info()["sysname"] == "Linux") {
+                bpparam <- MulticoreParam(
+                    workers = num.cores,
+                    tasks = tasks,
+                    progressbar = progressbar
+                )
+            } else {
+                bpparam <- SnowParam(
+                    workers = num.cores, type = "SOCK",
+                    progressbar = progressbar
+                )
+            }
 
             p <- bplapply(seq_len(l), function(k) {
-
                 pars <- try(betaDistEstimation(p[, k], ...)$parameters,
-                            silent = TRUE)
+                    silent = TRUE
+                )
                 if (!inherits(pars, "try-error")) {
                     post <- betaBinPosteriors(
-                                            x[, k],
-                                            n[k],
-                                            a = pars[1],
-                                            b = pars[2]
-                            )
-                } else post <- p[, k]
+                        x[, k],
+                        n[k],
+                        a = pars[1],
+                        b = pars[2]
+                    )
+                } else {
+                    post <- p[, k]
+                }
                 return(post)
             }, ..., BPPARAM = bpparam)
             p <- do.call(cbind, p)
@@ -101,14 +114,15 @@ betaBinPost <- function(x, num.cores = 1L, tasks = 0L, verbose = TRUE, ...) {
         } else {
             for (k in seq_len(l)) {
                 pars <- try(betaDistEstimation(p[, k], ...)$parameters,
-                            silent = TRUE)
+                    silent = TRUE
+                )
                 if (!inherits(pars, "try-error")) {
                     p[, k] <- betaBinPosteriors(
-                                                x[, k],
-                                                n[k],
-                                                a = pars[1],
-                                                b = pars[2]
-                                            )
+                        x[, k],
+                        n[k],
+                        a = pars[1],
+                        b = pars[2]
+                    )
                 }
             }
         }
@@ -119,5 +133,5 @@ betaBinPost <- function(x, num.cores = 1L, tasks = 0L, verbose = TRUE, ...) {
 ## ====================== Auxiliary function =============================
 
 betaBinPosteriors <- function(success, trials, a, b) {
-    (a + success)/(a + b + trials)
+    (a + success) / (a + b + trials)
 }

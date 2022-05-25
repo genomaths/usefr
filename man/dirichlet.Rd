@@ -78,23 +78,25 @@ estimated as: \eqn{p_i = (x_i + \alpha_i)/(\sum x_i + sum \alpa_i)}.
 }
 \examples{
 ## A random generation of numerical vectors
-x = rdirichlet(n = 1e3, alpha = rbind(c(2.1, 3.1, 1.2),
-                                      c(2.5, 1.9, 1.6)))
+x <- rdirichlet(n = 1e3, alpha = rbind(
+    c(2.1, 3.1, 1.2),
+    c(2.5, 1.9, 1.6)
+))
 head(x[[1]])
 lapply(x, estimateDirichDist)
 
 ### Density computation
-alpha = cbind(1:10, 5, 10:1)
-x = rdirichlet(10, c(5, 5, 10))
+alpha <- cbind(1:10, 5, 10:1)
+x <- rdirichlet(10, c(5, 5, 10))
 ddirichlet(x = x, alpha = alpha)
 
 ### Or just one vector alpha
-x = rdirichlet(n = 10, alpha = c(2.1, 3.1, 1.2))
+x <- rdirichlet(n = 10, alpha = c(2.1, 3.1, 1.2))
 ddirichlet(x = x, alpha = c(2.1, 3.1, 1.2))
 
 ## Compute Dirichlet probability
 set.seed(123)
-q = rdirichlet(10, alpha = c(2.1, 3.2, 3.3))
+q <- rdirichlet(10, alpha = c(2.1, 3.2, 3.3))
 pdirichlet(q, alpha = c(2.1, 3.2, 3.3))
 
 }

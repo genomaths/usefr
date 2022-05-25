@@ -83,18 +83,24 @@ fitY <- fitCDF(Y, distNames = 12) # 3P Weibull distribution model
 coefs <- coef(fitY$bestfit) # model coefficients
 
 ## Goodness-of-fit test for the  Weibull-3P distribution model
-mcgoftest(varobj = Y, distr = "weibull3p", pars = coefs, num.sampl = 99,
-        sample.size =  1999, stat = "chisq", num.cores = 4, breaks = 200,
-        seed = 123)
+mcgoftest(
+    varobj = Y, distr = "weibull3p", pars = coefs, num.sampl = 99,
+    sample.size = 1999, stat = "chisq", num.cores = 4, breaks = 200,
+    seed = 123
+)
 
 ## Settngs to estimate the Mutual information
-margins = c("norm", "weibull3p")
-parMargins = list(list(mean = 1, sd = 0.2),
-                as.list(coefs))  # Notice "as.list" is used here, not "list"
+margins <- c("norm", "weibull3p")
+parMargins <- list(
+    list(mean = 1, sd = 0.2),
+    as.list(coefs)
+) # Notice "as.list" is used here, not "list"
 
 ## Finally estimation of the mutual information
- mutual.Inf <- mutualinf(x = X, y = Y, copula = "normalCopula",
-                        margins = margins,  paramMargins = parMargins )
+mutual.Inf <- mutualinf(
+    x = X, y = Y, copula = "normalCopula",
+    margins = margins, paramMargins = parMargins
+)
 head(mutual.Inf$stat)
 ## The fitted copula is also returned, so, it can be used in downstream
 ## analyses

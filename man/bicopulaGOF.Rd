@@ -3,7 +3,7 @@
 \name{bicopulaGOF}
 \alias{bicopulaGOF}
 \title{Goodness of Fit Boostrap Test for Bivariate distributions Constructed
-    from Copula with Known Margins.}
+from Copula with Known Margins.}
 \usage{
 bicopulaGOF(
   x,
@@ -42,8 +42,8 @@ distributions. See details below.}
 vectors) of named components, giving the parameter values of the marginal
 distributions. See details below.}
 
-\item{sample.size}{The size of the samples used for each sampling. It is not
-required for the approaches: "Sn", "SnB", and "SnC"; see below.}
+\item{sample.size}{The size of the samples used for each sampling. It is
+not required for the approaches: "Sn", "SnB", and "SnC"; see below.}
 
 \item{nboots}{The number of booststrap resampling to perform.}
 
@@ -51,82 +51,88 @@ required for the approaches: "Sn", "SnB", and "SnC"; see below.}
 statistic to be used, which has to be one (or a unique abbreviation) of
 following: "adchisq", "adgamma", "Sn", "SnB", "SnC", "chisq", and "rmse".
 With the exception of \emph{chisq} and \emph{rmse}, all the other
-statistics are the same as in functions \code{\link[copula]{gofTstat}}
-and \code{\link[copula]{gofCopula}}. The test using \emph{chisq}
-implement the approach described in reference [1].}
+statistics are the same as in functions \code{\link[copula]{gofTstat}} and
+\code{\link[copula]{gofCopula}}. The test using \emph{chisq} implement the
+approach described in reference [1].}
 
 \item{Rosenblatt}{The  Anderson–Darling statistic approach using Rosenblatt
 transformation is normally used for the GOF in function
 \code{\link[copula]{gofCopula}} from \code{\link[copula]{copula-package}}
 package. since, the current function applies a parametric bootstrap
-approach generating random variates from the analytical expression for
-the margin CDFs, the test does not depend on the theoretical distribution
-of the Anderson–Darling statistic. Simulations suggest, so far, that the
+approach generating random variate from the analytic expression for the
+margin CDFs, the test does not depend on the theoretical distribution of
+the Anderson–Darling statistic. Simulations suggest, so far, that the
 application of Rosenblatt transformation may not be needed in this case.
 Hence, the desicion on whether to apply the Rosenblatt transformation
 (computational expensive for big datasets) is left to the users. Function
-\code{\link[copula]{cCopula}} is used to computes the Rosenblatt
-transform. So, the application of Rosenblatt transform is limited to
-those copulas for which \code{\link[copula]{cCopula}} is implemented.}
+\code{\link[copula]{cCopula}} is used to computes the Rosenblatt transform.
+So, the application of Rosenblatt transform is limited to those copulas for
+which \code{\link[copula]{cCopula}} is implemented.}
 
 \item{breaks}{A single number giving the number of bins for the computation
 of the Pearson's Chi-squared statistic as suggested in reference [1].
 Bascally, it is used to split the unit square [0, 1]^2 into bins/regions.}
 
-\item{method}{A character string specifying the estimation method to be used
-to estimate the dependence parameter(s) (if the copula needs to be
+\item{method}{A character string specifying the estimation method to be
+used to estimate the dependence parameter(s) (if the copula needs to be
 estimated) see \code{\link[copula]{fitCopula}}.}
 
 \item{num.cores, tasks}{Paramaters for parallele computation using package
 \code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to
-use, i.e. at most how many child processes will be run simultaneously
-(see \code{\link[BiocParallel]{bplapply}} and the number of tasks per job
-(only for Linux OS).}
+use, i.e. at most how many child processes will be run simultaneously (see
+\code{\link[BiocParallel]{bplapply}} and the number of tasks per job (only
+for Linux OS).}
 
 \item{seed}{An integer used to set a 'seed' for random number generation.}
 
 \item{verbose}{if verbose, comments and progress bar will be printed.}
 }
 \value{
-The statistic value estimated for the observations, and the estimated
-    bootstrap p.value.
+The statistic value estimated for the observations, and the
+estimated bootstrap p.value.
 }
 \description{
-Goodness-of-fit (GOF) tests for a two-dimensional copula based,
-    by default, on the knowledge of the marginal probability distributions.
-    Several functionalities/tools from \code{\link[copula]{copula-package}}
-    are integrated to perform the GOF of copulas that includes specific
-    margin parameter settings. In terms of
-    \code{\link[copula]{copula-package}} vocabulary, these are GOF for copula
-    objects from class \code{\link[copula]{Mvdc}} (also called non-free
-    copulas).
+Goodness-of-fit (GOF) tests for a two-dimensional copula
+based, by default, on the knowledge of the marginal probability
+distributions. Several functionalities/tools from
+\code{\link[copula]{copula-package}} are integrated to perform the GOF of
+copulas that includes specific margin parameter settings. In terms of
+\code{\link[copula]{copula-package}} vocabulary, these are GOF for copula
+objects from class
+\code{\link[copula]{Mvdc}} (also called non-free copulas).
 }
 \details{
 Notice that \code{\link[copula]{copula-package}} already have
-    function \code{\link[copula]{gofCopula}} to perform GOF. However, this
-    function does not support bivariate distributions constructed from copula
-    with known margins. In addition, its use can be computational expensive
-    for big datasets.
+function \code{\link[copula]{gofCopula}} to perform GOF. However, this
+function does not support bivariate distributions constructed from copula
+with known margins. In addition, its use can be computational expensive for
+big datasets.
 }
 \examples{
 require(stats)
 
 set.seed(12)
-margins = c("norm", "norm")
+margins <- c("norm", "norm")
 ## Random variates from normal distributions
-X <- rnorm(2*1e3, mean = 0, sd = 10)
-Y <- rnorm(2*1e3, mean = 0, sd = 10)
+X <- rnorm(2 * 1e3, mean = 0, sd = 10)
+Y <- rnorm(2 * 1e3, mean = 0, sd = 10)
 
-parMargins = list( list(mean = 0, sd = 10),
-                   list(mean = 0, sd = 10))
+parMargins <- list(
+    list(mean = 0, sd = 10),
+    list(mean = 0, sd = 10)
+)
 
-bicopulaGOF(x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
-            margins = margins, paramMargins = parMargins, nboots = 999,
-            Rosenblatt = TRUE, approach = "adgamma", num.cores = 1L)
+bicopulaGOF(
+    x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
+    margins = margins, paramMargins = parMargins, nboots = 999,
+    Rosenblatt = TRUE, approach = "adgamma", num.cores = 1L
+)
 
-bicopulaGOF(x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
-            margins = margins, paramMargins = parMargins, nboots = 999,
-            Rosenblatt = FALSE, approach = "adgamma", num.cores = 1L)
+bicopulaGOF(
+    x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
+    margins = margins, paramMargins = parMargins, nboots = 999,
+    Rosenblatt = FALSE, approach = "adgamma", num.cores = 1L
+)
 
 ## --- Non-parallel expensive computation ---- -
 # require(copula)

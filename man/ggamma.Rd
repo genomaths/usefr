@@ -82,9 +82,11 @@ The GG distribution with parameters \eqn{\alpha}, \eqn{\beta} (scale),
     \beta)^\alpha) ((x-\mu)/\beta)^(\alpha * \psi - 1)/(\beta Gamma(\psi))}
 }
 \examples{
-q <- (1:9)/10
-pggamma(q, alpha = 1, scale = 1, mu = 0,
-        psi = 1, lower.tail = TRUE, log.p = FALSE)
+q <- (1:9) / 10
+pggamma(q,
+    alpha = 1, scale = 1, mu = 0,
+    psi = 1, lower.tail = TRUE, log.p = FALSE
+)
 
 ## To fit random generated numbers
 set.seed(123)

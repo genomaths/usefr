@@ -62,8 +62,8 @@ means \eqn{\sigma = \sqrt \pi/\sqrt 2}.
 }
 \examples{
 set.seed(123) # set a seed
-sigma = 1.2
-theta = sigma2theta(sigma)
+sigma <- 1.2
+theta <- sigma2theta(sigma)
 x <- rhnorm(n = 1e5, theta = theta)
 hist(x, 100, freq = FALSE)
 curve(dhnorm(x, theta = theta), col = "red", add = TRUE)

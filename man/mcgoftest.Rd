@@ -243,36 +243,48 @@ distribution and \eqn{\alpha_0 = \sum \alpha_i} (see Detail section,
 ## ======== Example 1 =======
 # Let us generate a random sample a from a specified Weibull distribution:
 # Set a seed
-set.seed( 1 )
+set.seed(1)
 # Random sample from Weibull( x | shape = 0.5, scale = 1.2 )
-x = rweibull(10000, shape = 0.5, scale = 1.2)
+x <- rweibull(10000, shape = 0.5, scale = 1.2)
 
 # MC KS test accept the null hypothesis that variable x comes
 # from Weibull(x | shape = 0.5, scale = 1.2), while the standard
 # Kolmogorov-Smirnov test reject the Null Hypothesis.
-mcgoftest(x, distr = "weibull", pars = c( 0.5, 1.2 ), num.sampl = 500,
-        sample.size = 1000, num.cores = 4)
+mcgoftest(x,
+    distr = "weibull", pars = c(0.5, 1.2), num.sampl = 500,
+    sample.size = 1000, num.cores = 4
+)
 
 ## ========= Example 2 ======
 # Let us generate a random sample a random sample from a specified Normal
 # distribution:
 # Set a seed
-set.seed( 1 )
-x = rnorm(10000, mean = 1.5, sd = 2)
+set.seed(1)
+x <- rnorm(10000, mean = 1.5, sd = 2)
 
 # MC KS test accept the null hypothesis that variable x comes
 # from N(x | mean = 0.5, sd = 1.2), while the standard
 # Kolmogorov-Smirnov test reject the Null Hypothesis. This an old KS issue,
 # well known by statisticians since the 1970s.
-mcgoftest(x, distr = "norm", pars = c(1.5, 2), num.sampl = 500,
-          sample.size = 1000, num.cores = 1)
+mcgoftest(x,
+    distr = "norm", pars = c(1.5, 2), num.sampl = 500,
+    sample.size = 1000, num.cores = 1
+)
 
 ## ========= Example 3 ======
 ## Define a Weibull 3-parameter distribution function
-pwdist <- function(x, pars) pweibull(x - pars[1], shape = pars[2],
-                   scale = pars[3])
-rwdist <- function(n, pars) rweibull(n, shape = pars[2],
-                    scale = pars[3]) + pars[1]
+pwdist <- function(x, pars) {
+    pweibull(x - pars[1],
+        shape = pars[2],
+        scale = pars[3]
+    )
+}
+rwdist <- function(n, pars) {
+    rweibull(n,
+        shape = pars[2],
+        scale = pars[3]
+    ) + pars[1]
+}
 
 ## A random generation from Weibull-3P
 set.seed(123)
@@ -280,9 +292,11 @@ pars <- c(mu = 0.9, shape = 1.4, scale = 3.7)
 w <- rwdist(200, pars = pars)
 
 ## Testing GoF
-mcgoftest(varobj = w, distr = "wdist", pars = list(pars), num.sampl = 100,
-          sample.size =  199, stat = "chisq", num.cores = 4, breaks = 100,
-          seed = 123)
+mcgoftest(
+    varobj = w, distr = "wdist", pars = list(pars), num.sampl = 100,
+    sample.size = 199, stat = "chisq", num.cores = 4, breaks = 100,
+    seed = 123
+)
 
 ## ========= Example 4 ======
 ## ----- Testing GoF of a mixture distribution. ----
@@ -290,22 +304,26 @@ mcgoftest(varobj = w, distr = "wdist", pars = list(pars), num.sampl = 100,
 ## (see ?mixtdistr). In the current case, it will be mixture of a Log-Normal
 ## and a Weibull distributions:
 
-phi = c( 0.37, 0.63) # Mixture proportions
-args <- list(lnorm = c(meanlog = 0.837, sdlog = 0.385),
-             weibull = c(shape = 2.7, scale = 5.8))
+phi <- c(0.37, 0.63) # Mixture proportions
+args <- list(
+    lnorm = c(meanlog = 0.837, sdlog = 0.385),
+    weibull = c(shape = 2.7, scale = 5.8)
+)
 
 ##  Sampling from the specified mixture distribution
 set.seed(123)
-x <- rmixtdistr(n = 1e5, phi = phi , arg = args)
+x <- rmixtdistr(n = 1e5, phi = phi, arg = args)
 hist(x, 100, freq = FALSE)
 x1 <- seq(0, 10, by = 0.001)
 lines(x1, dmixtdistr(x1, phi = phi, arg = args), col = "red")
 
 ## The GoF for the simulated sample
 pars <- c(list(phi = phi), arg = list(args))
-mcgoftest(varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
-        sample.size =  999, stat = "chisq", num.cores = 4, breaks = 200,
-        seed = 123)
+mcgoftest(
+    varobj = x, distr = "mixtdistr", pars = pars, num.sampl = 999,
+    sample.size = 999, stat = "chisq", num.cores = 4, breaks = 200,
+    seed = 123
+)
 
 #' ## ========= Example 5 ======
 ## Shapiro-Wilk test of normality.
@@ -320,28 +338,32 @@ mcgoftest(r, stat = "sw")
 ## GoF for Dirichlet Distribution (these examples can be run,
 ## the 'not-run' is only to prevent time consuming in R checking)
 \dontrun{
-        set.seed(1)
-        alpha = c(2.1, 3.2, 3.3)
-        x <- rdirichlet(n = 100, alpha = alpha)
+set.seed(1)
+alpha <- c(2.1, 3.2, 3.3)
+x <- rdirichlet(n = 100, alpha = alpha)
 
-        mcgoftest(varobj = x, distr = "dirichlet",
-                  pars = alpha, num.sampl = 999,
-                  sample.size =  100, stat = "chisq",
-                  par.names = "alpha",
-                  num.cores = 4, breaks = 50,
-                  seed = 1)
+mcgoftest(
+    varobj = x, distr = "dirichlet",
+    pars = alpha, num.sampl = 999,
+    sample.size = 100, stat = "chisq",
+    par.names = "alpha",
+    num.cores = 4, breaks = 50,
+    seed = 1
+)
 
-        ## Now, adding some noise to the sample
-        set.seed(1)
-        x <- x + replicate(3, runif(100, max = 0.1))
-        x <- x/ rowSums(x)
+## Now, adding some noise to the sample
+set.seed(1)
+x <- x + replicate(3, runif(100, max = 0.1))
+x <- x / rowSums(x)
 
-        mcgoftest(varobj = x, distr = "dirichlet",
-                  pars = alpha, num.sampl = 999,
-                  sample.size =  100, stat = "chisq",
-                  par.names = "alpha",
-                  num.cores = 4, breaks = 50,
-                  seed = 1)
+mcgoftest(
+    varobj = x, distr = "dirichlet",
+    pars = alpha, num.sampl = 999,
+    sample.size = 100, stat = "chisq",
+    par.names = "alpha",
+    num.cores = 4, breaks = 50,
+    seed = 1
+)
 }
 
 ## ========= Example 7 ======
@@ -349,52 +371,59 @@ mcgoftest(r, stat = "sw")
 
 ## A vector of probability parameters
 set.seed(123)
-prob = round(runif(12, min = 0.1, max = 0.8), 2)
-prob = prob / sum(prob) # To normalize the probability vector
+prob <- round(runif(12, min = 0.1, max = 0.8), 2)
+prob <- prob / sum(prob) # To normalize the probability vector
 
 ## Generate multinomially distributed random numeric vectors
-r = rmultinom(12, size = 120, prob = prob)
+r <- rmultinom(12, size = 120, prob = prob)
 
 ## A list the parameter values must be provided
-pars = list(size = 120, prob = prob)
+pars <- list(size = 120, prob = prob)
 
-mcgoftest(r, distr = "multinom", stat = "chisq",
-          pars = pars, sample.size = 20,
-          num.sampl = 50)
+mcgoftest(r,
+    distr = "multinom", stat = "chisq",
+    pars = pars, sample.size = 20,
+    num.sampl = 50
+)
 
 ## ========= Example 8 ======
 ##  Testing whether two discrete probabilities vectors
 ##  would come from different probability distributions.
 set.seed(1)
 ## Vector of absolute frequencies
-n = 12
-alpha = round(runif(n, min = 0.1, max = 0.8) * 10, 1)
+n <- 12
+alpha <- round(runif(n, min = 0.1, max = 0.8) * 10, 1)
 x1 <- round(runif(n = n) * 100)
 
 ## Add some little noise
 x2 <- x1 + round(runif(n, min = 0.1, max = 0.2) * 10)
 
-mcgoftest(varobj = x1, distr = x2,
-          num.sampl = 999,
-          stat = "chisq",
-          seed = 1)
+mcgoftest(
+    varobj = x1, distr = x2,
+    num.sampl = 999,
+    stat = "chisq",
+    seed = 1
+)
 
 ## Compare it with Chi-square test from R package 'stat'
-chisq.test(rbind(x1,x2), simulate.p.value = TRUE, B = 2e3)$p.value
+chisq.test(rbind(x1, x2), simulate.p.value = TRUE, B = 2e3)$p.value
 
 ## Add bigger noise to 'x1'
 x3 <- x1 + round(rnorm(n, mean = 5, sd = 1) * 10)
-mcgoftest(varobj = x1, distr = x3,
-          num.sampl = 999,
-          stat = "chisq",
-          seed = 1)
+mcgoftest(
+    varobj = x1, distr = x3,
+    num.sampl = 999,
+    stat = "chisq",
+    seed = 1
+)
 
 ## Chi-square test from R package 'stat' is consistent with 'mcgoftest'
 chisq.test(rbind(x1, x3), simulate.p.value = TRUE, B = 2e3)$p.value
 
 ## We will always fail in to detect differences between 'crude' probability
 ## vectors without additional information.
-chisq.test(x= x1, y = x3, simulate.p.value = TRUE, B = 2e3)$p.value
+chisq.test(x = x1, y = x3, simulate.p.value = TRUE, B = 2e3)$p.value
+
 }
 \references{
 \enumerate{

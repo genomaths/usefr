@@ -3,10 +3,10 @@
 ##
 ## This program is part 'usefr' R package.
 ##
-## This program is free software; you can redistribute it and/or modify it under
-## the terms of the GNU General Public License as published by the Free Software
-## Foundation; either version 3 of the License, or (at your option) any later
-## version.
+## This program is free software; you can redistribute it and/or modify it
+## under the terms of the GNU General Public License as published by the Free
+## Software Foundation; either version 3 of the License, or (at your option)
+## any later version.
 ##
 ## 'usefr' is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -14,12 +14,12 @@
 ## (at your option) any later version.
 ##
 ## This program is distributed in the hope that it will be useful, but WITHOUT
-## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-## details.
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+## FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+## more details.
 ##
-## You should have received a copy of the GNU General Public License along with
-## this program; if not, see <http://www.gnu.org/licenses/>.
+## You should have received a copy of the GNU General Public License along
+## with this program; if not, see <http://www.gnu.org/licenses/>.
 
 #' @rdname coefs
 #' @aliases coefs
@@ -35,9 +35,11 @@
 #' @param ... Additional parameter not in use yet.
 setGeneric(
     "coefs",
-    def = function(
-        object,
-        ...) stats::coef(object, ...))
+    def = function(object,
+    ...) {
+        stats::coef(object, ...)
+    }
+)
 
 
 setOldClass("DirchModel")
@@ -45,30 +47,31 @@ setOldClass("DirchModel")
 #' @rdname coefs
 #' @aliases coefs
 #' @export
-setMethod("coefs", signature(object = "DirchModel"),
-    function(
-            object,
-            output = c("alpha", "marginals")) {
-
+setMethod(
+    "coefs", signature(object = "DirchModel"),
+    function(object,
+    output = c("alpha", "marginals")) {
         output <- match.arg(output)
         coefss <- switch(output,
-                        alpha = object$alpha,
-                        marginals = {
-                            coefss <- object$marginals
-                            coefss <- lapply(coefss, function(x) {
-                                x$Estimate
-                            })
-                            if (length(coefss) > 1 && is.list(coefss))
-                                coefss <- data.frame(do.call(rbind, coefss))
-                            else {
-                                if (is.list(object))
-                                    coefss <- object[[1]]$Estimate
-                                else
-                                    coefss <- object$Estimate
-                            }
-                            colnames(coefss) <- c("shape1", "shape2")
-                            coefss
-                        })
+            alpha = object$alpha,
+            marginals = {
+                coefss <- object$marginals
+                coefss <- lapply(coefss, function(x) {
+                    x$Estimate
+                })
+                if (length(coefss) > 1 && is.list(coefss)) {
+                    coefss <- data.frame(do.call(rbind, coefss))
+                } else {
+                    if (is.list(object)) {
+                        coefss <- object[[1]]$Estimate
+                    } else {
+                        coefss <- object$Estimate
+                    }
+                }
+                colnames(coefss) <- c("shape1", "shape2")
+                coefss
+            }
+        )
         return(coefss)
     }
 )
@@ -78,7 +81,8 @@ setOldClass(Classes = "BetaModel")
 #' @rdname coefs
 #' @aliases coefs
 #' @export
-setMethod("coefs", signature(object = "BetaModel"),
+setMethod(
+    "coefs", signature(object = "BetaModel"),
     function(object) {
         coefs <- object$Estimate
         names(coefs) <- c("shape1", "shape2")
@@ -92,7 +96,8 @@ setOldClass(Classes = "nls.lm")
 #' @rdname coefs
 #' @aliases coefs
 #' @export
-setMethod("coefs", signature(object = "nls.lm"),
+setMethod(
+    "coefs", signature(object = "nls.lm"),
     function(object) {
         object$par
     }
@@ -103,7 +108,8 @@ setOldClass(Classes = c("CDFmodel", "CDFmodelList"))
 #' @rdname coefs
 #' @aliases coefs
 #' @export
-setMethod("coefs", signature(object = "CDFmodel"),
+setMethod(
+    "coefs", signature(object = "CDFmodel"),
     function(object) {
         coefs(object$bestfit)
     }
@@ -112,9 +118,10 @@ setMethod("coefs", signature(object = "CDFmodel"),
 #' @rdname coefs
 #' @aliases coefs
 #' @export
-setMethod("coefs", signature(object = "CDFmodelList"),
+setMethod(
+    "coefs", signature(object = "CDFmodelList"),
     function(object) {
-        object <- object[ seq_len(length(object) - 1) ]
+        object <- object[seq_len(length(object) - 1)]
         sapply(object, function(m) coefs(m))
     }
 )
@@ -122,11 +129,12 @@ setMethod("coefs", signature(object = "CDFmodelList"),
 #' @rdname coefs
 #' @aliases coefs
 #' @export
-setMethod("coefs", signature(object = "data.frame"),
+setMethod(
+    "coefs", signature(object = "data.frame"),
     function(object,
-             column = 1L) {
+    column = 1L) {
         coef <- object[, column]
-        names(coef) <- attr(object,"row.names")
+        names(coef) <- attr(object, "row.names")
         return(coef)
     }
 )

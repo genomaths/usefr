@@ -54,16 +54,16 @@
 #' hist(r, 100, freq = FALSE, xlim = c(0, 20))
 #' r1 <- seq(0, 20, by = 0.1)
 #' lines(r1, dweibull3p(r1, shape = 1.4, scale = 3.7, mu = 0.9),
-#'     col = "red")
+#'     col = "red"
+#' )
 #'
-
 #' @aliases dweibull3p
 #' @rdname weibull3p
 #' @title Weibull Distribution with Three Parameters
 #' @export
 dweibull3p <- function(x, shape = 1, scale = 1, mu = 0, log = FALSE) {
-  d <- dweibull(x = x - mu, shape = shape, scale = scale, log = log)
-  return(d)
+    d <- dweibull(x = x - mu, shape = shape, scale = scale, log = log)
+    return(d)
 }
 
 #' @aliases pweibull3p
@@ -71,10 +71,12 @@ dweibull3p <- function(x, shape = 1, scale = 1, mu = 0, log = FALSE) {
 #' @title Weibull Distribution with Three Parameters
 #' @export
 pweibull3p <- function(q, shape = 1, scale = 1, mu = 0, lower.tail = TRUE,
-                      log.p = FALSE) {
-   p <- pweibull(q = q - mu, shape = shape, scale = scale,
-                   lower.tail = lower.tail, log.p = log.p)
-   return(p)
+    log.p = FALSE) {
+    p <- pweibull(
+        q = q - mu, shape = shape, scale = scale,
+        lower.tail = lower.tail, log.p = log.p
+    )
+    return(p)
 }
 
 #' @aliases qweibull3p
@@ -82,10 +84,12 @@ pweibull3p <- function(q, shape = 1, scale = 1, mu = 0, lower.tail = TRUE,
 #' @title Weibull Distribution with Three Parameters
 #' @export
 qweibull3p <- function(p, shape = 1, scale = 1, mu = 0, lower.tail = TRUE,
-                      log.p = FALSE) {
-   q <- qweibull(p = p, shape = shape, scale = scale, lower.tail = lower.tail,
-                 log.p = log.p) + mu
-   return(q)
+    log.p = FALSE) {
+    q <- qweibull(
+        p = p, shape = shape, scale = scale, lower.tail = lower.tail,
+        log.p = log.p
+    ) + mu
+    return(q)
 }
 
 #' @aliases rweibull3p
@@ -93,7 +97,6 @@ qweibull3p <- function(p, shape = 1, scale = 1, mu = 0, lower.tail = TRUE,
 #' @title Weibull Distribution with Three Parameters
 #' @export
 rweibull3p <- function(n, shape = 1, scale = 1, mu = 0) {
-   r <- rweibull(n = n, shape = shape, scale = scale) + mu
-   return(r)
+    r <- rweibull(n = n, shape = shape, scale = scale) + mu
+    return(r)
 }
-

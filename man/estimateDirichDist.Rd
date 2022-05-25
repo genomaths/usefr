@@ -53,10 +53,11 @@ parameter values.
 library(DirichletReg)
 
 ## A random generation numerical vectors with
-x = rdirichlet(n = 1000, alpha = c(2.1, 3.1, 1.2))
+x <- rdirichlet(n = 1000, alpha = c(2.1, 3.1, 1.2))
 head(x)
 
 estimateDirichDist(x)
+
 }
 \seealso{
 \code{\link{betaDistEstimation}} and \code{\link{betaBinPost}}

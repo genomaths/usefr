@@ -55,66 +55,75 @@
 #' library(DirichletReg)
 #'
 #' ## A random generation numerical vectors with
-#' x = rdirichlet(n = 1000, alpha = c(2.1, 3.1, 1.2))
+#' x <- rdirichlet(n = 1000, alpha = c(2.1, 3.1, 1.2))
 #' head(x)
 #'
 #' estimateDirichDist(x)
-
-estimateDirichDist <- function( x,
-                                start = NULL,
-                                num.cores = 1L,
-                                tasks = 0L,
-                                seed = 123,
-                                refit = TRUE,
-                                verbose = TRUE,
-                                 ...) {
-
-    if (!((is.vector(x) && is.numeric(x)) || is.matrix(x) || is.data.frame(x)))
+#'
+estimateDirichDist <- function(x,
+    start = NULL,
+    num.cores = 1L,
+    tasks = 0L,
+    seed = 123,
+    refit = TRUE,
+    verbose = TRUE,
+    ...) {
+    if (!((is.vector(x) && is.numeric(x)) || is.matrix(x) || is.data.frame(x))) {
         stop("\n*** 'x' must be a numerical vector, a matrix or a data.frame")
+    }
 
-    if (!inherits(x, c("matrix", "data.frame")))
+    if (!inherits(x, c("matrix", "data.frame"))) {
         stop("\n*** Object 'x' must be a 'matrix' or a 'data.frame'.")
+    }
 
     cn <- colnames(x)
     d <- dim(x)
-    p <- x/rsum(x)
+    p <- x / rsum(x)
 
     if (is.null(start)) {
         start <- matrix(1, d[1], 2)
-    }
-    else {
-        if (length(start) != ncol(x))
-            warning("*** Wrong 'start' parameter length.",
-                    " The length(start) == ncol(x) \n",
-                    "The 'start' values will be ignored")
+    } else {
+        if (length(start) != ncol(x)) {
+            warning(
+                "*** Wrong 'start' parameter length.",
+                " The length(start) == ncol(x) \n",
+                "The 'start' values will be ignored"
+            )
+        }
         alfa <- sum(start)
-        start <- cbind(shape1 = start,
-                    shape2 = sapply(start, function(x) alfa - x))
+        start <- cbind(
+            shape1 = start,
+            shape2 = sapply(start, function(x) alfa - x)
+        )
     }
 
     FIT <- beta_fitting(
-                        p = p,
-                        start = start,
-                        num.cores = num.cores,
-                        tasks = tasks,
-                        seed = seed,
-                        verbose = verbose,
-                        ...)
+        p = p,
+        start = start,
+        num.cores = num.cores,
+        tasks = tasks,
+        seed = seed,
+        verbose = verbose,
+        ...
+    )
 
     if (refit) {
         start <- coefs(FIT)
         alfa_0 <- sum(start)
-        start <- cbind(shape1 = start,
-                        shape2 = sapply(start, function(x) alfa_0 - x))
+        start <- cbind(
+            shape1 = start,
+            shape2 = sapply(start, function(x) alfa_0 - x)
+        )
 
         FIT <- beta_fitting(
-                            p = p,
-                            start = start,
-                            num.cores = num.cores,
-                            tasks = tasks,
-                            seed = seed,
-                            verbose = verbose,
-                            ...)
+            p = p,
+            start = start,
+            num.cores = num.cores,
+            tasks = tasks,
+            seed = seed,
+            verbose = verbose,
+            ...
+        )
     }
 
     return(FIT)
@@ -124,64 +133,75 @@ estimateDirichDist <- function( x,
 ### ===================== Auxiliary function =================
 
 rsum <- function(x) {
-    if (length(dim(x)) > 1)  return(rowSums(x, na.rm = TRUE))
-    else  return(sum(x, na.rm = TRUE))
+    if (length(dim(x)) > 1) {
+        return(rowSums(x, na.rm = TRUE))
+    } else {
+        return(sum(x, na.rm = TRUE))
+    }
 }
 
 
 ## ================ Auxiliary function ======================
 
-beta_fitting <- function(
-                        p,
-                        start = NULL,
-                        num.cores = 1L,
-                        tasks = 0L,
-                        seed = 123,
-                        verbose = TRUE,
-                        ...) {
+beta_fitting <- function(p,
+    start = NULL,
+    num.cores = 1L,
+    tasks = 0L,
+    seed = 123,
+    verbose = TRUE,
+    ...) {
     cn <- colnames(p)
     d <- dim(p)
 
     if (num.cores > 1) {
         cn <- colnames(p)
         # Set parallel computation
-        progressbar = FALSE
-        if (verbose) progressbar = TRUE
-        if (Sys.info()['sysname'] == "Linux") {
-            bpparam <- MulticoreParam(workers = num.cores,
-                                    tasks = tasks,
-                                    progressbar = progressbar)
+        progressbar <- FALSE
+        if (verbose) progressbar <- TRUE
+        if (Sys.info()["sysname"] == "Linux") {
+            bpparam <- MulticoreParam(
+                workers = num.cores,
+                tasks = tasks,
+                progressbar = progressbar
+            )
+        } else {
+            bpparam <- SnowParam(
+                workers = num.cores, type = "SOCK",
+                progressbar = progressbar
+            )
         }
-        else bpparam <- SnowParam(workers = num.cores, type = "SOCK",
-                                    progressbar = progressbar)
 
         FIT <- bplapply(seq_len(d[2]), function(k) {
-
-            fit <- try(betaDistEstimation( q = p[, k],
-                                           init.pars = start[k,],
-                                           seed = seed,
-                                           ...),
-                       silent = TRUE)
+            fit <- try(betaDistEstimation(
+                q = p[, k],
+                init.pars = start[k, ],
+                seed = seed,
+                ...
+            ),
+            silent = TRUE
+            )
             if (inherits(fit, "try-error")) {
                 fit <- try(betaDistEstimation(
-                                            q = p[, k],
-                                            init.pars = start[k,],
-                                            force.optim = TRUE,
-                                            seed = seed,
-                                            ...),
-                            silent = TRUE)
+                    q = p[, k],
+                    init.pars = start[k, ],
+                    force.optim = TRUE,
+                    seed = seed,
+                    ...
+                ),
+                silent = TRUE
+                )
             }
 
-            if (inherits(fit, "try-error"))
+            if (inherits(fit, "try-error")) {
                 stop("\n*** Model for marginal '", k, "' failed")
+            }
 
-            fit <- structure(fit, class = c("BetaModel","data.frame"))
+            fit <- structure(fit, class = c("BetaModel", "data.frame"))
 
             return(fit)
         }, ..., BPPARAM = bpparam)
         ALFA <- sapply(FIT, function(x) x$Estimate[1])
-    }
-    else {
+    } else {
         pars <- vector(mode = "numeric", length = d[2])
         ALFA <- vector(mode = "numeric", length = d[2])
         FIT <- vector(mode = "list", length = d[2])
@@ -189,36 +209,44 @@ beta_fitting <- function(
         for (k in seq_len(d[2])) {
             # if (verbose)
             fit <- try(betaDistEstimation(
-                                q = p[, k],
-                                init.pars = start[k,],
-                                seed = seed),
-                                silent = TRUE)
+                q = p[, k],
+                init.pars = start[k, ],
+                seed = seed
+            ),
+            silent = TRUE
+            )
             if (inherits(fit, "try-error")) {
                 fit <- try(betaDistEstimation(
                     q = p[, k],
-                    init.pars = start[k,],
+                    init.pars = start[k, ],
                     force.optim = TRUE,
                     seed = seed,
-                    ...),
-                    silent = TRUE)
+                    ...
+                ),
+                silent = TRUE
+                )
             }
 
-            if (inherits(fit, "try-error"))
+            if (inherits(fit, "try-error")) {
                 stop("\n*** Parameter for marginal '", k, "' failed")
+            }
 
-            fit <- structure(fit, class = c("BetaModel","data.frame"))
+            fit <- structure(fit, class = c("BetaModel", "data.frame"))
 
-            ALFA[ k ] <- fit$Estimate[1]
-            FIT[[ k ]] <- fit
+            ALFA[k] <- fit$Estimate[1]
+            FIT[[k]] <- fit
         }
     }
-    if (is.null(cn))
+    if (is.null(cn)) {
         names(FIT) <- paste0("beta_", seq_len(d[2]))
-    else
+    } else {
         names(FIT) <- cn
+    }
 
-    FIT <- list(alpha = ALFA,
-                marginals = FIT)
-    FIT <- structure(FIT, class = c("DirchModel","list"))
+    FIT <- list(
+        alpha = ALFA,
+        marginals = FIT
+    )
+    FIT <- structure(FIT, class = c("DirchModel", "list"))
     return(FIT)
 }

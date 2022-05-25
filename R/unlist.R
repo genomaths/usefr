@@ -36,11 +36,15 @@ unlist <- function(x) UseMethod("unlist", x)
 #' @export
 unlist.default <- function(x) {
     x0 <- try(suppressWarnings(do.call("c", unname(x))),
-              silent = TRUE)
-    if (!inherits(x0, "try-error"))
+        silent = TRUE
+    )
+    if (!inherits(x0, "try-error")) {
         x <- x0
-    else
-        x <- base::unlist(x, recursive = TRUE,
-                        use.names = TRUE)
+    } else {
+        x <- base::unlist(x,
+            recursive = TRUE,
+            use.names = TRUE
+        )
+    }
     return(x)
 }

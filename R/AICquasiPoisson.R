@@ -26,7 +26,9 @@
 #' @keywords internal
 #' @author Robersy Sanchez (\url{https://genomaths.com}).
 .AICquasiPoisson <- function(fitObj) {
-   LogLike <- sum(dpois(fitObj$data$count, lambda=exp(predict(fitObj)),
-                       log=TRUE))
-   return(2 * (length(coef(fitObj)) - LogLike))
+    LogLike <- sum(dpois(fitObj$data$count,
+        lambda = exp(predict(fitObj)),
+        log = TRUE
+    ))
+    return(2 * (length(coef(fitObj)) - LogLike))
 }

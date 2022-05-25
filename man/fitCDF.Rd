@@ -249,17 +249,21 @@ cdfp <- fitCDF(x1, distNames = "Normal", plot = FALSE)
 summary(cdfp$bestfit)
 
 ## Add some cosmetics to the plots
-cdfp <- fitCDF(x1, distNames = "Normal", xlabel = "My Nice Variable Label",
-               plot = T, font.lab= 3, font=2,font.axis=2, family="serif",
-               cex.lab = 1.3, cex.axis = 1.3)
+cdfp <- fitCDF(x1,
+    distNames = "Normal", xlabel = "My Nice Variable Label",
+    plot = T, font.lab = 3, font = 2, font.axis = 2, family = "serif",
+    cex.lab = 1.3, cex.axis = 1.3
+)
 
 ## Fitting a Weibull distribution with 3 paramaters
 x1 <- rweibull3p(1000, shape = 0.5, scale = 1, mu = 0.1)
-cdfp <- fitCDF(x1, distNames = "3P Weibull",
-               xlabel = "My Nice Variable Label",
-               plot = T, font.lab= 3, font=2, font.axis=2, family="serif",
-               cex.lab = 1.3, cex.axis = 1.3, cex.main = 1.1,
-               mgp = c(2.5, 1, 0))
+cdfp <- fitCDF(x1,
+    distNames = "3P Weibull",
+    xlabel = "My Nice Variable Label",
+    plot = T, font.lab = 3, font = 2, font.axis = 2, family = "serif",
+    cex.lab = 1.3, cex.axis = 1.3, cex.main = 1.1,
+    mgp = c(2.5, 1, 0)
+)
 }
 \references{
 \enumerate{

@@ -59,6 +59,7 @@ r <- rweibull3p(n = 1e5, shape = 1.4, scale = 3.7, mu = 0.9)
 hist(r, 100, freq = FALSE, xlim = c(0, 20))
 r1 <- seq(0, 20, by = 0.1)
 lines(r1, dweibull3p(r1, shape = 1.4, scale = 3.7, mu = 0.9),
-    col = "red")
+    col = "red"
+)
 
 }

@@ -181,20 +181,24 @@ Empirical and theoretical probabilities are estimated using the
 }
 \examples{
 set.seed(12)
-margins = c("norm", "norm")
+margins <- c("norm", "norm")
 ## Random variates from normal distributions
-X <- rlnorm(200, meanlog =- 0.5, sdlog = 3.1)
+X <- rlnorm(200, meanlog = -0.5, sdlog = 3.1)
 Y <- rnorm(200, mean = 0, sd = 6)
-cor(X,Y) ## Correlation between X and Y
+cor(X, Y) ## Correlation between X and Y
 
-parMargins = list( list(meanlog = 0.5, sdlog = 3.1),
-                   list(mean = 0, sd = 10))
+parMargins <- list(
+    list(meanlog = 0.5, sdlog = 3.1),
+    list(mean = 0, sd = 10)
+)
 
-copula = "normalCopula"
+copula <- "normalCopula"
 
 ## The information to build the graphic is stored in object 'g'.
-g <- ppCplot(X = X, Y = Y, copula = "normalCopula", margins = margins,
-             paramMargins = parMargins, npoints = 100)
+g <- ppCplot(
+    X = X, Y = Y, copula = "normalCopula", margins = margins,
+    paramMargins = parMargins, npoints = 100
+)
 
 }
 \seealso{

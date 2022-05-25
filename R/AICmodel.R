@@ -35,43 +35,49 @@
 #'
 #' @examples
 #' set.seed(77)
-#' x = runif(100, 1, 5)
-#' y = 2 * exp(-0.5 * x) + runif(100, 0, 0.1)
+#' x <- runif(100, 1, 5)
+#' y <- 2 * exp(-0.5 * x) + runif(100, 0, 0.1)
 #' plot(x, y)
 #'
-#' nlm <- nls(Y ~ a * exp( b * X), data = data.frame(X=x, Y=y),
-#'             start=list(a=1.5, b=-0.7),
-#'             control=nls.control(maxiter=10^4, tol=1e-05),
-#'             algorithm="port")
+#' nlm <- nls(Y ~ a * exp(b * X),
+#'     data = data.frame(X = x, Y = y),
+#'     start = list(a = 1.5, b = -0.7),
+#'     control = nls.control(maxiter = 10^4, tol = 1e-05),
+#'     algorithm = "port"
+#' )
 #' ## The estimations of Akaike information criteria given by 'AIC' function
 #' ## from stats' R package and from 'AICmodel' function are equal.
 #' AICmodel(nlm) == AIC(nlm)
 #'
 #' ## Now, using residuals from the fitted model:
-#' res = y - coef(nlm)[1] * exp(coef(nlm)[2] * x)
+#' res <- y - coef(nlm)[1] * exp(coef(nlm)[2] * x)
 #'
-#' AICmodel(residuals=res, np=2) == AIC(nlm)
+#' AICmodel(residuals = res, np = 2) == AIC(nlm)
 #'
 #' @importFrom stats resid coef
 #' @seealso \code{\link{BICmodel}}
 #' @export
-AICmodel <- function(model=NULL, residuals=NULL, np=NULL) {
-   if (is.null(model) && is.null(residuals)) {
-       stop(paste("At least one of the parameters 'model'",
-               " or 'residual' must be provided"))
-   }
-   if (!is.null(model)) {
-       if (is.null(np))
-          np <- length(coef(model))
-       RESID <- resid(model)
-   }
-   if (is.null(np)) {
-       stop("The number of model parameters 'np' must be provided")
-   }
-   if (!is.null(residuals))
-      RESID <- residuals
+AICmodel <- function(model = NULL, residuals = NULL, np = NULL) {
+    if (is.null(model) && is.null(residuals)) {
+        stop(paste(
+            "At least one of the parameters 'model'",
+            " or 'residual' must be provided"
+        ))
+    }
+    if (!is.null(model)) {
+        if (is.null(np)) {
+            np <- length(coef(model))
+        }
+        RESID <- resid(model)
+    }
+    if (is.null(np)) {
+        stop("The number of model parameters 'np' must be provided")
+    }
+    if (!is.null(residuals)) {
+        RESID <- residuals
+    }
 
-   sse <- sum(RESID^2, na.rm=TRUE)
-   N <- length( RESID )
-   return(N * (1 + log(2 * pi) + log(sse/N)) + 2 * (1L + np))
+    sse <- sum(RESID^2, na.rm = TRUE)
+    N <- length(RESID)
+    return(N * (1 + log(2 * pi) + log(sse / N)) + 2 * (1L + np))
 }

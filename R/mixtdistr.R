@@ -50,16 +50,18 @@
 #' @examples
 #' set.seed(123) # set a seed for random generation
 #' # A mixture of three distributions
-#' phi = c(5/10, 3/10, 2/10) # Mixture proportions
+#' phi <- c(5 / 10, 3 / 10, 2 / 10) # Mixture proportions
 #'
 #' # Named vector of the corresponding distribution function parameters
 #' # must be provided
-#' args <- list(gamma = c(shape = 20, scale = 1/10),
-#'             weibull = c(shape =  4, scale = 0.8),
-#'             lnorm = c(meanlog = 1.2, sdlog = 0.08))
+#' args <- list(
+#'     gamma = c(shape = 20, scale = 1 / 10),
+#'     weibull = c(shape = 4, scale = 0.8),
+#'     lnorm = c(meanlog = 1.2, sdlog = 0.08)
+#' )
 #'
 #' #  Sampling from the specified mixture distribution
-#' x <- rmixtdistr(n = 1e5, phi = phi , arg = args)
+#' x <- rmixtdistr(n = 1e5, phi = phi, arg = args)
 #'
 #' # The graphics for the simulated dataset and the corresponding theoretical
 #' # mixture distribution
@@ -72,35 +74,41 @@
 #' @title Mixture of Distribution Functions
 #' @export
 #'
-dmixtdistr <- function(x, phi, arg,  log = FALSE,
-                       lower.tail = TRUE) {
+dmixtdistr <- function(x, phi, arg, log = FALSE,
+    lower.tail = TRUE) {
     k <- length(phi)
-    dfn = names(arg)
+    dfn <- names(arg)
     if (is.matrix(x)) {
-        d <- apply(x, 1, function(y)
-                    sum(vapply(seq_len(k), function(i)
-                            phi[i] * distF(
-                                            y,
-                                            dfn = dfn[i],
-                                            type = "d",
-                                            arg = arg[[i]],
-                                            log = log),numeric(1))))
-    }
-    else {
+        d <- apply(x, 1, function(y) {
+            sum(vapply(seq_len(k), function(i) {
+                phi[i] * distF(
+                    y,
+                    dfn = dfn[i],
+                    type = "d",
+                    arg = arg[[i]],
+                    log = log
+                )
+            }, numeric(1)))
+        })
+    } else {
         n <- numeric(length(x))
         if (length(x) > 1) {
-            d <- rowSums(vapply(seq_len(k), function(i)
-                phi[i] * distF(x, dfn = dfn[i], type = "d",
-                               arg = arg[[i]], log = log), n))
-        }
-        else {
-            d <- sum(sapply(seq_len(k), function(i)
+            d <- rowSums(vapply(seq_len(k), function(i) {
+                phi[i] * distF(x,
+                    dfn = dfn[i], type = "d",
+                    arg = arg[[i]], log = log
+                )
+            }, n))
+        } else {
+            d <- sum(sapply(seq_len(k), function(i) {
                 phi[i] * distF(
-                                x,
-                                dfn = dfn[i],
-                                type = "d",
-                                arg = arg[[i]],
-                                log = log)))
+                    x,
+                    dfn = dfn[i],
+                    type = "d",
+                    arg = arg[[i]],
+                    log = log
+                )
+            }))
         }
     }
     return(d)
@@ -110,30 +118,39 @@ dmixtdistr <- function(x, phi, arg,  log = FALSE,
 #' @rdname mixtdistr
 #' @title Mixture of Distribution Functions
 #' @export
-pmixtdistr <- function(q, phi, arg,  lower.tail = TRUE, log = FALSE) {
+pmixtdistr <- function(q, phi, arg, lower.tail = TRUE, log = FALSE) {
     k <- length(phi)
     n <- numeric(length(q))
-    dfn = names(arg)
+    dfn <- names(arg)
     if (length(q) > 1) {
-        d <- rowSums(vapply(seq_len(k),
-                            function(i)
-                                phi[i] * distF(
-                                            q, dfn = dfn[i],
-                                            type = "p",
-                                            arg = arg[[i]],
-                                            lower.tail = lower.tail,
-                                            log = log),
-                            n))
-    }
-    else {
-        d <- sum(sapply(seq_len(k),
-                        function(i)
-                                phi[i] * distF(
-                                            q, dfn = dfn[i],
-                                            type = "p",
-                                            arg = arg[[i]],
-                                            lower.tail = lower.tail,
-                                            log = log)))
+        d <- rowSums(vapply(
+            seq_len(k),
+            function(i) {
+                phi[i] * distF(
+                    q,
+                    dfn = dfn[i],
+                    type = "p",
+                    arg = arg[[i]],
+                    lower.tail = lower.tail,
+                    log = log
+                )
+            },
+            n
+        ))
+    } else {
+        d <- sum(sapply(
+            seq_len(k),
+            function(i) {
+                phi[i] * distF(
+                    q,
+                    dfn = dfn[i],
+                    type = "p",
+                    arg = arg[[i]],
+                    lower.tail = lower.tail,
+                    log = log
+                )
+            }
+        ))
     }
     return(d)
 }
@@ -143,24 +160,26 @@ pmixtdistr <- function(q, phi, arg,  lower.tail = TRUE, log = FALSE) {
 #' @title Mixture of Distribution Functions
 #' @export
 qmixtdistr <- function(p,
-                       interval = c(0, 1000),
-                       phi,
-                       arg,
-                       lower.tail = TRUE,
-                       log = FALSE,
-                       tol = 1e-10, ...) {
+    interval = c(0, 1000),
+    phi,
+    arg,
+    lower.tail = TRUE,
+    log = FALSE,
+    tol = 1e-10, ...) {
     k <- length(phi)
     n <- numeric(length(p))
-    dfn = names(arg)
+    dfn <- names(arg)
     qmixtfn <- function(p) {
         uniroot(function(q) {
             ifelse(p <= 0 || p > 1, 0,
                 pmixtdistr(
-                            q,
-                            phi = phi,
-                            arg = arg,
-                            lower.tail = lower.tail,
-                            log = log) - p)
+                    q,
+                    phi = phi,
+                    arg = arg,
+                    lower.tail = lower.tail,
+                    log = log
+                ) - p
+            )
         }, interval, tol = tol, ...)$root
     }
     qmixtfn <- Vectorize(qmixtfn)
@@ -176,42 +195,51 @@ rmixtdistr <- function(n, phi, arg) {
     # phi <- phi[idx]
     # arg <- arg[idx]
     k <- length(phi)
-    dfn = names(arg)
-    freqs <- sapply(seq_len(k), function(i,j) sum(j == i),
-                j = sample.int( length(phi),
-                                size = n,
-                                replace = TRUE,
-                                prob = phi))
-    res <- lapply(seq_len(k), function(i)
-            distF(freqs[i], dfn = dfn[i], type = "r",
-                    arg = arg[[i]]))
-    if (is.matrix(res[[1]]))
+    dfn <- names(arg)
+    freqs <- sapply(seq_len(k), function(i, j) sum(j == i),
+        j = sample.int(length(phi),
+            size = n,
+            replace = TRUE,
+            prob = phi
+        )
+    )
+    res <- lapply(seq_len(k), function(i) {
+        distF(freqs[i],
+            dfn = dfn[i], type = "r",
+            arg = arg[[i]]
+        )
+    })
+    if (is.matrix(res[[1]])) {
         res <- do.call(rbind, res)
-    else
+    } else {
         res <- unlist(res)
+    }
 
     return(res)
 }
 
 # ---------------------------Auxiliary function ----------------------------- #
-distF <- function(
-                x,
-                dfn,
-                type = "d",
-                arg,
-                log = FALSE,
-                lower.tail = TRUE) {
+distF <- function(x,
+    dfn,
+    type = "d",
+    arg,
+    log = FALSE,
+    lower.tail = TRUE) {
     switch(type,
         d = do.call(paste0(type, dfn), c(list(x), arg, log = log)),
-        p = do.call(paste0(type, dfn),
-                c(list(x), arg, lower.tail = lower.tail, log.p = log)),
-        q = do.call(paste0(type, dfn),
-                    c(  list(x),
-                        arg,
-                        lower.tail = lower.tail,
-                        log.p = log)),
+        p = do.call(
+            paste0(type, dfn),
+            c(list(x), arg, lower.tail = lower.tail, log.p = log)
+        ),
+        q = do.call(
+            paste0(type, dfn),
+            c(list(x),
+                arg,
+                lower.tail = lower.tail,
+                log.p = log
+            )
+        ),
         r = do.call(paste0(type, dfn), c(list(x), arg))
     )
 }
 # -------------------------- End auxiliary function -------------------------- #
-

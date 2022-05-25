@@ -70,9 +70,13 @@ set.seed(123)
 ## site to be included in the analysis. Let's suppose that at a given site
 ## we have the following contingency table:
 
-site_res <- matrix(c(3, 1, 1, 3), nrow = 2,
-                   dimnames = list(status = c("ctrl", "treat"),
-                                   treat = c("meth", "unmeth")))
+site_res <- matrix(c(3, 1, 1, 3),
+    nrow = 2,
+    dimnames = list(
+        status = c("ctrl", "treat"),
+        treat = c("meth", "unmeth")
+    )
+)
 site_res
 
 ## The application of classical test variants yield the following results
@@ -86,17 +90,21 @@ chisq.test(site_res, simulate.p.value = TRUE)$p.value
 ## for control and the treated patients. 'tableBoots' function suggests
 ## that the site is borderline.
 
-tableBoots( site_res, stat = 'all', num.permut = 1e3 )
+tableBoots(site_res, stat = "all", num.permut = 1e3)
 
 ## A slight change in the read counts identify a meaningful difference
 ## not detected by the classicla tests
-site_res <- matrix(c(3, 0, 1, 4), nrow = 2,
-                   dimnames = list(status = c("ctrl", "treat"),
-                                   treat = c("meth", "unmeth")))
+site_res <- matrix(c(3, 0, 1, 4),
+    nrow = 2,
+    dimnames = list(
+        status = c("ctrl", "treat"),
+        treat = c("meth", "unmeth")
+    )
+)
 site_res
 
 set.seed(23)
-tableBoots( site_res, stat = 'all', num.permut = 1e3 )
+tableBoots(site_res, stat = "all", num.permut = 1e3)
 fisher.test(site_res)$p.value
 fisher.test(site_res, alternative = "greater")$p.value
 fisher.test(site_res, simulate.p.value = TRUE)$p.value
@@ -109,33 +117,44 @@ chisq.test(site_res, simulate.p.value = TRUE)$p.value
 ## status of the two sites. In this case, the counts grouped into four
 ## categories.
 set.seed(1)
-site_res <- matrix(c(3, 1, 1, 3, 3, 0, 1, 4), nrow = 2, byrow = FALSE,
-                   dimnames = list(status = c("ctrl", "treat"),
-                                   treat = c("meth.1", "unmeth.1",
-                                             "meth.2", "unmeth.2")))
+site_res <- matrix(c(3, 1, 1, 3, 3, 0, 1, 4),
+    nrow = 2, byrow = FALSE,
+    dimnames = list(
+        status = c("ctrl", "treat"),
+        treat = c(
+            "meth.1", "unmeth.1",
+            "meth.2", "unmeth.2"
+        )
+    )
+)
 site_res
 
 ## Chi-squared from the R package 'stats'
 chisq.test(site_res)$p.bvalue
 chisq.test(site_res, simulate.p.value = TRUE, B = 2e3)$p.value
 
-tableBoots( site_res, stat = 'all', num.permut = 999 )
+tableBoots(site_res, stat = "all", num.permut = 999)
 
 ## Results above are in border. If we include, third site,
 ## then sinces would different.
-site_res <- matrix(c(3, 1, 1, 3, 3, 0, 1, 4,  4, 0, 1, 4),
-                   nrow = 2, byrow = FALSE,
-                   dimnames = list(status = c("ctrl", "treat"),
-                                   treat = c("meth.1", "unmeth.1",
-                                             "meth.2", "unmeth.2",
-                                             "meth.3", "unmeth.3")))
+site_res <- matrix(c(3, 1, 1, 3, 3, 0, 1, 4, 4, 0, 1, 4),
+    nrow = 2, byrow = FALSE,
+    dimnames = list(
+        status = c("ctrl", "treat"),
+        treat = c(
+            "meth.1", "unmeth.1",
+            "meth.2", "unmeth.2",
+            "meth.3", "unmeth.3"
+        )
+    )
+)
 site_res
 
 ## That is, we have not reason to believe that the observed methylation
 ## levels in the treatment are not independent
 chisq.test(site_res)$p.value
 chisq.test(site_res, simulate.p.value = TRUE, B = 2e3)$p.value
-tableBoots( site_res, stat = 'all', num.permut = 999 )
+tableBoots(site_res, stat = "all", num.permut = 999)
 
 }
 \references{

@@ -62,13 +62,14 @@ If \code{\link[stats]{nlm}} function fails, then an estimation using
 }
 \examples{
 ### A random generation numerical values with Beta distribution
-x1 = rbeta(n = 1000, shape1 = 2, shape2 = 3)
+x1 <- rbeta(n = 1000, shape1 = 2, shape2 = 3)
 
 ### Parameter estimation with "nlm" function
 betaDistEstimation(q = x1, gradtol = 1e-12, hessian = T)
 
 ### Parameter estimation with "optim" function
 betaDistEstimation(q = x1, force.optim = T, hessian = T)
+
 }
 \seealso{
 \code{\link{betaBinPost}} and \code{\link{estimateDirichDist}}

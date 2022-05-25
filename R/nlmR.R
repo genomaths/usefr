@@ -42,26 +42,34 @@
 #' @author Robersy Sanchez - 10/22/2020
 
 nlmR <- function(object) {
-     if (!inherits(object, "nls"))
-          stop("\n*** 'object' must inherits from class 'nls', i.e.,\n",
-          "an object derived from nonlinear fit from fron functions: \n",
-          "'nls' or 'nlsLM' from packages 'stats' or 'minpack.lm'.")
+    if (!inherits(object, "nls")) {
+        stop(
+            "\n*** 'object' must inherits from class 'nls', i.e.,\n",
+            "an object derived from nonlinear fit from fron functions: \n",
+            "'nls' or 'nlsLM' from packages 'stats' or 'minpack.lm'."
+        )
+    }
 
-     m <- length(coef(object))
-     n <- length(object$m$lhs())
-     ## **** R squares ****
-     Adj.R.Square <- (1 - (deviance(object)/((n - m) *
-                                                var(object$m$lhs(),
-                                                    use = "everything"))))
-     Adj.R.Square <- ifelse(is.na(Adj.R.Square) ||
-                                 Adj.R.Square < 0, 0, Adj.R.Square)
-     ## Stein adjusted R square
-     if (m > 2)
-          rho <- ((n - 1)/(n - 4)) * ((n - 2)/(n - 5)) * ((n + 1)/n)
-     else rho <- ((n - 1)/(n - 3)) * ((n - 2)/(n - 4)) * ((n + 1)/n)
-     rho <- 1 - rho * (1 - Adj.R.Square)
-     rho = ifelse(is.na(rho) | rho < 0, 0, rho)
-     res <- data.frame(Adj.R.Square = Adj.R.Square, rho = rho,
-                       AIC = AICmodel(object), BIC = BICmodel(object))
-     return(res)
+    m <- length(coef(object))
+    n <- length(object$m$lhs())
+    ## **** R squares ****
+    Adj.R.Square <- (1 - (deviance(object) / ((n - m) *
+        var(object$m$lhs(),
+            use = "everything"
+        ))))
+    Adj.R.Square <- ifelse(is.na(Adj.R.Square) ||
+        Adj.R.Square < 0, 0, Adj.R.Square)
+    ## Stein adjusted R square
+    if (m > 2) {
+        rho <- ((n - 1) / (n - 4)) * ((n - 2) / (n - 5)) * ((n + 1) / n)
+    } else {
+        rho <- ((n - 1) / (n - 3)) * ((n - 2) / (n - 4)) * ((n + 1) / n)
+    }
+    rho <- 1 - rho * (1 - Adj.R.Square)
+    rho <- ifelse(is.na(rho) | rho < 0, 0, rho)
+    res <- data.frame(
+        Adj.R.Square = Adj.R.Square, rho = rho,
+        AIC = AICmodel(object), BIC = BICmodel(object)
+    )
+    return(res)
 }

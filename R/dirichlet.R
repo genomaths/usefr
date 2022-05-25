@@ -82,99 +82,110 @@
 #'    doi:10.1093/bioinformatics/12.4.327.
 #' @examples
 #' ## A random generation of numerical vectors
-#' x = rdirichlet(n = 1e3, alpha = rbind(c(2.1, 3.1, 1.2),
-#'                                       c(2.5, 1.9, 1.6)))
+#' x <- rdirichlet(n = 1e3, alpha = rbind(
+#'     c(2.1, 3.1, 1.2),
+#'     c(2.5, 1.9, 1.6)
+#' ))
 #' head(x[[1]])
 #' lapply(x, estimateDirichDist)
 #'
 #' ### Density computation
-#' alpha = cbind(1:10, 5, 10:1)
-#' x = rdirichlet(10, c(5, 5, 10))
+#' alpha <- cbind(1:10, 5, 10:1)
+#' x <- rdirichlet(10, c(5, 5, 10))
 #' ddirichlet(x = x, alpha = alpha)
 #'
 #' ### Or just one vector alpha
-#' x = rdirichlet(n = 10, alpha = c(2.1, 3.1, 1.2))
+#' x <- rdirichlet(n = 10, alpha = c(2.1, 3.1, 1.2))
 #' ddirichlet(x = x, alpha = c(2.1, 3.1, 1.2))
 #'
 #' ## Compute Dirichlet probability
 #' set.seed(123)
-#' q = rdirichlet(10, alpha = c(2.1, 3.2, 3.3))
+#' q <- rdirichlet(10, alpha = c(2.1, 3.2, 3.3))
 #' pdirichlet(q, alpha = c(2.1, 3.2, 3.3))
 #'
-
-ddirichlet <- function( x,
-                        alpha,
-                        log = FALSE) {
+ddirichlet <- function(x,
+    alpha,
+    log = FALSE) {
 
     ### The logarithm of the beta function expressed in terms of
     ### gamma functions
 
     d1 <- is.null(dim(x))
     d2 <- is.null(dim(alpha))
-    x <- x/rsum(x)
+    x <- x / rsum(x)
 
-    if (d2)
+    if (d2) {
         l <- length(alpha)
-    else
+    } else {
         l <- dim(alpha)[2]
+    }
 
     if (inherits(x, c("matrix", "data.frame"))) {
-        if (is.data.frame(x))
+        if (is.data.frame(x)) {
             x <- as.matrix(x)
+        }
+    } else
+    if (!is.numeric(x) || !length(x) > 1 || length(x) != l) {
+        stop(
+            "\n*** 'x' must be a 'matrix' or a 'data.frame' or",
+            " a numerical vector length(x) == length(alpha)"
+        )
     }
-    else
-        if (!is.numeric(x) || !length(x) > 1 || length(x) != l)
-            stop("\n*** 'x' must be a 'matrix' or a 'data.frame' or",
-                " a numerical vector length(x) == length(alpha)")
 
     if (inherits(alpha, c("matrix", "data.frame"))) {
-        if (is.data.frame(alpha))
+        if (is.data.frame(alpha)) {
             alpha <- as.matrix(alpha)
-    }
-    else {
-        if (length(alpha) < 2)
-            stop("\n*** 'alpha' must be a matrix or a numerical vector",
-                 " with length(alpha) = ncol(x).")
+        }
+    } else {
+        if (length(alpha) < 2) {
+            stop(
+                "\n*** 'alpha' must be a matrix or a numerical vector",
+                " with length(alpha) = ncol(x)."
+            )
+        }
     }
 
     logBeta <- function(a) {
-        if (is.null(dim(a)))
+        if (is.null(dim(a))) {
             sum(lgamma(a)) - lgamma(sum(a))
-        else
+        } else {
             apply(a, 1, function(x) sum(lgamma(x)) - lgamma(sum(x)))
+        }
     }
 
     if (inherits(x, c("matrix", "data.frame"))) {
-        if (d2)
+        if (d2) {
             s <- (log(x) %*% (alpha - 1))
-        else
+        } else {
             s <- rowSums((alpha - 1) * log(x))
-    }
-    else {
-        if (d2)
+        }
+    } else {
+        if (d2) {
             s <- sum((alpha - 1) * log(x), na.rm = TRUE)
-        else
+        } else {
             s <- ((alpha - 1) %*% log(x))
+        }
     }
 
-    if (log)
+    if (log) {
         pdf <- (s - logBeta(alpha))
-    else
+    } else {
         pdf <- (exp(s - logBeta(alpha)))
+    }
 
     if (d1) {
-        pdf[ !all.equal(sum(x), 1) ] <- 0
-        pdf[ !all.equal(sum(abs(x)), 1) ] <- 0
+        pdf[!all.equal(sum(x), 1)] <- 0
+        pdf[!all.equal(sum(abs(x)), 1)] <- 0
         pdf <- as.vector(pdf)
     }
     if (d2 && !d1) {
-        pdf[ !is.equal(rowSums(x), 1) ] <- 0
-        pdf[ !is.equal(rowSums(abs(x)), 1) ] <- 0
+        pdf[!is.equal(rowSums(x), 1)] <- 0
+        pdf[!is.equal(rowSums(abs(x)), 1)] <- 0
         pdf <- as.vector(pdf)
     }
     if (!d2 && !d1) {
-        pdf[ !is.equal(rowSums(x), 1) ] <- 0
-        pdf[ !is.equal(rowSums(abs(x)), 1) ] <- 0
+        pdf[!is.equal(rowSums(x), 1)] <- 0
+        pdf[!is.equal(rowSums(abs(x)), 1)] <- 0
     }
     return(pdf)
 }
@@ -185,59 +196,71 @@ ddirichlet <- function( x,
 #' @importFrom cubature hcubature
 #'
 #' @export
-pdirichlet <- function(
-                        q,
-                        alpha,
-                        lower.tail = TRUE,
-                        log.p = FALSE,
-                        log.base = exp(1), ...) {
-
+pdirichlet <- function(q,
+    alpha,
+    lower.tail = TRUE,
+    log.p = FALSE,
+    log.base = exp(1), ...) {
     d1 <- is.null(dim(q))
-    if (d1) nc <- length(q)
-    else nc <- ncol(q)
+    if (d1) {
+        nc <- length(q)
+    } else {
+        nc <- ncol(q)
+    }
 
     d2 <- is.null(dim(alpha))
-    if (d2 && (length(alpha) == nc))
+    if (d2 && (length(alpha) == nc)) {
         l <- length(alpha)
-    else
-        stop("\n*** 'alpha' must be a numerical vector",
-             " with length(alpha) = ncol(q).")
+    } else {
+        stop(
+            "\n*** 'alpha' must be a numerical vector",
+            " with length(alpha) = ncol(q)."
+        )
+    }
 
     if (inherits(q, c("matrix", "data.frame")) && nrow(q) > 1) {
-        if (is.data.frame(q))
+        if (is.data.frame(q)) {
             q <- as.matrix(q)
-    }
-    else {
+        }
+    } else {
         if (!d1 && nrow(q) == 1) {
             q <- as.numeric(q)
             d1 <- TRUE
         }
-        if (!is.numeric(q) || !length(q) > 1 || length(q) != l)
-            stop("\n*** 'x' must be a 'matrix' or a 'data.frame' or",
-                 " a numerical vector length(x) == length(alpha)")
+        if (!is.numeric(q) || !length(q) > 1 || length(q) != l) {
+            stop(
+                "\n*** 'x' must be a 'matrix' or a 'data.frame' or",
+                " a numerical vector length(x) == length(alpha)"
+            )
+        }
     }
 
     if (d1) {
         intgrl <- integralDir(
-                               lower = rep(0, (l - 1)),
-                               upper = q[ seq_len(l - 1) ],
-                               alpha = alpha)
-    }
-    else {
+            lower = rep(0, (l - 1)),
+            upper = q[seq_len(l - 1)],
+            alpha = alpha
+        )
+    } else {
         lowerLimit <- matrix(0, nrow(q), (l - 1))
         upperLimit <- q[, seq_len(l - 1)]
 
-        intgrl <- lapply(seq_len(nrow(lowerLimit)), function(k, ...)
-            integralDir(lower = lowerLimit[k,],
-                        upper = upperLimit[k,],
-                        alpha = alpha, ...))
+        intgrl <- lapply(seq_len(nrow(lowerLimit)), function(k, ...) {
+            integralDir(
+                lower = lowerLimit[k, ],
+                upper = upperLimit[k, ],
+                alpha = alpha, ...
+            )
+        })
         intgrl <- unlist(intgrl)
     }
 
-    if (!lower.tail)
-        intgrl <- ( 1 - intgrl )
-    if (log.p)
+    if (!lower.tail) {
+        intgrl <- (1 - intgrl)
+    }
+    if (log.p) {
         intgrl <- log(intgrl, base = log.base)
+    }
 
     return(intgrl)
 }
@@ -248,49 +271,58 @@ pdirichlet <- function(
 #' @importFrom stats rgamma
 #' @export
 rdirichlet <- function(n, alpha) {
-
     d <- dim(alpha)
 
     if (inherits(alpha, c("matrix", "data.frame"))) {
         rn <- rownames(alpha)
         cn <- colnames(alpha)
-        if (is.matrix(alpha))
+        if (is.matrix(alpha)) {
             alpha <- as.list(data.frame(t(alpha)))
-        else
+        } else {
             alpha <- as.list(t(alpha))
+        }
         r <- lapply(alpha, function(a) {
-                r <- sapply(a, function(a) rgamma(n, shape = a))
-                d2 <- is.null(dim(r))
-                if (d2)
-                    r <- r/sum(r, na.rm = TRUE)
-                else
-                    r <- r/rowSums(r, na.rm = TRUE)
-                if (is.null(cn) && d2)
-                    names(r) <- paste0("a", seq_len(length(r)))
-                else
-                    if (is.null(cn))
-                        colnames(r) <- paste0("a", seq_len(d[2]))
-                return(r)
-            })
-        if (is.null(rn)) names(r) <- paste0("alpha", seq_len(d[1]))
-        else names(r) <- rn
-    }
-    else {
-        if (length(alpha) < 2)
-            stop("\n*** 'alpha' must be a matrix or a numerical vector",
-                " with length(alpha) = ncol(x).")
+            r <- sapply(a, function(a) rgamma(n, shape = a))
+            d2 <- is.null(dim(r))
+            if (d2) {
+                r <- r / sum(r, na.rm = TRUE)
+            } else {
+                r <- r / rowSums(r, na.rm = TRUE)
+            }
+            if (is.null(cn) && d2) {
+                names(r) <- paste0("a", seq_len(length(r)))
+            } else
+            if (is.null(cn)) {
+                colnames(r) <- paste0("a", seq_len(d[2]))
+            }
+            return(r)
+        })
+        if (is.null(rn)) {
+            names(r) <- paste0("alpha", seq_len(d[1]))
+        } else {
+            names(r) <- rn
+        }
+    } else {
+        if (length(alpha) < 2) {
+            stop(
+                "\n*** 'alpha' must be a matrix or a numerical vector",
+                " with length(alpha) = ncol(x)."
+            )
+        }
         nms <- names(alpha)
         r <- sapply(alpha, function(a) rgamma(n, shape = a))
         d2 <- is.null(dim(r))
-        if (d2)
-            r <- r/sum(r, na.rm = TRUE)
-        else
-            r <- r/rowSums(r, na.rm = TRUE)
+        if (d2) {
+            r <- r / sum(r, na.rm = TRUE)
+        } else {
+            r <- r / rowSums(r, na.rm = TRUE)
+        }
 
-        if (is.null(nms) && d2)
+        if (is.null(nms) && d2) {
             names(r) <- paste0("a", seq_len(length(r)))
-        else
+        } else {
             colnames(r) <- paste0("a", seq_along(alpha))
+        }
     }
     return(r)
 }
@@ -306,31 +338,37 @@ ddirich <- function(x, alpha) {
 }
 
 integralDir <- function(lower, upper, alpha, ...) {
-    hcubature(ddirich, lowerLimit = lower, upperLimit = upper,
-              alpha = alpha, ...)$integral
+    hcubature(ddirich,
+        lowerLimit = lower, upperLimit = upper,
+        alpha = alpha, ...
+    )$integral
 }
 
 
 mc_pdir <- function(q, alpha, n = 1e4, seed = 1) {
-                set.seed(seed)
-                l <- seq_len(length(alpha) - 1)
-                x <- rdirichlet(n, alpha = alpha)
-                sum(apply(x[,l], 1, function(x) prod(x <= q[l]))) / n
+    set.seed(seed)
+    l <- seq_len(length(alpha) - 1)
+    x <- rdirichlet(n, alpha = alpha)
+    sum(apply(x[, l], 1, function(x) prod(x <= q[l]))) / n
 }
 
 any.greater <- function(x, value, d = 1) {
     if (d > 1) {
         res <- any(colSums(x) > value)
-    } else{
-        if (!is.null(dim(x)))
+    } else {
+        if (!is.null(dim(x))) {
             res <- any(rowSums(x) > value)
-        else
+        } else {
             res <- (sum(x) > value)
+        }
     }
     return(res)
 }
 
 rsum <- function(x) {
-    if (length(dim(x)) > 1)  return(rowSums(x, na.rm = TRUE))
-    else  return(sum(x, na.rm = TRUE))
+    if (length(dim(x)) > 1) {
+        return(rowSums(x, na.rm = TRUE))
+    } else {
+        return(sum(x, na.rm = TRUE))
+    }
 }

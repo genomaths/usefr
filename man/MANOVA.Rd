@@ -82,26 +82,32 @@ MANOVA(list(model1 = cdfp1$fit[[1]], model2 = cdfp2$fit[[1]]))
 ## =========== Example 2 ============
 ## Define a non-linear function
 mutr <- function(x, alpha, beta, lambda) {
-     alpha/( 1 + beta * exp( -lambda * x ))
+    alpha / (1 + beta * exp(-lambda * x))
 }
 
 ## Build two data set of points from specific curves
-x1 <- sort(x1[x1 > 0]) *10
+x1 <- sort(x1[x1 > 0]) * 10
 y1 <- mutr(x1, alpha = 25, beta = 4.5, lambda = 2.1) + runif(length(x1))
 y2 <- mutr(x1, alpha = 25.5, beta = 4.5, lambda = 2.05) + runif(length(x1))
 
 ## Non-linear fit
-fit1 <- nlsLM( Y ~ alpha/( 1 + beta * exp( -lambda * X ) ),
-               data = data.frame( X = x1, Y = y1 ),
-               start = list( alpha = 25.5, beta = 4.5, lambda = 2.05 ),
-               control=list( maxiter = 1024, tol = 1e-12,
-               minFactor = 10^-6 ))
+fit1 <- nlsLM(Y ~ alpha / (1 + beta * exp(-lambda * X)),
+    data = data.frame(X = x1, Y = y1),
+    start = list(alpha = 25.5, beta = 4.5, lambda = 2.05),
+    control = list(
+        maxiter = 1024, tol = 1e-12,
+        minFactor = 10^-6
+    )
+)
 
-fit2 <- nlsLM( Y ~ alpha/( 1 + beta * exp( -lambda * X ) ),
-               data = data.frame( X = x1, Y = y2 ),
-               start = list( alpha = 25, beta = 4.5, lambda = 2.1 ),
-               control=list( maxiter = 1024, tol = 1e-12,
-               minFactor = 10^-6 ))
+fit2 <- nlsLM(Y ~ alpha / (1 + beta * exp(-lambda * X)),
+    data = data.frame(X = x1, Y = y2),
+    start = list(alpha = 25, beta = 4.5, lambda = 2.1),
+    control = list(
+        maxiter = 1024, tol = 1e-12,
+        minFactor = 10^-6
+    )
+)
 
 ## Manova result
 MANOVA(list(model1 = fit1, model2 = fit2))

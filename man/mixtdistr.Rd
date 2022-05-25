@@ -57,16 +57,18 @@ generation for mixture of distributions
 \examples{
 set.seed(123) # set a seed for random generation
 # A mixture of three distributions
-phi = c(5/10, 3/10, 2/10) # Mixture proportions
+phi <- c(5 / 10, 3 / 10, 2 / 10) # Mixture proportions
 
 # Named vector of the corresponding distribution function parameters
 # must be provided
-args <- list(gamma = c(shape = 20, scale = 1/10),
-            weibull = c(shape =  4, scale = 0.8),
-            lnorm = c(meanlog = 1.2, sdlog = 0.08))
+args <- list(
+    gamma = c(shape = 20, scale = 1 / 10),
+    weibull = c(shape = 4, scale = 0.8),
+    lnorm = c(meanlog = 1.2, sdlog = 0.08)
+)
 
 #  Sampling from the specified mixture distribution
-x <- rmixtdistr(n = 1e5, phi = phi , arg = args)
+x <- rmixtdistr(n = 1e5, phi = phi, arg = args)
 
 # The graphics for the simulated dataset and the corresponding theoretical
 # mixture distribution

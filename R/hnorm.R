@@ -51,13 +51,13 @@
 #'     generated values for rhnorm.
 #' @examples
 #' set.seed(123) # set a seed
-#' sigma = 1.2
-#' theta = sigma2theta(sigma)
+#' sigma <- 1.2
+#' theta <- sigma2theta(sigma)
 #' x <- rhnorm(n = 1e5, theta = theta)
 #' hist(x, 100, freq = FALSE)
 #' curve(dhnorm(x, theta = theta), col = "red", add = TRUE)
 #'
-#'#' # Checking the function outputs for the logarithms of probabilities
+#' #' # Checking the function outputs for the logarithms of probabilities
 #' x <- rhalfnorm(n = 10, theta = sigma2theta(2))
 #' x1 <- phnorm(x, theta = sigma2theta(2), log = TRUE)
 #' x2 <- phnorm(x, theta = sigma2theta(2), log = FALSE)
@@ -72,14 +72,16 @@
 #' @title Half-Normal distribution
 #' @export
 dhnorm <- function(x, theta = 1, mu = 0, log = FALSE) {
-   idx <- which(x < mu)
-   x <- (x - mu) * theta * sqrt(2/pi)
-   if (length(idx) > 0 ) x[idx] <- 0
-   if (log) {
-       const <- log(2) + log(2)/2 - log(pi)/2
-       d <- ifelse(x < 0, 0, const + log(theta) + dnorm(x, log = TRUE))
-   } else d <- ifelse(x < 0, 0, 2 * theta * sqrt(2) * dnorm(x)/sqrt(pi))
-   return(d)
+    idx <- which(x < mu)
+    x <- (x - mu) * theta * sqrt(2 / pi)
+    if (length(idx) > 0) x[idx] <- 0
+    if (log) {
+        const <- log(2) + log(2) / 2 - log(pi) / 2
+        d <- ifelse(x < 0, 0, const + log(theta) + dnorm(x, log = TRUE))
+    } else {
+        d <- ifelse(x < 0, 0, 2 * theta * sqrt(2) * dnorm(x) / sqrt(pi))
+    }
+    return(d)
 }
 #'
 #' @aliases phnorm
@@ -87,29 +89,29 @@ dhnorm <- function(x, theta = 1, mu = 0, log = FALSE) {
 #' @title Half-Normal distribution
 #' @export
 phnorm <- function(q, theta = 1, mu = 0, lower.tail = TRUE, log.p = FALSE) {
-   idx <- which(q < mu)
-   q <- (q - mu) * theta * sqrt(2/pi)
-   if (length(idx) > 0 ) q[idx] <- 0
-   # 'p' is given in terms of the error function through 'pnorm'
-   # erfc <- function(x) 2 * pnorm(x * sqrt(2), lower = FALSE), see ?qnorm
-   p <- ifelse(q < 0, 0, 2 * pnorm(q) - 1)
-   if (!lower.tail) p = 1 - p
-   if (log.p) p <- log(p)
-   return(p)
+    idx <- which(q < mu)
+    q <- (q - mu) * theta * sqrt(2 / pi)
+    if (length(idx) > 0) q[idx] <- 0
+    # 'p' is given in terms of the error function through 'pnorm'
+    # erfc <- function(x) 2 * pnorm(x * sqrt(2), lower = FALSE), see ?qnorm
+    p <- ifelse(q < 0, 0, 2 * pnorm(q) - 1)
+    if (!lower.tail) p <- 1 - p
+    if (log.p) p <- log(p)
+    return(p)
 }
 
 #' @aliases qhnorm
 #' @rdname hnorm
 #' @title Half-Normal distribution
 #' @export
-qhnorm <- function(p, theta = 1, mu = 0, sigma = NULL, lower.tail=TRUE,
-                   log.p=FALSE) {
-   if (log.p) p = exp(p)
-   if (!lower.tail) p = 1 - p
-   p <- (p + 1)/2
-   if (is.null(sigma)) sigma <- theta2sigma(theta)
-   q <- ifelse(p < 0, 0, qnorm(p, mean = 0, sd = sigma)) + mu
-   return(q)
+qhnorm <- function(p, theta = 1, mu = 0, sigma = NULL, lower.tail = TRUE,
+    log.p = FALSE) {
+    if (log.p) p <- exp(p)
+    if (!lower.tail) p <- 1 - p
+    p <- (p + 1) / 2
+    if (is.null(sigma)) sigma <- theta2sigma(theta)
+    q <- ifelse(p < 0, 0, qnorm(p, mean = 0, sd = sigma)) + mu
+    return(q)
 }
 
 #' @aliases rhnorm
@@ -117,8 +119,8 @@ qhnorm <- function(p, theta = 1, mu = 0, sigma = NULL, lower.tail=TRUE,
 #' @title Half-Normal distribution
 #' @export
 rhnorm <- function(n, theta = 1, mu = 0) {
-   r <- abs(rnorm(n, sd = theta2sigma(theta))) + mu
-   return(r)
+    r <- abs(rnorm(n, sd = theta2sigma(theta))) + mu
+    return(r)
 }
 
 #' @aliases theta2sigma
@@ -126,7 +128,7 @@ rhnorm <- function(n, theta = 1, mu = 0) {
 #' @title Half-Normal distribution
 #' @export
 theta2sigma <- function(theta) {
-   return(sqrt(pi/2)/theta)
+    return(sqrt(pi / 2) / theta)
 }
 
 #' @aliases sigma2theta
@@ -134,6 +136,5 @@ theta2sigma <- function(theta) {
 #' @title Half-Normal distribution
 #' @export
 sigma2theta <- function(sigma) {
-   return(sqrt(pi/2)/sigma)
+    return(sqrt(pi / 2) / sigma)
 }
-

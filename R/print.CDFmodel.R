@@ -34,10 +34,11 @@
 #' @export
 print.CDFmodel <- function(x, digits = getOption("digits"), ...) {
     gof <- cbind(
-                Adj.R.Square = x$gof[1],
-                rho = x$gof[2],
-                R.Cross.val = x$gof[3],
-                AIC = x$gof[4])
+        Adj.R.Square = x$gof[1],
+        rho = x$gof[2],
+        R.Cross.val = x$gof[3],
+        AIC = x$gof[4]
+    )
     rownames(gof) <- "gof"
     cat(x$cdf, "CDF model")
     cat("\n------")
@@ -64,20 +65,17 @@ print.CDFmodel <- function(x, digits = getOption("digits"), ...) {
 print.CDFmodelList <- function(x, digits = getOption("digits"), ...) {
     cat("List of CDFmodel with", length(x), "elements\n")
     cat("------\n")
-    cat("AIC summary\n" )
-    if (ncol(x$AICs) <= 6)
+    cat("AIC summary\n")
+    if (ncol(x$AICs) <= 6) {
         print(x$AICs)
-    else {
+    } else {
         cat("AIC from the first six samples")
         print(x$AICs[, 1:6])
     }
     cat("------\n")
     cat(names(x)[1], "\n")
-    print(x[[ 1L ]])
+    print(x[[1L]])
     cat("\n------\n")
-    cat( length(x) - 1, "more 'CDFmodel' elements\n")
+    cat(length(x) - 1, "more 'CDFmodel' elements\n")
     invisible(x)
 }
-
-
-
