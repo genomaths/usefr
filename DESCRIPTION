@@ -17,7 +17,12 @@ Suggests: testthat,
     rmarkdown
 Imports:
     BiocParallel,
+    cubature,
+    mclust,
+    methods,
+    mixdist,
     minpack.lm,
+    nls2,
     numDeriv,
     utils,
     stats,

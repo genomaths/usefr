@@ -2,8 +2,8 @@
 % Please edit documentation in R/bicopulaGOF.R
 \name{bicopulaGOF}
 \alias{bicopulaGOF}
-\title{Goodness of Fit Boostrap Test for Bivariate distributions Constructed
-from Copula with Known Margins.}
+\title{Goodness of Fit Boostrap Test for Bivariate distributions
+Constructed from Copula with Known Margins.}
 \usage{
 bicopulaGOF(
   x,
@@ -124,62 +124,53 @@ parMargins <- list(
 
 bicopulaGOF(
     x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
-    margins = margins, paramMargins = parMargins, nboots = 999,
+    margins = margins, paramMargins = parMargins, nboots = 99,
     Rosenblatt = TRUE, approach = "adgamma", num.cores = 1L
 )
 
 bicopulaGOF(
     x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
-    margins = margins, paramMargins = parMargins, nboots = 999,
+    margins = margins, paramMargins = parMargins, nboots = 99,
     Rosenblatt = FALSE, approach = "adgamma", num.cores = 1L
 )
 
 ## --- Non-parallel expensive computation ---- -
-# require(copula)
-#
-# U <- pobs(cbind(X, Y)) #' # Compute the pseudo-observations
-# fit <- fitCopula(normalCopula(), U, method = 'ml')
-# U <- cCopula(u = U, copula = fit@copula) #' # Rosenblatt transformation
-#
-# set.seed(123)
-# system.time(
-#   gof <- gofCopula(copula = fit@copula, x = U, N = 99, method = "Sn",
-#             simulation = "pb")
-# )
-# gof
-## About
-##    user  system elapsed
-## 103.370   0.613 105.022
-#
-## --- Parallel computation with 2 cores ---- -
-## Same algorithm as in 'gofCopula' adapted for parallel computation
-# system.time(
-#   gof <- bicopulaGOF(x = X, y = Y, copula = "normalCopula",
-#               margins = margins, paramMargins = parMargins, nboots = 99,
-#               approach = "Sn", seed = 123, num.cores = 2L)
-# )
-# gof
-## About
-##  user  system elapsed
-## 2.491   0.100  51.185
-##
-## Same algorithm as in 'gofCopula' adapted for parallel computation and
-## Rosenblatt = FALSE
-# system.time(
-#   gof <- bicopulaGOF(x = X, y = Y, copula = "normalCopula",
-#               margins = margins, paramMargins = parMargins, nboots = 99,
-#               approach = "Sn", seed = 123,
-#               num.cores = 2L)
-# )
-# gof
+\dontrun{
+    U <- pobs(cbind(X, Y)) #' # Compute the pseudo-observations
+    fit <- fitCopula(normalCopula(), U, method = 'ml')
+    U <- cCopula(u = U, copula = fit@copula) ## Rosenblatt transformation
+
+    parMargins <- list(
+        list(mean = 0, sd = 10),
+        list(mean = 0, sd = 10)
+    )
+
+    ptm <- proc.time()
+    gof <- gofCopula(copula = fit@copula, x = U, N = 99, method = "Sn",
+                        simulation = "pb")
+    (proc.time() - ptm)[3]/60 # in min
+    gof
+
+    ## --- Parallel computation with 2 cores ---- -
+    ## Same algorithm as in 'gofCopula' adapted for parallel computation
+    ptm <- proc.time()
+    system.time(
+        gof <- bicopulaGOF(x = X, y = Y, copula = "normalCopula",
+                    margins = margins, paramMargins = parMargins,
+                    nboots = 99, approach = "Sn", seed = 12,
+                    num.cores = 2L)
+    )
+    (proc.time() - ptm)[3]/60 # in min
+    gof
+}
 }
 \references{
 \enumerate{
   \item Jaworski, P. Copulae in Mathematical and Quantitative Finance. 213,
         d (2013).
   \item Wang, Y. et al. Multivariate analysis of joint probability of
-        different rainfall frequencies based on copulas. Water (Switzerland)
-         9, (2017).
+        different rainfall frequencies based on copulas. Water
+        (Switzerland) 9, (2017).
 }
 }
 \seealso{

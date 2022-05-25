@@ -1,6 +1,7 @@
 ## Welcome to the R package _usefr_
 
-This is an utility package where some useful functions frequently needed in the dowstream statistical analyses will be available.
+This is an utility package where some useful functions frequently needed in the
+dowstream statistical analyses will be available.
 
 ------------
 ### Status
@@ -10,7 +11,9 @@ This is an utility package where some useful functions frequently needed in the 
 ------------
 ### Dependences
 
-This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_, _copula_. There are also other dependencies which are included in R by default, e.g., _start_
+This package depends, so far, from: _BiocParallel_, _minpack.lm_, _numDeriv_,
+_copula_. There are also other dependencies which are included in R by default,
+e.g., _start_
 
 
 ------------
@@ -36,13 +39,16 @@ cubature.so"
 
 Or
 
-"./src/divonne/Split.c:119:3: note: use option -std=c99 or -std=gnu99 to compile your code"
+"./src/divonne/Split.c:119:3: note: use option -std=c99 or -std=gnu99 to
+compile your code"
 
 In the above situations, just proceed with the following steps (<https://github.com/bnaras/cubature/issues/29>):
   
-  1. In your home directory search for the folder named ".R" (a hidden folder) and a file named "Makevars", i.e.: "~/.R/Makevars".
-     If you do not have the folder ".R", then creates it. If you do not have the file "Makevars", 
-     then you can create an empty text file 
+  1. In your home directory search for the folder named ".R" (a hidden folder)
+  and a file named "Makevars", i.e.: "~/.R/Makevars".
+  
+  If you do not have the folder ".R", then creates it. If you do not have the
+  file "Makevars", then you can create an empty text file
      
   2. Adds the following line to the the file "Makevars":
   
@@ -64,7 +70,8 @@ In the above situations, just proceed with the following steps (<https://github.
      
      ```
 
-If the above step does not works then,  follow the link: <https://github.com/cdr/code-server/issues/347>
+If the above step does not works then,  follow the link: 
+<https://github.com/cdr/code-server/issues/347>
 
 ------------
 

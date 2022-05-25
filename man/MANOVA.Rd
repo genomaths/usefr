@@ -26,45 +26,44 @@ each curve.}
 \item{sample.size}{Vector with the sample sizes used to estimate each
 models.}
 
-\item{groups}{list of sets of indices that identify models from a same group.}
+\item{groups}{list of sets of indices that identify models from a same
+group.}
 
 \item{boxM}{Logic. Whether to perform the Box M test for covaraince matrix
-equality. There are two limitations associated with the Box test
-([1] pag 42). First, it can be sensitive to multivariate nonnormality.
-Second, the degrees of freedom for this test can often be very large,
-resulting in an extremely sensitive/powerful test of the null hypothesis.
-Both of these limitations could lead a researcher to question the
-validity of the multivariate test on the vectors of means when the
-multivariate test is valid. As a result, researchers often do not rely
-heavily on the results of the test but rather rely on the robustness of
-the multivariate test on the equality of mean vectors when sample sizes
-are equal.}
+equality. There are two limitations associated with the Box test ([1] pag
+42). First, it can be sensitive to multivariate nonnormality. Second, the
+degrees of freedom for this test can often be very large, resulting in an
+extremely sensitive/powerful test of the null hypothesis. Both of these
+limitations could lead a researcher to question the validity of the
+multivariate test on the vectors of means when the multivariate test is
+valid. As a result, researchers often do not rely heavily on the results
+of the test but rather rely on the robustness of the multivariate test on
+the equality of mean vectors when sample sizes are equal.}
 }
 \value{
-If boxM = TRUE and the p-value of the test is greater than 0.05, the
-   function will return a list with data frame as the first element carrying
-   the statistics 'Hotelling T^2', 'Pillai's trace', 'Wilks lambda', and
-   'Hotelling-Lawley' trace' and the corresponding p-values. Second element
-   will be the 'Box M' test result. If Box M' test result is not significant
-   then the data frame with the statistics will include, in addition
-   "Yao's F", "Johansen's F", and the "Nel-Merwe's F".
+If boxM = TRUE and the p-value of the test is greater than 0.05,
+the function will return a list with data frame as the first element
+carrying the statistics 'Hotelling T^2', 'Pillai's trace', 'Wilks lambda',
+and 'Hotelling-Lawley' trace' and the corresponding p-values. Second
+element will be the 'Box M' test result. If Box M' test result is not
+significant then the data frame with the statistics will include, in
+addition "Yao's F", "Johansen's F", and the "Nel-Merwe's F".
 
-   If boxM = FALSE, then the function will return a data frame with the
-   statistics "Hotelling T^2", "Wilks lambda" and their corresponding
-   p-values.
+If boxM = FALSE, then the function will return a data frame with the
+statistics "Hotelling T^2", "Wilks lambda" and their corresponding
+p-values.
 }
 \description{
-This is a MANOVA rest for summarized data. This means that if we
-    want to perform the multivariate comparison of, for example, three
-    groups, then we can use the covariance matrices and means for the
-    variables inside of each group to compute the statistics for a MANOVA.
+This is a MANOVA rest for summarized data. This means that if
+we want to perform the multivariate comparison of, for example, three
+groups, then we can use the covariance matrices and means for the variables
+inside of each group to compute the statistics for a MANOVA.
 }
 \details{
 To perform the comparison of a model under different parameter
-    values (different curve fits with the same model), the covariance
-    matrices and means from each set of model parameters can be used in place
-    of the covariance matrices and means for the variables inside of each
-    group.
+values (different curve fits with the same model), the covariance matrices
+and means from each set of model parameters can be used in place of the
+covariance matrices and means for the variables inside of each group.
 }
 \examples{
 ## =========== Example 1 ============
@@ -88,7 +87,8 @@ mutr <- function(x, alpha, beta, lambda) {
 ## Build two data set of points from specific curves
 x1 <- sort(x1[x1 > 0]) * 10
 y1 <- mutr(x1, alpha = 25, beta = 4.5, lambda = 2.1) + runif(length(x1))
-y2 <- mutr(x1, alpha = 25.5, beta = 4.5, lambda = 2.05) + runif(length(x1))
+y2 <- mutr(x1, alpha = 25.5, beta = 4.5,
+            lambda = 2.05) + runif(length(x1))
 
 ## Non-linear fit
 fit1 <- nlsLM(Y ~ alpha / (1 + beta * exp(-lambda * X)),
@@ -118,12 +118,12 @@ MANOVA(list(model1 = fit1, model2 = fit2))
     \item CARL J. HUBERTY, STEPHEN OLEJNIK.2006. Applied MANOVA and
         Discriminant Analysis. Second Edition. John Wiley & Sons, Inc.,
         Hoboken, New Jersey.
-    \item Muller KE, Lavange LM, Ramey SL, Ramey CT. Power Calculations for
-        General Linear Multivariate Models Including Repeated Measures
+    \item Muller KE, Lavange LM, Ramey SL, Ramey CT. Power Calculations
+        for General Linear Multivariate Models Including Repeated Measures
         Applications. J Am Stat Assoc. 1992;87: 1209 - 1226.
         doi:10.1080/01621459.1992.10476281.
-    \item Finch H, French B (2013) A Monte Carlo Comparison of Robust MANOVA
-       Test Statistics. J Mod Appl Stat Methods 12. Available:
+    \item Finch H, French B (2013) A Monte Carlo Comparison of Robust
+       MANOVA Test Statistics. J Mod Appl Stat Methods 12. Available:
        http://digitalcommons.wayne.edu/jmasm/vol12/iss2/4.
     \item Fouladi RT (1998) Type I Error Control of Two-Group Multivariate
        Tests on Means under Conditions of Heterogeneous Correlation
