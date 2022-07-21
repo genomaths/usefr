@@ -71,19 +71,20 @@ setClassUnion("missingORNULL", c("missing", "NULL"))
 #' @export
 setMethod(
     "cdf_crossval", signature(model = "missingORNULL"),
-    function(model,
-    formula,
-    pars,
-    X,
-    min.val = NULL,
-    loss.fun = c(
-        "linear", "huber", "smooth",
-        "cauchy", "arctg"
-    ),
-    maxiter = 1024,
-    maxfev = 1e5,
-    ptol = 1e-12,
-    minFactor = 1e-6) {
+    function(
+        model,
+        formula,
+        pars,
+        X,
+        min.val = NULL,
+        loss.fun = c(
+            "linear", "huber", "smooth",
+            "cauchy", "arctg"
+        ),
+        maxiter = 1024,
+        maxfev = 1e5,
+        ptol = 1e-12,
+        minFactor = 1e-6) {
         if (!inherits(formula, "formula")) {
             stop("*** Argument for formula must be a 'formula' class object")
         }
@@ -179,13 +180,25 @@ setMethod(
             evalLIST <- as.list(coef(FIT1)[seq_along(pars)])
             evalLIST$q <- X[cros.ind.2]
             p.FIT1 <- do.call(fun, evalLIST)
-            R.FIT1 <- cor(p.FIT1, pX[cros.ind.2], use = "complete.obs")
+            if (all(is.na(p.FIT1)) || all(is.na(pX[cros.ind.2]))) {
+                R.FIT1 <- 0
+            }
+            else {
+                R.FIT1 <- cor(p.FIT1, pX[cros.ind.2], use = "complete.obs")
+            }
+
 
             ## prediction using model 2
             evalLIST <- as.list(coef(FIT2)[seq_along(pars)])
             evalLIST$q <- X[cros.ind.1]
             p.FIT2 <- do.call(fun, evalLIST)
-            R.FIT2 <- cor(p.FIT2, pX[cros.ind.1], use = "complete.obs")
+
+            if (all(is.na(p.FIT2)) || all(is.na(pX[cros.ind.1]))) {
+                R.FIT2 <- 0
+            }
+            else {
+                R.FIT2 <- cor(p.FIT2, pX[cros.ind.1], use = "complete.obs")
+            }
 
             R.Cross.val <- (length(p.FIT1) * R.FIT1 +
                 length(p.FIT2) * R.FIT2) / (length(p.FIT1) +

@@ -133,6 +133,7 @@
 #' \enumerate{
 #'    \item "ks": Kolmogorov–Smirnov.
 #'    \item "ad": Anderson–Darling statistic.
+#'    \item "sw": Shapiro-Wilk test of normality.
 #'    \item "chisq: Pearson's Chi-squared.
 #'    \item "rmse": Root Mean Square of the error.
 #'    \item "hd": Hellinger Divergence statistics.
@@ -376,15 +377,20 @@
 #' @aliases mcgoftest
 setGeneric(
     "mcgoftest",
-    def = function(varobj,
-    model,
+    def = function(
+        varobj,
+        model,
     ...) {
         standardGeneric("mcgoftest")
     }
 )
 
 
-setClassUnion("numeric_OR_matrix", c("numeric", "matrix"))
+setClassUnion("numeric_OR_matrix", c("numeric", "matrix", "data.frame"))
+setOldClass(c("nls"))
+setOldClass("nlsModel")
+setOldClass("nls.lm")
+setOldClass(c("CDFmodel", "CDFmodelList"))
 
 #' @rdname mcgoftest
 #' @aliases mcgoftest
@@ -413,11 +419,11 @@ setMethod(
         ## numerical data analysis with R}. Herein, it is modified and extended.
         set.seed(seed)
         stat <- match.arg(stat)
-        require_pars <- grepl(stat, c("ks", "ad", "rmse", "chisq", "hd"))
+        require_pars <- is.element(stat, c("ks", "ad", "rmse", "chisq", "hd"))
         if (require_pars && is.null(pars) && is.character(distr)) {
             stop(
-                "\n*** A list of parameter values is required for ",
-                "the application of '",
+                "\n*** If model = NULL, a list of parameter values is ",
+                "required for the application of '",
                 c("ks", "ad", "rmse", "chisq", "hd")[require_pars],
                 "' approach.",
                 "\nYou can see the examples."
@@ -649,11 +655,13 @@ setMethod(
     }
 )
 
+
 #' @rdname mcgoftest
 #' @aliases mcgoftest
 #' @export
 setMethod(
-    "mcgoftest", signature(varobj = "numeric", model = "CDFmodelList"),
+    "mcgoftest",
+    signature(varobj = "numeric_OR_matrix", model = "CDFmodelList"),
     function(varobj,
     model,
     num.sampl = 999,
@@ -723,17 +731,19 @@ setClassUnion("NLM", c("nls", "nlsModel"))
 #' @export
 setMethod(
     "mcgoftest", signature(model = "NLM"),
-    function(varobj,
-    model,
-    num.sampl = 999,
-    sample.size = NULL,
-    stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
-    breaks = NULL,
-    par.names = NULL,
-    seed = 1,
-    num.cores = 1L,
-    tasks = 0L,
-    verbose = TRUE) {
+    function(
+        varobj,
+        model,
+        num.sampl = 999,
+        sample.size = NULL,
+        stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+        breaks = NULL,
+        par.names = NULL,
+        seed = 1,
+        num.cores = 1L,
+        tasks = 0L,
+        verbose = TRUE) {
+
         form <- model$m$formula()
 
         res <- mcgoftest(
@@ -760,18 +770,20 @@ setMethod(
 #' @export
 setMethod(
     "mcgoftest", signature(model = "nls.lm"),
-    function(varobj,
-    model,
-    distr,
-    num.sampl = 999,
-    sample.size = NULL,
-    stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
-    breaks = NULL,
-    par.names = NULL,
-    seed = 1,
-    num.cores = 1L,
-    tasks = 0L,
-    verbose = TRUE) {
+    function(
+        varobj,
+        model,
+        distr,
+        num.sampl = 999,
+        sample.size = NULL,
+        stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+        breaks = NULL,
+        par.names = NULL,
+        seed = 1,
+        num.cores = 1L,
+        tasks = 0L,
+        verbose = TRUE) {
+
         form <- model$m$formula()
 
         res <- mcgoftest(

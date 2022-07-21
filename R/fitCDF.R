@@ -186,7 +186,7 @@
 #' @importFrom utils flush.console
 #' @importFrom mixdist weibullpar
 #' @importFrom stats var sd quantile ecdf pgamma pnorm pbeta pexp pweibull
-#' @importFrom stats plnorm na.omit splinefun qqnorm qqline
+#' @importFrom stats plnorm na.omit splinefun qqnorm qqline pgeom
 #' @importFrom graphics par grid lines mtext abline
 #' @export
 #' @author Robersy Sanchez (\url{https://genomaths.com}).
@@ -357,6 +357,7 @@ setMethod(
             pgeom
         )
 
+        ## ------------------------- parLIST ---------------------------
         parLIST <- list(
             norm = c(mean = MEAN, sd = SD),
             lnorm = c(
@@ -406,7 +407,7 @@ setMethod(
             exp2 = c(rate = 1, mu = 0),
             geom = c(prob = ifelse(MEAN > 0, 1 / (1 + MEAN), 1))
         )
-
+        ## ------------- Distribution names ----------------------
         if (is.character(distNames)) {
             elemt <- all(is.element(distNames, distNAMES))
         } else
@@ -486,6 +487,8 @@ setMethod(
             funName <- paste0("p", distr)
         }
 
+        ## ------------------ Fitting ------------------------
+
         fitLIST <- vector("list", length = length(distNAMES))
         AICS <- rep(NA, length(distNAMES))
 
@@ -555,18 +558,7 @@ setMethod(
                 }
 
                 if (!inherits(FIT1, "try-error")) {
-                    evalLIST <- as.list(coef(FIT))
-                    evalLIST$q <- X
-                    fitted <- do.call(funLIST[[i]], evalLIST)
-                    sqRESIDUAL <- sum(pX - fitted)^2
-
-                    evalLIST <- as.list(coef(FIT1))
-                    fitted <- do.call(funLIST[[i]], evalLIST)
-                    sqRESIDUAL1 <- sum(pX - fitted)^2
-
-                    if (sqRESIDUAL1 < sqRESIDUAL) {
-                        FIT <- FIT1
-                    }
+                    FIT <- FIT1
                 }
             }
             if (!inherits(FIT, "try-error")) {
@@ -593,6 +585,8 @@ setMethod(
                 }
             }
         }
+
+        ## -------------- Ordering fitting results -----------------
 
         ORDER <- order(AICS)
         aicDAT <- data.frame(Distribution = distNAMES, AIC = AICS)
@@ -921,7 +915,7 @@ setMethod(
 
                 res$gof <- c(res$gof, cross_val, AIC = aicDAT[1, 2])
 
-                ## ------------------------ End Graphics --------------------- ##
+                ## --------------------- End Graphics ------------------ ##
             } else {
                 names(fitLIST) <- distNAMES
 

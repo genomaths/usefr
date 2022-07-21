@@ -4,7 +4,7 @@
 \alias{mcgoftest}
 \alias{mcgoftest,numeric_OR_matrix,missing-method}
 \alias{mcgoftest,numeric,CDFmodel-method}
-\alias{mcgoftest,numeric,CDFmodelList-method}
+\alias{mcgoftest,numeric_OR_matrix,CDFmodelList-method}
 \alias{mcgoftest,ANY,NLM-method}
 \alias{mcgoftest,ANY,nls.lm-method}
 \title{Bootstrap test for Goodness of fit (GoF)}
@@ -41,7 +41,7 @@ mcgoftest(varobj, model, ...)
   verbose = TRUE
 )
 
-\S4method{mcgoftest}{numeric,CDFmodelList}(
+\S4method{mcgoftest}{numeric_OR_matrix,CDFmodelList}(
   varobj,
   model,
   num.sampl = 999,
@@ -114,6 +114,7 @@ observation category.}
 \enumerate{
    \item "ks": Kolmogorov–Smirnov.
    \item "ad": Anderson–Darling statistic.
+   \item "sw": Shapiro-Wilk test of normality.
    \item "chisq: Pearson's Chi-squared.
    \item "rmse": Root Mean Square of the error.
    \item "hd": Hellinger Divergence statistics.
