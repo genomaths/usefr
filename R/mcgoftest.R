@@ -138,6 +138,8 @@
 #'    \item "rmse": Root Mean Square of the error.
 #'    \item "hd": Hellinger Divergence statistics.
 #' }
+#' @param min.val A number denoting the lower bound of the domain where CDF
+#' is defined.
 #' @param breaks Default is NULL. Basically, the it is same as in function
 #' \code{\link[graphics]{hist}}. If \emph{breaks} = NULL, then function
 #' 'nclass.FD' (see \code{\link[grDevices]{nclass}} is applied to estimate
@@ -407,6 +409,7 @@ setMethod(
     num.sampl = 999,
     sample.size = NULL,
     stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+    min.val = NULL,
     breaks = NULL,
     par.names = NULL,
     seed = 1,
@@ -428,6 +431,13 @@ setMethod(
                 "' approach.",
                 "\nYou can see the examples."
             )
+        }
+
+        ## Remove NA values
+        varobj <- varobj[ !is.na(varobj) ]
+
+        if (!is.null(min.val)) {
+            varobj <- varobj[ which(varobj > min.val) ]
         }
 
         if (is.null(distr) && stat != "sw") {

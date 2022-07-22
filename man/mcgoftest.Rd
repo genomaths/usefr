@@ -19,6 +19,7 @@ mcgoftest(varobj, model, ...)
   num.sampl = 999,
   sample.size = NULL,
   stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+  min.val = NULL,
   breaks = NULL,
   par.names = NULL,
   seed = 1,
@@ -119,6 +120,9 @@ observation category.}
    \item "rmse": Root Mean Square of the error.
    \item "hd": Hellinger Divergence statistics.
 }}
+
+\item{min.val}{A number denoting the lower bound of the domain where CDF
+is defined.}
 
 \item{breaks}{Default is NULL. Basically, the it is same as in function
 \code{\link[graphics]{hist}}. If \emph{breaks} = NULL, then function
