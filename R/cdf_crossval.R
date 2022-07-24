@@ -31,6 +31,8 @@
 #' which will be coerced to a formula if necessary. For example, for a Gamma
 #' model the formula will be: "Y ~ pgamma(q, shape, scale)", where
 #' \code{\link[stats]{pgamma}} function is available in 'stats' R package.
+#' However, the \code{\link[minpack.lm]{nls.lm}} class model created by
+#' function \code{\link{fitCDF}} has incorporated the formula information.
 #' @param pars Estimated model parameters.
 #' @param q Objective variable used to build the model, typically called a
 #' vector of quantiles. The model's formula must be expressed in terms of
@@ -283,6 +285,12 @@ setMethod(
     maxiter = 1024,
     ptol = 1e-12,
     minFactor = 1e-6) {
+        if (missing(formula) && is.null(model$formula))
+            stop("*** An argument for 'formula' must be provided.")
+
+        if (missing(formula) && !is.null(model$formula))
+            formula <- model$formula
+
         cdf_crossval(
             formula = formula,
             pars = coef(model),

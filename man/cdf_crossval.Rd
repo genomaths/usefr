@@ -61,7 +61,9 @@ cdf_crossval(model, ...)
 it will be nonlinear model formula including variables and parameters,
 which will be coerced to a formula if necessary. For example, for a Gamma
 model the formula will be: "Y ~ pgamma(q, shape, scale)", where
-\code{\link[stats]{pgamma}} function is available in 'stats' R package.}
+\code{\link[stats]{pgamma}} function is available in 'stats' R package.
+However, the \code{\link[minpack.lm]{nls.lm}} class model created by
+function \code{\link{fitCDF}} has incorporated the formula information.}
 
 \item{pars}{Estimated model parameters.}
 

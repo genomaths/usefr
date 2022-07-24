@@ -570,6 +570,22 @@ setMethod(
                     FIT <- FIT1
                 }
             }
+            else {
+                ## Add formula information to the 'nls.lm' class object
+                if (!inherits(FIT, "try-error")) {
+                    pars <- names(coef(FIT))
+                    pars <- paste(c("q", pars), collapse = ",")
+                    formula <- as.formula(
+                        paste0(
+                            "Y ~ ", funName[i],
+                            "(", pars, ")"
+                        )
+                    )
+
+                    FIT$formula <- formula
+                }
+            }
+
             if (!inherits(FIT, "try-error")) {
                 fitLIST[[i]] <- FIT
 
