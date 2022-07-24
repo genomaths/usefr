@@ -23,9 +23,10 @@ e.g., _start_
     if (!requireNamespace("BiocManager")) install.packages("BiocManager")
     BiocManager::install()
     
-    BiocManager::install('BiocParallel')
-    install.packages(c("minpack.lm", "numDeriv", "copula", "mclust",
-                        "nls2", "cubature", "mixdist"), dependencies=TRUE)
+    ('BiocParallel')
+    BiocManager::install(c("BiocParallel","minpack.lm", "numDeriv", "copula", 
+                            "mclust", "nls2", "cubature", "mixdist"), 
+                        dependencies=TRUE)
 ```
 
 ### Installing issues with the R package "cubature" on CentOS
@@ -78,8 +79,7 @@ If the above step does not works then,  follow the link:
 ### You can install _*usefr*_ package from GitHub
 
 ```install.p
-   devtools::install_git("https://github.com/genomaths/usefr.git")
-
+   BiocManager::install("genomaths/usefr")
 ```
 
 Or download the binary of 'usefr' R package from here: <https://is.gd/4BKQQN>
