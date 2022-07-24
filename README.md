@@ -23,7 +23,6 @@ e.g., _start_
     if (!requireNamespace("BiocManager")) install.packages("BiocManager")
     BiocManager::install()
     
-    ('BiocParallel')
     BiocManager::install(c("BiocParallel","minpack.lm", "numDeriv", "copula", 
                             "mclust", "nls2", "cubature", "mixdist"), 
                         dependencies=TRUE)
