@@ -14,7 +14,8 @@ cdf_crossval(model, ...)
   model,
   formula,
   pars,
-  X,
+  q,
+  logx = FALSE,
   min.val = NULL,
   loss.fun = c("linear", "huber", "smooth", "cauchy", "arctg"),
   maxiter = 1024,
@@ -25,7 +26,8 @@ cdf_crossval(model, ...)
 
 \S4method{cdf_crossval}{nls}(
   model,
-  X,
+  q,
+  logx = FALSE,
   min.val = NULL,
   maxiter = 1024,
   ptol = 1e-12,
@@ -34,7 +36,8 @@ cdf_crossval(model, ...)
 
 \S4method{cdf_crossval}{CDFmodel}(
   model,
-  X,
+  q,
+  logx = FALSE,
   min.val = NULL,
   maxiter = 1024,
   ptol = 1e-12,
@@ -44,7 +47,8 @@ cdf_crossval(model, ...)
 \S4method{cdf_crossval}{nls.lm}(
   model,
   formula,
-  X,
+  q,
+  logx = FALSE,
   min.val = NULL,
   maxiter = 1024,
   ptol = 1e-12,
@@ -61,7 +65,12 @@ model the formula will be: "Y ~ pgamma(q, shape, scale)", where
 
 \item{pars}{Estimated model parameters.}
 
-\item{X}{Objective variable used to build the model.}
+\item{q}{Objective variable used to build the model, typically called a
+vector of quantiles. The model's formula must be expressed in terms of
+variable \eqn{'q'}.}
+
+\item{logx}{logical(1). If TRUE, then a logarithm transformation will be
+applied: \eqn{q = log1p(q)}.}
 
 \item{min.val}{A number denoting the lower bound of the domain where CDF
 is defined. For example, for Weibull and GGamma \strong{\emph{min.val = 0}}.}

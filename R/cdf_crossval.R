@@ -32,9 +32,13 @@
 #' model the formula will be: "Y ~ pgamma(q, shape, scale)", where
 #' \code{\link[stats]{pgamma}} function is available in 'stats' R package.
 #' @param pars Estimated model parameters.
-#' @param X Objective variable used to build the model.
+#' @param q Objective variable used to build the model, typically called a
+#' vector of quantiles. The model's formula must be expressed in terms of
+#' variable \eqn{'q'}.
 #' @param min.val A number denoting the lower bound of the domain where CDF
 #' is defined. For example, for Weibull and GGamma \strong{\emph{min.val = 0}}.
+#' @param logx logical(1). If TRUE, then a logarithm transformation will be
+#' applied: \eqn{q = log1p(q)}.
 #' @param loss.fun Described in \code{\link{fitCDF}}.
 #' @param maxiter,ptol,maxfev Arguments for function
 #' \code{\link[minpack.lm]{nlsLM}} and/or \code{\link[minpack.lm]{nls.lm}}.
@@ -75,7 +79,8 @@ setMethod(
         model,
         formula,
         pars,
-        X,
+        q,
+        logx = FALSE,
         min.val = NULL,
         loss.fun = c(
             "linear", "huber", "smooth",
@@ -90,20 +95,24 @@ setMethod(
         }
 
         if (!is.null(min.val)) {
-            X <- X[which(X > min.val)]
+            q <- q[ which(q > min.val) ]
         }
 
-        n <- length(X)
+        if (logx) {
+            q <- q[ q > 0 ]
+            q <- log(q)
+        }
+        n <- length(q)
         cros.ind.1 <- sample.int(n, size = round(n / 2))
         cros.ind.2 <- setdiff(seq_len(n), cros.ind.1)
 
-        Fy <- ecdf(X)
-        pX <- Fy(X)
+        Fy <- ecdf(q)
+        pX <- Fy(q)
 
         FIT1 <- try(nlsLM(
             formula,
             data = data.frame(
-                X = X[cros.ind.1],
+                q = q[cros.ind.1],
                 Y = pX[cros.ind.1]
             ),
             start = as.list(pars),
@@ -118,7 +127,7 @@ setMethod(
                 par = pars,
                 fn = optFun,
                 probfun = probfun,
-                quantiles = X[cros.ind.1],
+                quantiles = q[cros.ind.1],
                 prob = pX[cros.ind.1],
                 loss.fun = loss.fun,
                 control = nls.lm.control(
@@ -134,7 +143,7 @@ setMethod(
         FIT2 <- try(nlsLM(
             formula,
             data = data.frame(
-                X = X[cros.ind.2],
+                q = q[cros.ind.2],
                 Y = pX[cros.ind.2]
             ),
             start = as.list(pars),
@@ -149,7 +158,7 @@ setMethod(
                 par = pars,
                 fn = optFun,
                 probfun = probfun,
-                quantiles = X[cros.ind.2],
+                quantiles = q[cros.ind.2],
                 prob = pX[cros.ind.2],
                 loss.fun = loss.fun,
                 control = nls.lm.control(
@@ -178,7 +187,7 @@ setMethod(
 
             ## prediction using model 1
             evalLIST <- as.list(coef(FIT1)[seq_along(pars)])
-            evalLIST$q <- X[cros.ind.2]
+            evalLIST$q <- q[cros.ind.2]
             p.FIT1 <- do.call(fun, evalLIST)
             if (all(is.na(p.FIT1)) || all(is.na(pX[cros.ind.2]))) {
                 R.FIT1 <- 0
@@ -190,7 +199,7 @@ setMethod(
 
             ## prediction using model 2
             evalLIST <- as.list(coef(FIT2)[seq_along(pars)])
-            evalLIST$q <- X[cros.ind.1]
+            evalLIST$q <- q[cros.ind.1]
             p.FIT2 <- do.call(fun, evalLIST)
 
             if (all(is.na(p.FIT2)) || all(is.na(pX[cros.ind.1]))) {
@@ -215,7 +224,8 @@ setMethod(
 setMethod(
     "cdf_crossval", signature(model = "nls"),
     function(model,
-    X,
+    q,
+    logx = FALSE,
     min.val = NULL,
     maxiter = 1024,
     ptol = 1e-12,
@@ -223,7 +233,8 @@ setMethod(
         cdf_crossval(
             formula = model$m$formula(),
             pars = coef(model),
-            X = X,
+            q = q,
+            logx = logx,
             min.val = min.val,
             maxiter = maxiter,
             ptol = ptol,
@@ -238,7 +249,8 @@ setMethod(
 setMethod(
     "cdf_crossval", signature(model = "CDFmodel"),
     function(model,
-    X,
+    q,
+    logx = FALSE,
     min.val = NULL,
     maxiter = 1024,
     ptol = 1e-12,
@@ -248,7 +260,8 @@ setMethod(
         cdf_crossval(
             formula = formula,
             pars = coef(model$bestfit),
-            X = X,
+            q = q,
+            logx = logx,
             min.val = min.val,
             maxiter = maxiter,
             ptol = ptol,
@@ -264,7 +277,8 @@ setMethod(
     "cdf_crossval", signature(model = "nls.lm"),
     function(model,
     formula,
-    X,
+    q,
+    logx = FALSE,
     min.val = NULL,
     maxiter = 1024,
     ptol = 1e-12,
@@ -272,7 +286,8 @@ setMethod(
         cdf_crossval(
             formula = formula,
             pars = coef(model),
-            X = X,
+            q = q,
+            logx = logx,
             min.val = min.val,
             maxiter = maxiter,
             ptol = ptol,

@@ -50,11 +50,10 @@
 #'     \item gnorm = c( mean = MEAN, sigma = SD, beta = 2)
 #'     \item tgnorm = c( mean = MEAN, sigma = SD, beta = 2)
 #'     \item laplace = c( mean = MEAN, sigma = sqrt( VAR))
-#'     \item gamma = c( shape = MEAN^2/VAR, rate = MEAN/VAR)
-#'     \item gamma3p = c( shape = MEAN^2/VAR, rate = MEAN/VAR, mu = 0),
-#'     \item ggamma = c(alpha = MEAN^2/VAR, scale = VAR/MEAN, mu = MIN,
-#'                         psi = 1)
-#'     \item ggamma = c( alpha = MEAN^2/VAR, scale = VAR/MEAN, psi = 1)
+#'     \item gamma = c(shape_scale(X, gg = FALSE))
+#'     \item gamma3p = c(shape_scale(X, gg = FALSE), mu = 0),
+#'     \item ggamma = c(shape_scale(X, gg = TRUE), mu = MIN, psi = 1)
+#'     \item ggamma = c(shape_scale(X, gg = TRUE), psi = 1)
 #'     \item weibull = c( shape = log( 2 ), scale = Q)
 #'     \item weibull3p = c( mu = MIN, shape = log( 2 ), scale = Q)
 #'     \item beta = c(shape1 = 1, shape2 = 2)
@@ -66,6 +65,8 @@
 #'     \item exp = c( rate = 1)
 #'     \item exp2 = c( rate = 1, mu = 0)
 #'     \item geom = c(prob = ifelse(MEAN > 0, 1/(1 + MEAN), 1))
+#'     \item lgamma = shape_scale(log1p(X), gg = FALSE)
+#'     \item lpgamma3p = c(shape_scale(log1p(X), gg = FALSE), mu = 0)
 #' }
 #' @param loss.fun Loss function(s) used in the regression (see
 #' \href{https://en.wikipedia.org/wiki/Loss_function}{(Loss function)}). After
@@ -157,7 +158,12 @@
 #'         \item Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
 #'         \item 2P Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
 #'         \item Geometric \href{https://is.gd/94HW4w}{(Wikipedia)}
+#'         \item Log-Gamma \href{https://is.gd/kMQVxX}{(Mathematica)}
+#'         \item Log-Gamma 3P \href{https://is.gd/kMQVxX}{(Mathematica)}
 #'     }
+#'
+#' Where, shape_scale function is an internal function that can be
+#' retrieve by typing: usefr:::shape_scale.
 #' @return After return the plots, a list with following values is provided:
 #'     \itemize{
 #'         \item aic: Akaike information creterion
@@ -171,12 +177,9 @@
 #'     After cdf = fitCDF( varobj, ...), attributes( cdf$bestfit ) shows the
 #'     list of objects carry on cdf$bestfit:
 #'      \itemize{
-#'         \item $names
-#'               [1] "par" "hessian" "fvec" "info" "message" "diag" "niter"
-#'                   "rsstrace"  "deviance"
-#'
-#'         \item $class
-#'               [1] "nls.lm"
+#'         \item names: "par" "hessian" "fvec" "info" "message" "diag" "niter"
+#'                      "rsstrace"  "deviance"
+#'         \item class: "nls.lm"
 #'      }
 #'
 #' And fitting details can be retrieved with summary(cdf$bestfit)
@@ -227,7 +230,7 @@
 #'     cex.lab = 1.3, cex.axis = 1.3, cex.main = 1.1,
 #'     mgp = c(2.5, 1, 0)
 #' )
-#' @aliases cdf_crossval
+#' @aliases fitCDF
 setGeneric(
     "fitCDF",
     def = function(varobj,
@@ -269,8 +272,8 @@ setMethod(
     ...) {
         if (is.numeric(distNames)) {
             distNames <- as.integer(distNames)
-            if (any(distNames > 21)) {
-                stop("*** 'distNames' must be a string or a number < 21")
+            if (any(distNames > 23)) {
+                stop("*** 'distNames' must be a string or a number <= 23")
             }
         }
 
@@ -330,7 +333,9 @@ setMethod(
             "Rayleigh",
             "Exponential",
             "2P Exponential",
-            "Geometric"
+            "Geometric",
+            "Log-Gamma",
+            "Log-Gamma 3P"
         )
 
         funLIST <- list(
@@ -354,7 +359,9 @@ setMethod(
             prayleigh,
             pexp,
             pexp2,
-            pgeom
+            pgeom,
+            plgamma,
+            plgamma3p
         )
 
         ## ------------------------- parLIST ---------------------------
@@ -405,7 +412,9 @@ setMethod(
             rayleigh = c(sigma = SD),
             exp = c(rate = 1),
             exp2 = c(rate = 1, mu = 0),
-            geom = c(prob = ifelse(MEAN > 0, 1 / (1 + MEAN), 1))
+            geom = c(prob = ifelse(MEAN > 0, 1 / (1 + MEAN), 1)),
+            lgamma = c(shape = 1, scale = 1),
+            lgamma3p = c(shape = 1, scale = 1, mu = 0)
         )
         ## ------------- Distribution names ----------------------
         if (is.character(distNames)) {
@@ -419,7 +428,7 @@ setMethod(
             distNames <- seq_along(distNAMES)
         }
 
-        if (length(distNames) < 21 && elemt) {
+        if (length(distNames) < 24 && elemt) {
             if (is.character(distNames)) {
                 distNames <- as.integer(na.omit(match(distNames, distNAMES)))
             }
@@ -905,9 +914,20 @@ setMethod(
                     )
                 )
 
+                ## ================ Cross FIT =============
+                if (identical(cdf, "lnorm") ||
+                    identical(cdf, "lgamma") ||
+                    identical(cdf, "lgamma3p")) {
+                    logx <- TRUE
+                }
+                else
+                    logx <- FALSE
+
                 cross_val <- cdf_crossval(
                     model = res,
-                    X = X,
+                    q = X,
+                    logx = logx,
+                    min.val = min.val,
                     maxiter = maxiter,
                     ptol = ptol,
                     minFactor = 1e-6
@@ -948,9 +968,20 @@ setMethod(
                     )
                 )
 
+                ## ================ Cross FIT =============
+                if (identical(cdf, "lnorm") ||
+                    identical(cdf, "lgamma") ||
+                    identical(cdf, "lgamma3p")) {
+                    logx <- TRUE
+                }
+                else
+                    logx <- FALSE
+
                 cross_val <- cdf_crossval(
                     model = res,
-                    X = X,
+                    q = X,
+                    logx = logx,
+                    min.val = min.val,
                     maxiter = maxiter,
                     ptol = ptol,
                     minFactor = 1e-6
@@ -1166,8 +1197,10 @@ setMethod(
 ## ============================= Auxiliary functions ========================= #
 
 optFun <- function(par, probfun, quantiles, prob, eval = FALSE, loss.fun) {
-    if (identical(probfun, plnorm)) {
-        quantiles <- log1p(quantiles)
+    if (identical(probfun, plnorm) || identical(probfun, plgamma) ||
+        identical(probfun, plgamma3p)) {
+        quantiles <- quantiles[ quantiles > 0 ]
+        quantiles <- log(quantiles)
         Fy <- ecdf(quantiles)
         prob <- Fy(quantiles)
     }
@@ -1245,7 +1278,9 @@ distr <- c(
     "rayleigh",
     "exp",
     "exp2",
-    "geom"
+    "geom",
+    "lgamma",
+    "lgamma3p"
 )
 
 
@@ -1283,8 +1318,8 @@ Stein_rho <- function(fit, varobj) {
 }
 
 ## ---------------------------------------------------------------------- #
-# *** Generalized normal CDF *** #
-# https://en.(Wikipedia).org/wiki/Generalized_normal_distribution
+## *** Generalized normal CDF *** #
+## https://en.(Wikipedia).org/wiki/Generalized_normal_distribution
 
 pgnorm <- function(q,
     mean = 0,
@@ -1295,7 +1330,7 @@ pgnorm <- function(q,
     1 / 2 + sign(q - mean) * pgamma(y, 1 / beta) / 2
 }
 
-# *** Thermodynamic based Generalized normal CDF *** #
+## *** Thermodynamic based Generalized normal CDF *** #
 
 ptgnorm <- function(q,
     mean = 0,
@@ -1311,13 +1346,13 @@ ptgnorm <- function(q,
     1 / 2 + sign(q - mean) * pgamma(y, 1 / beta) / 2
 }
 
-# *** Definition of Laplace CDF *** #
+## *** Definition of Laplace CDF *** #
 
 plaplace <- function(q, mean = 0, sigma = 1) {
     1 / sqrt(2) + 1 / sqrt(2) * (1 - exp(-abs(q - mean) / sigma))
 }
 
-# *** Generalized beta CDF *** #
+## *** Generalized beta CDF *** #
 
 pgbeta <-
     function(q,
@@ -1337,7 +1372,7 @@ pgbeta <-
         return(ans)
     }
 
-# *** 3P beta CDF *** #
+## *** 3P beta CDF *** #
 
 pbeta3 <-
     function(q,
@@ -1355,7 +1390,7 @@ pbeta3 <-
         )
     }
 
-# *** 4P beta CDF *** #
+## *** 4P beta CDF *** #
 
 pbeta4 <- function(q,
     shape1 = 2,
@@ -1372,13 +1407,13 @@ pbeta4 <- function(q,
     )
 }
 
-# *** Definition of Rayleigh distribution *** #
+## *** Definition of Rayleigh distribution *** #
 
 prayleigh <- function(q, sigma) {
     1 - exp(-q^2 / (2 * sigma^2))
 }
 
-# *** Definition of 2P Exponential *** #
+## *** Definition of 2P Exponential *** #
 pexp2 <- function(q, rate, mu) {
     pexp(
         q - mu,
@@ -1388,8 +1423,8 @@ pexp2 <- function(q, rate, mu) {
     )
 }
 
-# *** Definition of Beta-Weibull distribution *** #
-# It is taken from R package "Newdistns"
+## *** Definition of Beta-Weibull distribution *** #
+## It is taken from R package "Newdistns"
 
 pbweibull <- function(q, alpha, beta, shape, scale) {
     pbeta(
@@ -1403,6 +1438,35 @@ pbweibull <- function(q, alpha, beta, shape, scale) {
     )
 }
 
+## *** Definition of Log-Gamma 3P distribution *** #
+## Similar to the one defined in package VGAM
+plgamma3p <- function(
+    q,
+    shape = 1,
+    scale = 1,
+    mu = 0,
+    lower.tail = TRUE,
+    log.p = FALSE) {
+
+    y <- (q - mu)/scale
+    res <- pgamma(exp(y), shape, lower.tail = lower.tail, log.p = log.p)
+    res[scale < 0] <- NaN
+    res
+}
+
+plgamma <- function(
+        q,
+        shape = 1,
+        scale = 1,
+        lower.tail = TRUE,
+        log.p = FALSE) {
+
+    y <- q/scale
+    res <- pgamma(exp(y), shape, lower.tail = lower.tail, log.p = log.p)
+    res[scale < 0] <- NaN
+    res
+}
+
 ## Initial parameters estimation by Method of Moments
 
 beta_start_par <- function(MEAN, VAR) {
@@ -1411,6 +1475,7 @@ beta_start_par <- function(MEAN, VAR) {
     return(c(shape1 = shape1, shape2 = shape2))
 }
 
+## AIC
 summary_aic <- function(m) {
     nms <- m[[1]]$aic[, 1]
     res <- do.call(cbind, lapply(m, function(x) {

@@ -2,7 +2,6 @@
 % Please edit documentation in R/fitCDF.R
 \name{fitCDF}
 \alias{fitCDF}
-\alias{cdf_crossval}
 \alias{fitCDF,numeric-method}
 \alias{fitCDF,list_OR_matrix_OR_dataframe-method}
 \title{Nonlinear fit of a commulative distribution function}
@@ -103,11 +102,10 @@ are:
     \item gnorm = c( mean = MEAN, sigma = SD, beta = 2)
     \item tgnorm = c( mean = MEAN, sigma = SD, beta = 2)
     \item laplace = c( mean = MEAN, sigma = sqrt( VAR))
-    \item gamma = c( shape = MEAN^2/VAR, rate = MEAN/VAR)
-    \item gamma3p = c( shape = MEAN^2/VAR, rate = MEAN/VAR, mu = 0),
-    \item ggamma = c(alpha = MEAN^2/VAR, scale = VAR/MEAN, mu = MIN,
-                        psi = 1)
-    \item ggamma = c( alpha = MEAN^2/VAR, scale = VAR/MEAN, psi = 1)
+    \item gamma = c(shape_scale(X, gg = FALSE))
+    \item gamma3p = c(shape_scale(X, gg = FALSE), mu = 0),
+    \item ggamma = c(shape_scale(X, gg = TRUE), mu = MIN, psi = 1)
+    \item ggamma = c(shape_scale(X, gg = TRUE), psi = 1)
     \item weibull = c( shape = log( 2 ), scale = Q)
     \item weibull3p = c( mu = MIN, shape = log( 2 ), scale = Q)
     \item beta = c(shape1 = 1, shape2 = 2)
@@ -119,6 +117,8 @@ are:
     \item exp = c( rate = 1)
     \item exp2 = c( rate = 1, mu = 0)
     \item geom = c(prob = ifelse(MEAN > 0, 1/(1 + MEAN), 1))
+    \item lgamma = shape_scale(log1p(X), gg = FALSE)
+    \item lpgamma3p = c(shape_scale(log1p(X), gg = FALSE), mu = 0)
 }}
 
 \item{loss.fun}{Loss function(s) used in the regression (see
@@ -182,12 +182,9 @@ After return the plots, a list with following values is provided:
     After cdf = fitCDF( varobj, ...), attributes( cdf$bestfit ) shows the
     list of objects carry on cdf$bestfit:
      \itemize{
-        \item $names
-              [1] "par" "hessian" "fvec" "info" "message" "diag" "niter"
-                  "rsstrace"  "deviance"
-
-        \item $class
-              [1] "nls.lm"
+        \item names: "par" "hessian" "fvec" "info" "message" "diag" "niter"
+                     "rsstrace"  "deviance"
+        \item class: "nls.lm"
      }
 
 And fitting details can be retrieved with summary(cdf$bestfit)
@@ -240,7 +237,12 @@ well. The list (so far) of possible CDFs is:
         \item Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
         \item 2P Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
         \item Geometric \href{https://is.gd/94HW4w}{(Wikipedia)}
+        \item Log-Gamma \href{https://is.gd/kMQVxX}{(Mathematica)}
+        \item Log-Gamma 3P \href{https://is.gd/kMQVxX}{(Mathematica)}
     }
+
+Where, shape_scale function is an internal function that can be
+retrieve by typing: usefr:::shape_scale.
 }
 \examples{
 set.seed(1230)
