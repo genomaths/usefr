@@ -802,8 +802,6 @@ setMethod(
         tasks = 0L,
         verbose = TRUE) {
 
-        form <- model$m$formula()
-
         res <- mcgoftest(
             varobj = varobj,
             distr = distr,
