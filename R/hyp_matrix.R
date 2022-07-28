@@ -99,7 +99,7 @@ hyp_matrix <- function(
     E <- Reduce("+", S)
     df.e <- N - n # Degree of freedom for matrix E
     Se <- E / df.e # Error covariance matrix
-    A <- mapply(function(x,y) x/y, S, m)
+    A <- lapply(seq_along(m), function(k) S[[k]]/m[k])
 
     ## ------------------------------------------------------ -#
     ## ----------- Estimation of hypothesis matrix -----------

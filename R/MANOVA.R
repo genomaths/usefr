@@ -134,8 +134,13 @@
 #' }
 #'
 
-MANOVA <- function(obj, par.mat = NULL, cov.mat = NULL, sample.size = NULL,
-    groups = NULL, boxM = TRUE) {
+MANOVA <- function(
+            obj,
+            par.mat = NULL,
+            cov.mat = NULL,
+            sample.size = NULL,
+            groups = NULL,
+            boxM = TRUE) {
 
     hmat <- hyp_matrix(
             obj = obj,
