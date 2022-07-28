@@ -99,7 +99,7 @@ hyp_matrix <- function(
     E <- Reduce("+", S)
     df.e <- N - n # Degree of freedom for matrix E
     Se <- E / df.e # Error covariance matrix
-    A <- list(S[[1]] / m[1], S[[2]] / m[2])
+    A <- mapply(function(x,y) x/y, S, m)
 
     ## ------------------------------------------------------ -#
     ## ----------- Estimation of hypothesis matrix -----------
@@ -119,7 +119,7 @@ hyp_matrix <- function(
     s <- max(p, df.h)
     #---------------------------------------- -
 
-    W <- A[[1]] + A[[2]] # Sum of mean of Squares
+    W <- Reduce("+", A) # Sum of mean of Squares
     W.inv <- suppressWarnings(try(qr.solve(W), silent = TRUE))
     if (inherits(W.inv, "try-error")) {
         # error handling code, maybe just skip this iteration using
@@ -155,6 +155,7 @@ hyp_matrix <- function(
                 df.e = df.e,
                 E.inv = E.inv,
                 H = H,
+                A = A,
                 df.h = df.h,
                 HpE.inv = HpE.inv,
                 Se = Se,

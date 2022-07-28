@@ -144,23 +144,24 @@ MANOVA <- function(obj, par.mat = NULL, cov.mat = NULL, sample.size = NULL,
             sample.size = sample.size,
             groups = groups)
 
-    E = hmat$E
-    df.e = hmat$df.e
-    E.inv = hmat$E.inv
-    H = hmat$H
-    df.h = hmat$df.h
-    HpE.inv = hmat$HpE.inv
-    Se = hmat$Se
-    Se.inv = hmat$Se.inv
-    W = hmat$W
-    W.inv = hmat$W.inv
-    par = hmat$par
-    Cov = hmat$Cov
-    p = hmat$p
-    N = hmat$N
-    df.h = hmat$df.h
-    m = hmat$m
-    n = hmat$n
+    E <- hmat$E
+    df.e <- hmat$df.e
+    E.inv <- hmat$E.inv
+    H <- hmat$H
+    A <- hmat$A
+    df.h <- hmat$df.h
+    HpE.inv <- hmat$HpE.inv
+    Se <- hmat$Se
+    Se.inv <- hmat$Se.inv
+    W <- hmat$W
+    W.inv <- hmat$W.inv
+    par <- hmat$par
+    Cov <- hmat$Cov
+    p <- hmat$p
+    N <- hmat$N
+    df.h <- hmat$df.h
+    m <- hmat$m
+    n <- hmat$n
     rm(hmat); gc()
 
     r <- min(p, df.h) ## Necessary to compute dfs

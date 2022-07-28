@@ -575,7 +575,7 @@ setMethod(
         )
 
         if (verbose) {
-            method <- ifelse(sample.size < length(varobj),
+            method <- ifelse(sample.size < num.sampl,
                 "Monte Carlo GoF testing",
                 "Permutation GoF testing"
             )
