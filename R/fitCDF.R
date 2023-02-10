@@ -22,7 +22,7 @@
 ## ########################################################################### #
 #
 #' @rdname fitCDF
-#' @title Nonlinear fit of a commulative distribution function
+#' @title Nonlinear fit of a commutative distribution function
 #' @description Usually the parameter estimation of a cumulative distribution
 #' function (*CDF*) are accomplished using the corresponding probability density
 #' function (*PDF*). Different optimization algorithms can be used to
@@ -188,8 +188,7 @@
 #' @importFrom minpack.lm nls.lm nls.lm.control
 #' @importFrom utils flush.console
 #' @importFrom mixdist weibullpar
-#' @importFrom stats var sd quantile ecdf pgamma pnorm pbeta pexp pweibull
-#' @importFrom stats plnorm na.omit splinefun qqnorm qqline pgeom
+#' @import stats
 #' @importFrom graphics par grid lines mtext abline
 #' @export
 #' @author Robersy Sanchez (\url{https://genomaths.com}).
@@ -712,7 +711,8 @@ setMethod(
                         ylab = "CDF",
                         cex = cex.point,
                         main = paste(distNAMES[k], "Distribution"),
-                        cex.main = cex.main
+                        cex.main = cex.main,
+                        ...
                     )
                     lines(
                         evalLIST$q,
@@ -748,7 +748,8 @@ setMethod(
                         cex = cex.point,
                         xlab = "Empirical CDF",
                         ylab = "Theoretical CDF",
-                        cex.main = cex.main
+                        cex.main = cex.main,
+                        ...
                     )
                     abline(0, 1, col = "red", lwd = 2) # Reference line y = x
                     pars <- FITs$par
@@ -783,7 +784,8 @@ setMethod(
                         main = "Outliers",
                         col = "blue",
                         cex = cex.point,
-                        cex.main = cex.main
+                        cex.main = cex.main,
+                        ...
                     )
                     abline(
                         h = 2,

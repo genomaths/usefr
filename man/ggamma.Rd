@@ -91,7 +91,7 @@ pggamma(q,
 ## To fit random generated numbers
 set.seed(123)
 x <- rggamma(2000, alpha = 1.03, psi = 0.75, scale = 2.1)
-fitGGammaDist(x)
+fitCDF(x, distNames = "Generalized 3P Gamma")
 
 }
 \references{

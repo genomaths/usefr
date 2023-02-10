@@ -1,0 +1,232 @@
+---
+title: "Fisher's exact test failure can lead to biased results"
+author: 
+    - name: Robersy Sanchez
+      affiliation: Department of Biology.
+                   Pennsylvania State University, University Park, PA 16802
+      email: rus547@psu.edu
+date: "`r format(Sys.time(), '%d %B %Y')`"
+fontsize: 11pt
+fontfamily: "serif"
+output:
+    html_document:
+        keep_md: yes
+        toc: true
+        toc_depth: 4
+        toc_float: 
+                collapsed: false
+                smooth_scroll: true
+        number_sections: true
+        theme: united 
+        geometry: margin=0.8in
+        highlight: tango
+toc_float: true
+toc_depth: 4
+abstract: |
+    Fisher's exact test is a statistical significance test used in the analysis
+    of contingency tables. Although this test is routinely used even though,
+    it has been full of with controversy for over 80 years.Herein, the case of 
+    its application analyzed is scrutinized with specific examples.
+vignette: >
+  %\VignetteIndexEntry{Fisher's exact test failure can lead to biased results}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Overwiew
+
+
+The statistical significance of the difference between two bisulfite sequence
+from control and treatment groups at each CG site can be evaluated with Fisher's
+exact test. This is a statistical test used to determine if there are nonrandom
+associations between two categorical variables.
+
+Let there exist two such (categorical) variables $X$ and $Y$, where $X$ stands
+for two groups of individuals: control and treatment, and $Y$ be a two states
+variable denoting the methylation status, carrying the number of times that a
+cytosine site is found methylated ($^{m}CG$) and non-methylated ($CG$),
+respectively.
+
+This information can be summarized in a $2 \times 2$ table, a $2 \times 2$
+matrix in which the entries $a_{ij}$ represent the number of observations in
+which $x=i$ and $y=j$. Calculate the row and column sums $R_i$ and $C_j$,
+respectively, and the total sum:
+  
+$$N=\sum_iR_i=\sum_jC_j$$  
+of the matrix:
+
+|           | $Y = ^mCG$       | $Y = CG$         | $R_i$            |
+|:----------|:-----------------|:-----------------|:-----------------|
+| Control   | $a_{11}$         | $a_12$           | $a_{11}+a_{12}$  |
+| Treatment | $a_{21}$         | $a_22$           | $a_{21}+a_{22}$  |
+| $C_i$     | $a_{11}+a_{21}$  | $a_{12}+a_{22}$  | $a_{11}+a_{12}+a_{21}+a_{22} = N$ |
+
+Then the conditional probability of getting the actual matrix, given the
+particular row and column sums, is given by the formula:
+
+$$P_{cutoff}=\frac{R_1!R_2!}{N!\prod_{i,j}a_{ij}!}C_1!C_2!$$
+
+# Example 1
+
+Let's consider the following hypthetical case of methylation at a given cytosine
+site found in the comparison of control and treatment groups:
+```{r examp1}
+case1 <- matrix(c(5, 14, 15, 12),  nrow = 2, 
+                     dimnames = list(Group = c("Ctrl", "Treat"),
+                                     Meth.status = c("mCG", "CG")))
+case1
+```
+
+That is, the cytosine site was found methylated 5 times from 20 counts in the
+control group and 14 out of 26 in the treatment. This accounts for methylation
+levels about 0.28 and 0.53 in the control and and the treatment groups,
+respectively, which correspond to a value of 0.25 (50%) of methylation levels 
+difference.
+```{r pro1}
+## Proportions
+case1/rowSums(case1)
+```
+
+Fisher's exact test found not difference between these group!
+```{r test1}
+fisher.test(case1)
+```
+
+Considering the direction of the changes seems to be more sensitive to the
+magnitude of methylation changes, statistically significant
+at a significance level of $\alpha = 0.05$.
+```{r test2}
+fisher.test(case1, alternative = "less")
+```
+
+
+To realize how difficult would be the interpretation of this result in a real
+concrete scenario, let's consider a basketball team where a top player finished
+a game scoring 14 field-goal out of 26 shooting. Base on Fisher's exact test,
+does it make sense to say that another player who made 6 out of 15 field-goals
+performed as well as the best player?
+
+
+### Bootstrap's tests for $2 \times 2$
+
+Alternative testings are possible by means of bootstrap re-sampling from the set
+(population) of all the matrices with the same row and column sums $R_i$ and
+$C_j$. The analyses will be accomplished with function
+[tableBoots](https://rdrr.io/github/genomaths/usefr/man/tableBoots.html) from
+the R packge named [usefr](https://github.com/genomaths/usefr).
+
+Hellinger test statistic has been proposed to compare discrete probability 
+distributions ([1](#1)). Basu et all have shown that the Hellinger divergence,
+as reported in [1](#1), has asymptotically has a chi-square distribution with
+one degree of freedom under the null hypothesis. This a good property that makes
+this statistic Hellinger statistic suitable for bootstrap's test of two discrete
+populations. 
+```{r boot1, message=FALSE}
+library(usefr)
+tableBoots(x = case1, stat = "hd", num.permut = 1999)
+```
+
+
+The Root-Mean-Square statistic has been also proposed to test differences 
+between two discrete probability distributions ([2](#2))
+
+```{r boot2, message=FALSE}
+library(usefr)
+tableBoots(x = case1, stat = "rmst", num.permut = 1999)
+
+```
+
+
+The $\chi^2$ statistic fails
+```{r boot3, message=FALSE}
+library(usefr)
+tableBoots(x = case1, stat = "chisq", num.permut = 1999)
+```
+
+Assuming that expected discrete probability distribution (DPD) are:
+```{r tp}
+p <- case1[1,]/sum(case1[1,])
+p
+```
+
+Then, we can test whether the treatment departs from the expected DPD:
+```{r chisq}
+chisq.test(x= case1[2,], p = p, 
+           simulate.p.value = TRUE, B = 2e3)
+```
+
+
+## The example 1 is not unique
+
+The failure of Fisher's exact test is evident in the comparisons given below:
+```{r exampl2, message=FALSE}
+res <- lapply(seq(1,78,1), function(k) {
+    datos <- matrix(c(5, k+1, 15, k),  nrow = 2,
+                    dimnames = list(Group = c("Ctrl", "Treat"),
+                                    Meth.status = c("mCG", "CG")))
+    datos
+    x <- datos/rowSums(datos)
+    x <- x[2,1] - x[1,1]
+    ft <- fisher.test(datos)
+    hd <- tableBoots(x = datos, stat = "hd", num.permut = 1999)
+    rmst <- tableBoots(x = datos, stat = "rmst", num.permut = 1999)
+    chisq <- tableBoots(x = datos, stat = "chisq", num.permut = 1999)
+
+    
+    chisq.p <- chisq.test(x= datos[2,], p = datos[1,]/sum(datos[1,]), 
+                        simulate.p.value = TRUE, B = 2e3)$p.value
+    
+    c(meth.diff = x, 
+      FT.p.value = ft$p.value,
+      HD.p.value = hd,
+      RMST = rmst,
+      chisq = chisq,
+      chisq.p = chisq.p)
+})
+do.call(rbind, res)
+```
+
+# Extreme situations found in methylation data sets
+
+Unfortunate situations like that one shown below are not rare in methylation data.
+The minimum coverage (total counts) in the example below is 5.
+```{r examp3}
+case2 <- matrix(c(3, 90, 2, 10),  nrow = 2, 
+                     dimnames = list(Group = c("Ctrl", "Treat"),
+                                     Meth.status = c("mCG", "CG")))
+case2
+```
+
+The small numbers of count in the control sample yields a bias estimation of the
+methylation level:
+
+```{r pro2}
+## Proportions
+case2/rowSums(case2)
+```
+
+There is not enough experimental data to ensure that 3/(3+2) = 0.6 is an
+unbiased estimated value of the methylation levels at the given cytosine site.
+Fisher's exact test is insensitive to this experimental fact.
+
+```{r test4}
+fisher.test(case2)
+```
+
+
+```{r boot, message=FALSE}
+set.seed(1)
+st <- tableBoots(x = case2, stat = "hd", num.permut = 1999)
+st
+```
+
+
+
+# References
+1. <a name="1"></a> Basu A, Mandal A, Pardo L. Hypothesis testing for two
+discrete populations based on the Hellinger distance. Stat Probab Lett. Elsevier
+B.V.; 2010;80: 206–214. doi:10.1016/j.spl.2009.10.008.
+2. <a name="2"></a> Perkins W, Tygert M, Ward R. Some deficiencies of χ2 and
+classical exact tests of significance. Appl Comput Harmon Anal. Elsevier Inc.;
+2014;36: 361–386. doi:10.1016/j.acha.2013.06.002
+

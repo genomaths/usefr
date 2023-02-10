@@ -69,7 +69,7 @@ hist(x, 100, freq = FALSE)
 curve(dhnorm(x, theta = theta), col = "red", add = TRUE)
 
 #' # Checking the function outputs for the logarithms of probabilities
-x <- rhalfnorm(n = 10, theta = sigma2theta(2))
+x <- rhnorm(n = 10, theta = sigma2theta(2))
 x1 <- phnorm(x, theta = sigma2theta(2), log = TRUE)
 x2 <- phnorm(x, theta = sigma2theta(2), log = FALSE)
 all(round(x1, 8) == round(log(x2), 8))

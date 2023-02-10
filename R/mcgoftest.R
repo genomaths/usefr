@@ -224,7 +224,9 @@
 #' )
 #'
 #' ## ========= Example 3 ======
-#' ## Define a Weibull 3-parameter distribution function
+#' ## Define a Weibull 3-parameter distribution function.
+#' ## Functions must be defined out of the example section.
+#' \dontrun{
 #' pwdist <- function(x, pars) {
 #'     pweibull(x - pars[1],
 #'         shape = pars[2],
@@ -249,6 +251,7 @@
 #'     sample.size = 199, stat = "chisq", num.cores = 4, breaks = 100,
 #'     seed = 123
 #' )
+#' }
 #'
 #' ## ========= Example 4 ======
 #' ## ----- Testing GoF of a mixture distribution. ----
@@ -389,9 +392,6 @@ setGeneric(
 
 
 setClassUnion("numeric_OR_matrix", c("numeric", "matrix", "data.frame"))
-setOldClass(c("nls"))
-setOldClass("nlsModel")
-setOldClass("nls.lm")
 setOldClass(c("CDFmodel", "CDFmodelList"))
 
 #' @rdname mcgoftest
@@ -434,7 +434,7 @@ setMethod(
         }
 
         ## Remove NA values
-        varobj <- varobj[ !is.na(varobj) ]
+        varobj <- na.omit(varobj)
 
         if (!is.null(min.val)) {
             varobj <- varobj[ which(varobj > min.val) ]
@@ -531,8 +531,9 @@ setMethod(
                 if (inherits(pdistr, "try-error")) {
                     stop(
                         "*** 'distr' must be a character string naming a ",
-                        "distribution function e.g, 'norm' will permit accessing ",
-                        "functions 'pnorm' and 'rnorm', or a numerical vector"
+                        "distribution function e.g, 'norm' will permit ",
+                        "accessing functions 'pnorm' and 'rnorm', or a",
+                        " numerical vector."
                     )
                 }
             }
@@ -739,13 +740,12 @@ setMethod(
     }
 )
 
-setClassUnion("NLM", c("nls", "nlsModel"))
 
 #' @rdname mcgoftest
 #' @aliases mcgoftest
 #' @export
 setMethod(
-    "mcgoftest", signature(model = "NLM"),
+    "mcgoftest", signature(model = "nls"),
     function(
         varobj,
         model,
@@ -781,6 +781,48 @@ setMethod(
         return(res)
     }
 )
+
+#' @rdname mcgoftest
+#' @aliases mcgoftest
+#' @export
+setMethod(
+    "mcgoftest", signature(model = "nlsModel"),
+    function(
+        varobj,
+        model,
+        num.sampl = 999,
+        sample.size = NULL,
+        stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+        min.val = NULL,
+        breaks = NULL,
+        par.names = NULL,
+        seed = 1,
+        num.cores = 1L,
+        tasks = 0L,
+        verbose = TRUE) {
+
+        form <- model$m$formula()
+
+        res <- mcgoftest(
+            varobj = varobj,
+            distr = form[[3L]][[1L]],
+            pars = coef(model),
+            num.sampl = num.sampl,
+            sample.size = sample.size,
+            stat = stat,
+            min.val = min.val,
+            breaks = breaks,
+            par.names = par.names,
+            seed = seed,
+            num.cores = num.cores,
+            tasks = tasks,
+            verbose = verbose
+        )
+
+        return(res)
+    }
+)
+
 
 #' @rdname mcgoftest
 #' @aliases mcgoftest
@@ -992,18 +1034,27 @@ ks_stat <- function(x, distr, pars, par.names) {
 # ================== Auxiliary function to get distribution ================== #
 
 distfn <- function(x, dfn, type = "r", arg, par.names = NULL) {
-    if (!is.null(par.names)) {
-        arg <- as.list(arg)
-        args <- c(list(x), arg)
-        if (type == "r") {
-            names(args) <- c("n", par.names)
-        } else {
-            names(args) <- c("q", par.names)
-        }
-    } else {
-        args <- c(list(x), arg)
+    if (dfn == "dirichlet") {
+        if (type == "r")
+            res <- rdirichlet(n = x, arg)
+        else
+            res <- pdirichlet(q = x, arg)
     }
-    do.call(paste0(type, dfn), args)
+    else {
+        if (!is.null(par.names)) {
+            arg <- as.list(arg)
+            args <- c(list(x), arg)
+            if (type == "r") {
+                names(args) <- c("n", par.names)
+            } else {
+                names(args) <- c("q", par.names)
+            }
+        } else {
+            args <- c(list(x), arg)
+        }
+        res <- do.call(paste0(type, dfn), args)
+    }
+    return(res)
 }
 
 # ==================== Hellinger divergence  statistic ======================= #
@@ -1070,17 +1121,27 @@ stat_fun <- function(a, distr, pars, stat, breaks, par.names) {
 # ------- To iterate the statistic computation
 
 DoIt <- function(r, x, distr, pars, stat, breaks, par.names, szise) {
-    a <- distfn(
-        x = szise, dfn = distr,
-        type = "r", arg = pars,
-        par.names = par.names
-    )
 
-    # to test empirical versus theoretical values
-    stat_fun(
-        a = a, distr = distr, pars = pars, stat = stat,
-        breaks = breaks, par.names = par.names
-    )
+    if (distr == "multinom") {
+        # to test empirical versus theoretical values
+        stat_fun(
+            a = x, distr = distr, pars = pars, stat = stat,
+            breaks = breaks, par.names = par.names
+        )
+    }
+    else {
+        a <- distfn(
+            x = szise, dfn = distr,
+            type = "r", arg = pars,
+            par.names = par.names
+        )
+
+        # to test empirical versus theoretical values
+        stat_fun(
+            a = a, distr = distr, pars = pars, stat = stat,
+            breaks = breaks, par.names = par.names
+        )
+    }
 }
 
 # DoIt(1, distr= distr, pars=pars, stat=stat, breaks=breaks,
@@ -1088,7 +1149,8 @@ DoIt <- function(r, x, distr, pars, stat, breaks, par.names, szise) {
 
 # ======================= GoF test function caller =========================== #
 
-GoFtest <- function(x,
+GoFtest <- function(
+    x,
     R,
     distr,
     szise,
@@ -1121,7 +1183,8 @@ GoFtest <- function(x,
             par.names = par.names,
             BPPARAM = bpparam
         ))
-    } else {
+    }
+    else {
         if (stat != "sw") {
             bstats <- c()
             for (k in seq_len(R)) {

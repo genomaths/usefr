@@ -63,10 +63,10 @@
 #' x1 <- rbeta(n = 1000, shape1 = 2, shape2 = 3)
 #'
 #' ### Parameter estimation with "nlm" function
-#' betaDistEstimation(q = x1, gradtol = 1e-12, hessian = T)
+#' betaDistEstimation(q = x1, gradtol = 1e-12, hessian = TRUE)
 #'
 #' ### Parameter estimation with "optim" function
-#' betaDistEstimation(q = x1, force.optim = T, hessian = T)
+#' betaDistEstimation(q = x1, force.optim = TRUE, hessian = TRUE)
 #'
 betaDistEstimation <- function(q,
     init.pars = c(1, 1),
@@ -121,9 +121,11 @@ betaDistEstimation <- function(q,
             names(fit) <- nms
             fit$opt.fun <- "nlm"
         }
+        else
+            force.optim <- TRUE
     }
 
-    if (inherits(fit, "try-error") || force.optim) {
+    if (force.optim) {
         fit <- try(suppressWarnings(optim(
             par = init.pars,
             fn = min.RSS,
@@ -137,6 +139,7 @@ betaDistEstimation <- function(q,
         )),
         silent = TRUE
         )
+
         if (!inherits(fit, "try-error")) {
             names(fit) <- c(
                 "estimate", "value", "counts",

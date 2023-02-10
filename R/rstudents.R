@@ -66,6 +66,8 @@ setGeneric(
     }
 )
 
+setClassUnion("missingORNULL", c("missing", "NULL"))
+
 #' @rdname rstudents
 #' @aliases rstudents
 #' @export

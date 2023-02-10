@@ -1,0 +1,237 @@
+---
+title: "Get started-with 'usefr'"
+author:
+    - name: Robersy Sanchez
+affiliation: Department of Biology.
+Pennsylvania State University, University Park, PA 16802
+email: rus547@psu.edu
+date: "`r format(Sys.time(), '%d %B %Y')`"
+fontsize: 11pt
+fontfamily: "serif"
+output:
+    html_document:
+    keep_md: yes
+toc: true
+toc_depth: 4
+toc_float:
+    collapsed: false
+smooth_scroll: true
+number_sections: true
+theme: united
+geometry: margin=0.8in
+highlight: tango
+toc_float: true
+toc_depth: 4
+abstract: |
+    Package 'usefr' is collection of functions for statistical analysis of
+    nonlinear trends and corresponding goodness-of-fit test. Herein, a fast
+    starting introduction is provided.
+vignette: >
+  %\VignetteIndexEntry{"Get started-with 'usefr'"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Install and loading the R packages needed for the computation
+
+*Install R dependencies:*      
+```{r install1, eval=FALSE}
+    if (!requireNamespace("BiocManager")) install.packages("BiocManager")
+    BiocManager::install()
+    
+    BiocManager::install(c("BiocParallel","minpack.lm", "numDeriv", "copula", 
+                            "mclust", "nls2", "cubature", "mixdist"), 
+                        dependencies=TRUE)
+```
+
+*Install 'userfr':*       
+```{r install2, eval=FALSE}
+BiocManager::install("genomaths/usefr")
+```
+
+Load the libraries needed:
+```{r lib, warning=FALSE, message=FALSE}
+library(usefr)
+library(ggplot2)
+library(gridExtra)
+```
+
+
+# Nonlinear fit of a commutative distribution functions
+
+Usually the parameter estimation of a cumulative distribution
+function (*CDF*) are accomplished using the corresponding probability density
+function (*PDF*). Different optimization algorithms can be used to
+accomplished this task and different algorithms can yield different estimated
+parameters. However, the *CDF* is required to accomplish any useful prediction 
+of the probability of an event described by *PDF*. Hence, to bypass the 
+intermediate numerical error, why not try to fit the CDF directly?
+
+Let us simulate random samples from a specified Normal and Weibull
+distributions. To make reproducible this example, we set a seed.
+```{r sim1}
+set.seed(1)
+## Parameters
+mean = 1.5
+sd = 2
+shape = 3.1
+scale = 4
+mu = 5
+
+## Simulating samples
+x1 = rnorm(10000, mean = mean, sd = sd)
+x2 = rweibull3p(10000, shape = shape, scale = scale, mu = mu)
+dt <- data.frame(x1 = x1, x2 = x2)
+dt[1:10,]
+```
+
+## The histograms and density plots of the given Normal and Weibull distributions
+
+```{r hist, fig.width=13, fig.height=6}
+p1 <- ggplot(data = dt, aes(x1)) + 
+  geom_histogram(data = dt, aes(y=after_stat(density)), binwidth = 1, 
+                 colour = "black", fill = "skyblue", na.rm=TRUE) +
+  stat_function(fun = dnorm, n = 101, col = "red",
+                args = list(mean = mean, sd = sd), linewidth = 1) +
+  theme_gray(base_family = "serif", base_size = 14) +
+  annotate(geom = "text", x = 7, y = 0.16, size = 6,
+           label = 'bolditalic(N(1.5,2))',
+           family = "serif", color = "blue", parse = TRUE)  
+
+p2 <- ggplot(data = dt, aes(x2)) + 
+  geom_histogram(data = dt, aes(y=after_stat(density)), binwidth = 1, 
+                 colour = "black", fill = "skyblue", na.rm=TRUE) + 
+  #xlim(0,20) + ylim(0,0.23) +
+  stat_function(fun = dweibull3p, n = 101, col = "red",
+                args = list(shape = shape, scale = scale, mu = mu), 
+                linewidth = 1) +
+  theme_gray(base_family = "serif", base_size = 14) +
+  annotate(geom = "text", x = 12, y = 0.23, size = 6,
+           label = 'bolditalic(W(3.1, 4, 5))',
+           family = "serif", color = "blue", parse = TRUE)
+grid.arrange(p1, p2, nrow = 1)
+```
+
+Notice that the above drawn densities are, in fact, empirical density 
+estimations, based on in algorithmic kernel density estimation approaches. 
+A typical situation found with experimental data sets is that frequently
+we assume that sample is taken from a population that follows normal 
+distribution when in fact the population follows a Weibull distribution. 
+Indeed, a sample of a variable following Weibull distribution can fit normal
+distribution model.
+
+## Nonlinear fit to the Gaussian model
+After the application of function fitCDF, results suggest that variable *x1*, 
+sampled from a population following normal distribution, fits the normal 
+distribution model:
+```{r fit, warning=FALSE}
+cdfp <- fitCDF(dt$x1,
+    distNames = c("Normal", "Weibull"), xlabel = "My Nice Variable Label",
+    plot = T, font.lab = 3, font = 2, font.axis = 2, family = "serif",
+    cex.lab = 1.3, cex.axis = 1.3
+)
+```
+
+
+The residual sum-of-squares is lower for the normal distribution model:
+```{r sq}
+cdfp$fit
+```
+
+
+### The Monte Carlo GOF test
+
+The application of a Monte Carlo GOF test, accomplished with function 
+mcgoftest, support the results of the previous nonlinear regression model:
+```{r gof}
+mcgoftest(varobj = dt$x1, distr = "norm", pars = c(1.5, 2), num.sampl = 500,
+          sample.size = 1000, num.cores = 1)
+```
+
+```{r gof}
+mcgoftest(varobj = dt$x1, distr = "weibull", pars = c(1.5, 2), num.sampl = 500,
+          sample.size = 1000, num.cores = 1)
+```
+
+## Nonlinear fit to the Weibull model
+
+```{r fit, warning=FALSE, fig.height=8}
+cdfp <- fitCDF(dt$x2,
+    distNames = c("Weibull", "3P Weibull", "Normal"),
+    xlabel = "My Nice Variable Label",
+    plot = TRUE, plot.num = 2, font.lab = 3, font = 2, 
+    font.axis = 2, family = "serif", cex.text = 1.2,
+    cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4
+)
+```
+
+The residual sum-of-squares is lower for the 3-parameter Weibull distribution
+model. However, the normal distribution model is also plausible:
+```{r sq}
+cdfp$fit
+```
+
+The Akaike information criteria suggest that the Weibull probability model is 
+the best fitted model, which is confirmed (by a narrow margin) and by the 
+cross-validation correlation coefficient R (R.Cross.val).
+```{r}
+data.frame(
+    Weibull3P = cdf_crossval(
+    model = cdfp$bestfit,  q = dt$x2),
+    'AIC-Weibull3P' = cdfp$aic$AIC[1],
+    Normal = cdf_crossval(
+    model = cdfp$fit$Normal,  q = dt$x2),
+    'AIC-Normal' = cdfp$aic$AIC[2],
+    row.names = NULL
+)
+```
+
+# The Monte Carlo GOF test
+The Monte Carlo GOF test is accomplished with function mcgoftest.
+
+Let's take the parameter values for the normal distribution model of variable
+*x2*, which was sample from a population following a Weibull distribution.
+```{r norm}
+summary(cdfp$fit$Normal)
+```
+
+
+The application of a Monte Carlo GOF test, accomplished with function 
+mcgoftest, support the modeling of variable *x2* with a normal distribution
+model:
+```{r gof}
+mcgoftest(varobj = dt$x2, distr = "norm", pars = c(8.6, 1.3), num.sampl = 500,
+          sample.size = 1000, num.cores = 1)
+```
+
+Both GOF, the Monte Carlo and classical Kolmogorov-Smirnov (KS), did not rejected 
+normal distribution model. In fact, the KS statistics are quite close.
+
+```{r gof1}
+mcgoftest(varobj = dt$x2, distr = "weibull3p", 
+          pars = c(shape = shape, scale = scale, mu = mu), 
+          num.sampl = 500, sample.size = 1000, num.cores = 1)
+```
+
+
+The Anderson–Darling statistic reject the normal distribution model of variable
+*x2*
+
+```{r gof2}
+mcgoftest(varobj = dt$x2, distr = "norm", pars = c(8.6, 1.3), 
+          num.sampl = 500, stat = "ad",
+          sample.size = 1000, num.cores = 1)
+```
+
+
+```{r gof3}
+mcgoftest(varobj = dt$x2, distr = "weibull3p", stat = "ad",
+          pars = c(shape = shape, scale = scale, mu = mu), 
+          num.sampl = 500, sample.size = 1000, num.cores = 1)
+```
+
+
+Users can read the available tutorials see applications, e.g., on mixture
+distribution models.
+
+

@@ -52,13 +52,17 @@
 #' @seealso \code{\link{betaDistEstimation}} and \code{\link{betaBinPost}}
 #' @export
 #' @examples
+#' ## This example requires for 'DirichletReg' package to installed.
+#' \dontrun{
 #' library(DirichletReg)
-#'
-#' ## A random generation numerical vectors with
+#' #' ## A random generation numerical vectors with
 #' x <- rdirichlet(n = 1000, alpha = c(2.1, 3.1, 1.2))
 #' head(x)
 #'
 #' estimateDirichDist(x)
+#' }
+#'
+
 #'
 estimateDirichDist <- function(x,
     start = NULL,

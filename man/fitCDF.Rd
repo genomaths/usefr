@@ -4,7 +4,7 @@
 \alias{fitCDF}
 \alias{fitCDF,numeric-method}
 \alias{fitCDF,list_OR_matrix_OR_dataframe-method}
-\title{Nonlinear fit of a commulative distribution function}
+\title{Nonlinear fit of a commutative distribution function}
 \usage{
 fitCDF(varobj, ...)
 

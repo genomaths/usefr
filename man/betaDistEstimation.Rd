@@ -65,10 +65,10 @@ If \code{\link[stats]{nlm}} function fails, then an estimation using
 x1 <- rbeta(n = 1000, shape1 = 2, shape2 = 3)
 
 ### Parameter estimation with "nlm" function
-betaDistEstimation(q = x1, gradtol = 1e-12, hessian = T)
+betaDistEstimation(q = x1, gradtol = 1e-12, hessian = TRUE)
 
 ### Parameter estimation with "optim" function
-betaDistEstimation(q = x1, force.optim = T, hessian = T)
+betaDistEstimation(q = x1, force.optim = TRUE, hessian = TRUE)
 
 }
 \seealso{

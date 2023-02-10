@@ -1,0 +1,100 @@
+<style type="text/css">
+
+    .watch-out {
+        max-width: 1820px !important;
+        margin-left: auto;
+        margin-right: auto;
+        background-color: white;
+        font-weight: bold
+        font-size: 18px;
+        padding: 2px;
+    }
+
+
+.main-container {
+    max-width: 1820px !important;
+    width: 1820px !important;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+body{ /* Normal  */
+        max-width: 1820px !important;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 18px;
+    font-family: "Times New Roman", Times, serif;
+    text-align: justify
+}
+
+pre, code {
+    max-width: 1820px !important;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: white;
+    font-weight: bold
+    font-size: 18px;
+    padding: 2px;
+}
+
+pre code {
+    overflow: auto;
+    word-wrap: normal;
+    white-space: pre;
+}
+
+code a, pre a {
+    color: black;
+    font-weight: bold
+}
+
+code.r{
+    font-size: 18px;
+}
+
+div.tocify {
+    width: 40%;
+    max-width: 300px;
+    max-height: 85%;
+}
+
+.tocify-subheader .tocify-item {
+    /* font-size: 0.80em; */
+        padding-left: 25px;
+    text-indent: 0;
+}
+
+.tocify-header .tocify-item {
+    /* font-size: 0.85em; */
+        padding-left: 20px;
+    text-indent: 0;
+}
+
+h1.title {
+    /* font-size: 38px; */
+        font-family: "Times New Roman", Times, serif;
+    color: DarkBlue;
+    .subTitle {
+        /* font-size: 24px; */
+            font-family: "Times New Roman", Times, serif;
+        color: DarkBlue;
+    }
+}
+
+h1 { /* Header 1 */
+        /* font-size: 28px; */
+        font-family: "Times New Roman", Times, serif;
+    color: DarkBlue;
+}
+h2 { /* Header 2 */
+        /* font-size: 22px; */
+        color: DarkBlue;
+    font-family: "Times New Roman", Times, serif;
+}
+h3 { /* Header 3 */
+        /* font-size: 18px; */
+        color: DarkBlue;
+    font-family: "Times New Roman", Times, serif;
+}
+
+</style>

@@ -43,12 +43,12 @@ nlm <- nls(Y ~ a * exp(b * X),
 )
 ## The estimations of Akaike information criteria given by BIC' function
 ## from stats' R package and from 'AICmodel' function are equals.
-BICmodel(nlm) == BIC(nlm)
+round(BICmodel(nlm), 3) == round(BIC(nlm), 3)
 
 ## Now, using residuals from the fitted model:
 res <- y - coef(nlm)[1] * exp(coef(nlm)[2] * x)
 
-BICmodel(residuals = res, np = 2) == BIC(nlm)
+round(BICmodel(residuals = res, np = 2), 3) == round(BIC(nlm), 3)
 
 }
 \seealso{

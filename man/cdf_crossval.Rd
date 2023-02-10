@@ -97,6 +97,17 @@ model selection, specifically, the cross-validation correlation coefficient R
 The cross-validation correlation coefficient R (R.Cross.val) is
 an estimator of the average cross-validation predictive power (1).
 }
+\examples{
+## Let's simulate a sample from normal distribution
+x1 = rnorm(10000, mean = 1.5, sd = 2) + runif(10^4)
+
+## Let's build a model
+cdfp <- fitCDF(x1, distNames = "Normal", plot = F)
+
+## Next, we get an estimation of the cross-validation correlation
+## coefficient R (R.Cross.val)
+cdf_crossval(model = cdfp$bestfit, q = x1)
+}
 \references{
 \enumerate{
     \item Stevens JP. Applied Multivariate Statistics for the Social

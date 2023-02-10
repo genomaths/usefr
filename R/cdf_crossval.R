@@ -58,6 +58,16 @@
 #'           Sciences. Fifth Edit. Routledge Academic; 2009.
 #'  }
 #' @aliases cdf_crossval
+#' @examples
+#' ## Let's simulate a sample from normal distribution
+#' x1 = rnorm(10000, mean = 1.5, sd = 2) + runif(10^4)
+#'
+#' ## Let's build a model
+#' cdfp <- fitCDF(x1, distNames = "Normal", plot = F)
+#'
+#' ## Next, we get an estimation of the cross-validation correlation
+#' ## coefficient R (R.Cross.val)
+#' cdf_crossval(model = cdfp$bestfit, q = x1)
 setGeneric(
     "cdf_crossval",
     def = function(model,
@@ -66,10 +76,7 @@ setGeneric(
     }
 )
 
-setOldClass(c(
-    "nls", "CDFmodel", "nls.lm",
-    "CDFmodelList", "nlsModel"
-))
+setOldClass(c("CDFmodel", "CDFmodelList"))
 setClassUnion("missingORNULL", c("missing", "NULL"))
 
 #' @rdname cdf_crossval

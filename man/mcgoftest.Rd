@@ -5,7 +5,8 @@
 \alias{mcgoftest,numeric_OR_matrix,missing-method}
 \alias{mcgoftest,numeric,CDFmodel-method}
 \alias{mcgoftest,numeric_OR_matrix,CDFmodelList-method}
-\alias{mcgoftest,ANY,NLM-method}
+\alias{mcgoftest,ANY,nls-method}
+\alias{mcgoftest,ANY,nlsModel-method}
 \alias{mcgoftest,ANY,nls.lm-method}
 \title{Bootstrap test for Goodness of fit (GoF)}
 \usage{
@@ -58,7 +59,22 @@ mcgoftest(varobj, model, ...)
   verbose = TRUE
 )
 
-\S4method{mcgoftest}{ANY,NLM}(
+\S4method{mcgoftest}{ANY,nls}(
+  varobj,
+  model,
+  num.sampl = 999,
+  sample.size = NULL,
+  stat = c("ks", "ad", "sw", "rmse", "chisq", "hd"),
+  min.val = NULL,
+  breaks = NULL,
+  par.names = NULL,
+  seed = 1,
+  num.cores = 1L,
+  tasks = 0L,
+  verbose = TRUE
+)
+
+\S4method{mcgoftest}{ANY,nlsModel}(
   varobj,
   model,
   num.sampl = 999,
@@ -281,7 +297,9 @@ mcgoftest(x,
 )
 
 ## ========= Example 3 ======
-## Define a Weibull 3-parameter distribution function
+## Define a Weibull 3-parameter distribution function.
+## Functions must be defined out of the example section.
+\dontrun{
 pwdist <- function(x, pars) {
     pweibull(x - pars[1],
         shape = pars[2],
@@ -306,6 +324,7 @@ mcgoftest(
     sample.size = 199, stat = "chisq", num.cores = 4, breaks = 100,
     seed = 123
 )
+}
 
 ## ========= Example 4 ======
 ## ----- Testing GoF of a mixture distribution. ----
