@@ -2,12 +2,19 @@ Package: usefr
 Type: Package
 Title: Utility Functions for Statistical Analyses 
 Version: 0.1.1
-Author: Robersy Sanchez
-Authors@genomaths: c(person("Robersy", "Sanchez", email = "robersy@gmail.com",
-                  role = c("aut", "cre", "cph"))
-Maintainer: Robersy Sanchez <robersy@gmail.com>
-Description: It provides some useful functions frequently needed in the 
-   downstream statistical analyses.
+Authors@R: 
+    person( given = "Robersy",
+            family = "Sanchez",
+            role = c("aut", "cre"),
+            email = "genomicmath@gmail.com",
+            comment = c(ORCID = "0000-0002-5246-1453"))
+URL: https://github.com/genomaths/usefr
+BugReports: https://github.com/genomaths/usefr/issues
+Description: This is an utility package where some useful functions frequently
+             needed to identify the best fitted probability distribution model
+             for a given data set are provided.
+Depends: 
+    R (>= 4.2)  
 License: file LICENSE
 Encoding: UTF-8
 LazyData: true

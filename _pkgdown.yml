@@ -1,5 +1,98 @@
-destination: /Data/usefr/
-url: https://genomaths.github.io/usefr/
-template:
-  bootstrap: 5
+destination: /data1/R_functions/usefr
 
+url: https://genomaths.github.io/usefr/
+
+navbar:
+  structure:
+    left:
+    - home
+    - intro
+    - reference
+    - articles
+    - tutorials
+    - news
+  components:
+    home:
+      icon: "fas fa-home fa-lg"
+      href: index.html
+    reference:
+      text: Package functions
+      href: reference/index.html
+    intro:
+      text: Get started
+      href: articles/usefr.html
+    articles:
+      text: Articles
+      href: articles/index.html
+      menu:
+      - text: "usefr"
+        href: articles/usefr.html
+      - text: ------
+      - text: "Fisher's exact test failure can lead to biased results"
+        href: articles/fisher-exact-test-failure-can-lead-to-biassed-results.html
+    news:
+      text: News
+      href: news/index.html
+    twitter:
+      icon: "fab fa-twitter fa-lg"
+      href: http://twitter.com/robersysr
+
+navbar-links:
+    href: https://github.com/genomaths/usefr
+
+home:
+  links:
+  - text: Author's website
+    href: https://genomaths.com
+  - text: Affiliation (<img src="https://git.psu.edu/genomath/MethylIT_data/raw/master/penn-state-lion.png" height="24" /> PennState)
+    href: https://bio.psu.edu/directory/rus547
+
+development:
+  mode: auto
+
+reference:
+- title: Probability Distribution Estimation Functions
+  desc: ~
+  contents:
+  - '`fitCDF`'
+  - '`fitMixDist`'
+  - '`betaDistEstimation`'
+  - '`estimateDirichDist`'
+  - '`mixtdistr`'
+  - '`betaDistEstimation`'
+  - '`tableBoots`'
+
+- title: Goddness-of-fit
+  contents:
+  - '`AICmodel`'
+  - '`BICmodel`'
+  - '`bicopulaGOF`'
+  - '`mcgoftest`'
+  - '`cdf_crossval`'
+  - '`nlmR`'
+
+- title: Probability Distributions
+  contents:
+  - '`dirichlet`'
+  - '`gamma3p`'
+  - '`ggamma`'
+  - '`hnorm`'
+  - '`weibull3p`'
+
+- title: Auxiliary functions
+  contents:
+  - '`betaBinPost`'
+  - '`coefs`'
+  - '`hyp_matrix`'
+  - '`MANOVA`'
+  - '`mutualinf`'
+  - '`ppCplot`'
+  - '`rstudents`'
+  - '`unlist`'
+
+articles:
+- title: Vignettes
+  desc: ~
+  contents:
+  - '`usefr`'
+  - '`fisher-exact-test-failure-can-lead-to-biassed-results`'
