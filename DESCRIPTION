@@ -32,3 +32,4 @@ Imports:
 VignetteBuilder: knitr
 LinkingTo: 
     Rcpp
+    rlang
