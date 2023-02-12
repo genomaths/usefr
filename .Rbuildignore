@@ -6,3 +6,6 @@ README.Rmd
 ^\.gitignore$
 ^\.Rproj.user$
 ^\.git$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

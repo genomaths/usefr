@@ -1,0 +1,6 @@
+destination: /Data/usefr/
+
+url: https://genomaths.github.io/usefr/
+template:
+  bootstrap: 5
+

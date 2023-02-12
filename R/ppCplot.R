@@ -115,7 +115,7 @@
 #'
 #' @examples
 #' set.seed(12)
-#' margins <- c("norm", "norm")
+#' margins <- c("lnorm", "norm")
 #' ## Random variates from normal distributions
 #' X <- rlnorm(200, meanlog = -0.5, sdlog = 3.1)
 #' Y <- rnorm(200, mean = 0, sd = 6)
@@ -171,7 +171,8 @@ ppCplot <- function(X, Y, copula = NULL, margins = NULL, paramMargins = NULL,
 
         V <- pobs(U, ties.method = ties.method)
         fit <- fitCopula(copula, V, method = method)
-        copula <- mvdc(fit@copula, margins = margins, paramMargins = paramMargins)
+        copula <- mvdc(fit@copula, margins = margins,
+                    paramMargins = paramMargins)
     } else {
         if (class(copula) != "mvdc") {
             stop("*** 'copula' argument must be an object from 'mvdc' class")

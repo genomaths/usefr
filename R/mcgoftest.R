@@ -291,7 +291,7 @@
 #'
 #' ## ========= Example 6 ======
 #' ## GoF for Dirichlet Distribution (these examples can be run,
-#' ## the 'not-run' is only to prevent time consuming in R checking)
+#' ## the 'do not-run' is only to prevent time consuming in R checking)
 #' \dontrun{
 #' set.seed(1)
 #' alpha <- c(2.1, 3.2, 3.3)

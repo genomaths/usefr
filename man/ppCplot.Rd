@@ -181,7 +181,7 @@ Empirical and theoretical probabilities are estimated using the
 }
 \examples{
 set.seed(12)
-margins <- c("norm", "norm")
+margins <- c("lnorm", "norm")
 ## Random variates from normal distributions
 X <- rlnorm(200, meanlog = -0.5, sdlog = 3.1)
 Y <- rnorm(200, mean = 0, sd = 6)

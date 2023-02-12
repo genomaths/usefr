@@ -1,10 +1,10 @@
 ---
 title: "Get started-with 'usefr'"
-author:
+author: 
     - name: Robersy Sanchez
-affiliation: Department of Biology.
-Pennsylvania State University, University Park, PA 16802
-email: rus547@psu.edu
+      affiliation: Department of Biology.
+                   Pennsylvania State University, University Park, PA 16802
+      email: rus547@psu.edu
 date: "`r format(Sys.time(), '%d %B %Y')`"
 fontsize: 11pt
 fontfamily: "serif"
@@ -20,8 +20,6 @@ number_sections: true
 theme: united
 geometry: margin=0.8in
 highlight: tango
-toc_float: true
-toc_depth: 4
 abstract: |
     Package 'usefr' is collection of functions for statistical analysis of
     nonlinear trends and corresponding goodness-of-fit test. Herein, a fast
