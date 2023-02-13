@@ -23,9 +23,10 @@ highlight: tango
 abstract: |
     Frequently, experimental data sets are forcely modeled by specific 
     probability distribution functions, when in fact they would be better 
-    modelled by mixture of probability distributions. But, how to do it? 
-    Where are the available tools? The _usefr_ R package provides some usefull
-    tools to help the identification of the best mixture distribution model.
+    modelled by a mixture of probability distributions. But, how to do it? 
+    Where are the available tools? The _usefr_ R package provides some useful
+    tools to help the identification of the best mixture distribution model
+    fitting a given data set.
 vignette: >
   %\VignetteIndexEntry{Fisher's exact test failure can lead to biased results}
   %\VignetteEngine{knitr::rmarkdown}
@@ -370,11 +371,11 @@ mixture model, which for case of the generalized gamma model
 
 
 To identify the best fitted probability distribution model for an experimental
-data set would be a laborious task. Usually, researcher move forward with the
-first single CDF model that is supported by the Goodness-of-Fit tests. However,
-digging deep in the structure of the experimental data, it would turn out that
-the data would come from a stratified population, better modelled by mixture of
-probability distribution functions.
+data set can be a laborious task. Usually, researchers move forward with the
+first single CDF model that is supported by a Goodness-of-Fit tests. However,
+after digging deep in the structure of the experimental data, it can turn out
+that the data would come from a stratified population, better modelled by a
+mixture of probability distributions.
 
 
 # Session info {.unnumbered}

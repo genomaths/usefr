@@ -25,7 +25,7 @@ toc_depth: 4
 abstract: |
     Fisher's exact test is a statistical significance test used in the analysis
     of contingency tables. Although this test is routinely used even though,
-    it has been full of with controversy for over 80 years.Herein, the case of 
+    it has been full of controversy for over 80 years. Herein, the case of 
     its application analyzed is scrutinized with specific examples.
 vignette: >
   %\VignetteIndexEntry{Fisher's exact test failure can lead to biased results}
@@ -102,36 +102,35 @@ fisher.test(case1, alternative = "less")
 
 To realize how difficult would be the interpretation of this result in a real
 concrete scenario, let's consider a basketball team where a top player finished
-a game scoring 14 field-goal out of 26 shooting. Base on Fisher's exact test,
+a game scoring 14 field-goal out of 26 shooting. Based on Fisher's exact test,
 does it make sense to say that another player who made 6 out of 15 field-goals
 performed as well as the best player?
 
 
-### Bootstrap's tests for $2 \times 2$
+## Bootstrap's tests for $2 \times 2$
 
-Alternative testings are possible by means of bootstrap re-sampling from the set
-(population) of all the matrices with the same row and column sums $R_i$ and
-$C_j$. The analyses will be accomplished with function
-[tableBoots](https://rdrr.io/github/genomaths/usefr/man/tableBoots.html) from
-the R packge named [usefr](https://github.com/genomaths/usefr).
+Alternative testings are possible by means of bootstrap re-sampling from the
+set (population) of all the matrices with the same row and column sums $R_i$
+and $C_j$. The analyses will be accomplished with function
+[tableBoots](https://genomaths.github.io/usefr/reference/tableBoots.html) from
+the R packge named [usefr](https://genomaths.github.io/usefr/index.html).
 
-Hellinger test statistic has been proposed to compare discrete probability 
+Hellinger test statistic has been proposed to compare discrete probability
 distributions ([1](#1)). Basu et all have shown that the Hellinger divergence,
 as reported in [1](#1), has asymptotically has a chi-square distribution with
-one degree of freedom under the null hypothesis. This a good property that makes
-this statistic Hellinger statistic suitable for bootstrap's test of two discrete
-populations. 
+one degree of freedom under the null hypothesis. This a good property that
+makes the statistic Hellinger-Chi-squared statistic suitable for bootstrap's
+test of two discrete populations.
 ```{r boot1, message=FALSE}
 library(usefr)
 tableBoots(x = case1, stat = "hd", num.permut = 1999)
 ```
 
 
-The Root-Mean-Square statistic has been also proposed to test differences 
-between two discrete probability distributions ([2](#2))
+The Root-Mean-Square statistic (RMST) has been also proposed to test
+differences between two discrete probability distributions ([2](#2))
 
 ```{r boot2, message=FALSE}
-library(usefr)
 tableBoots(x = case1, stat = "rmst", num.permut = 1999)
 
 ```
@@ -139,7 +138,6 @@ tableBoots(x = case1, stat = "rmst", num.permut = 1999)
 
 The $\chi^2$ statistic fails
 ```{r boot3, message=FALSE}
-library(usefr)
 tableBoots(x = case1, stat = "chisq", num.permut = 1999)
 ```
 
@@ -177,47 +175,13 @@ res <- lapply(seq(1,78,1), function(k) {
                         simulate.p.value = TRUE, B = 2e3)$p.value
     
     c(meth.diff = x, 
-      FT.p.value = ft$p.value,
-      HD.p.value = hd,
-      RMST = rmst,
-      chisq = chisq,
-      chisq.p = chisq.p)
+      FT.pvalue = ft$p.value,
+      HD.pvalue = hd,
+      RMST.pvalue = rmst,
+      chisq.pvalue = chisq,
+      chisq_test.pvalue = chisq.p)
 })
 do.call(rbind, res)
-```
-
-# Extreme situations found in methylation data sets
-
-Unfortunate situations like that one shown below are not rare in methylation data.
-The minimum coverage (total counts) in the example below is 5.
-```{r examp3}
-case2 <- matrix(c(3, 90, 2, 10),  nrow = 2, 
-                     dimnames = list(Group = c("Ctrl", "Treat"),
-                                     Meth.status = c("mCG", "CG")))
-case2
-```
-
-The small numbers of count in the control sample yields a bias estimation of the
-methylation level:
-
-```{r pro2}
-## Proportions
-case2/rowSums(case2)
-```
-
-There is not enough experimental data to ensure that 3/(3+2) = 0.6 is an
-unbiased estimated value of the methylation levels at the given cytosine site.
-Fisher's exact test is insensitive to this experimental fact.
-
-```{r test4}
-fisher.test(case2)
-```
-
-
-```{r boot, message=FALSE}
-set.seed(1)
-st <- tableBoots(x = case2, stat = "hd", num.permut = 1999)
-st
 ```
 
 
