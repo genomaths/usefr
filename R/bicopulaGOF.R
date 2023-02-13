@@ -128,7 +128,8 @@
 #' bicopulaGOF(
 #'     x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
 #'     margins = margins, paramMargins = parMargins, nboots = 99,
-#'     Rosenblatt = FALSE, approach = "adgamma", num.cores = 1L
+#'     Rosenblatt = FALSE, approach = "adgamma", num.cores = 1L,
+#'     verbose = FALSE
 #' )
 #'
 #' ## --- Non-parallel expensive computation ---- -
