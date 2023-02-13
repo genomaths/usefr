@@ -37,6 +37,7 @@ navbar:
     news:
       text: News
       href: news/index.html
+
     twitter:
       icon: "fab fa-twitter fa-lg"
       href: http://twitter.com/robersysr
