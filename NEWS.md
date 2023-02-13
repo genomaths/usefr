@@ -1,4 +1,6 @@
-# USEF-R 0.1.1
+# USEF-R (development version)
+
+# usefr 0.1.1
 * Current version
 * Actively used in supporting statistical analysis
 * In development:
