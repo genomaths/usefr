@@ -63,7 +63,11 @@ function (*PDF*). Different optimization algorithms can be used to
 accomplished this task and different algorithms can yield different estimated
 parameters. However, the *CDF* is required to accomplish any useful prediction 
 of the probability of an event described by *PDF*. Hence, to bypass the 
-intermediate numerical error, why not try to fit the CDF directly?
+intermediate numerical errors, why not try to directly fit the CDF? After all,
+our interest is on concrete probability estimations for experimentally observed
+events and, additionally, the ultimate goodness-of-fit test 
+(like Kolmogorov-Smirnov test) are not based on the PDF but on CDF.
+
 
 Let us simulate random samples from a specified Normal and Weibull
 distributions. To make reproducible this example, we set a seed.
@@ -232,4 +236,14 @@ mcgoftest(varobj = dt$x2, distr = "weibull3p", stat = "ad",
 Users can read the available tutorials see applications, e.g., on mixture
 distribution models.
 
+
+# Session info {.unnumbered}
+
+Here is the output of `sessionInfo()` on the system on which this document was
+compiled running pandoc `r rmarkdown::pandoc_version()`:
+
+
+```{r sessionInfo, echo=FALSE}
+sessionInfo()
+```
 

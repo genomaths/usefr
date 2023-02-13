@@ -37,9 +37,9 @@ vignette: >
 
 
 The statistical significance of the difference between two bisulfite sequence
-from control and treatment groups at each CG site can be evaluated with Fisher's
-exact test. This is a statistical test used to determine if there are nonrandom
-associations between two categorical variables.
+from control and treatment groups at each CG site can be evaluated with
+Fisher's exact test. This is a statistical test used to determine if there are
+nonrandom associations between two categorical variables.
 
 Let there exist two such (categorical) variables $X$ and $Y$, where $X$ stands
 for two groups of individuals: control and treatment, and $Y$ be a two states

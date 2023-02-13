@@ -1,12 +1,12 @@
-## Copyright (C) 2019 Robersy Sanchez <https://genomaths.com/>
+## Copyright (C) 2019-23 Robersy Sanchez <https://genomaths.com/>
 ## Author: Robersy Sanchez
 ##
 ## This program is part 'usefr' R package.
 ##
-## This program is free software; you can redistribute it and/or modify it under
-## the terms of the GNU General Public License as published by the Free Software
-## Foundation; either version 3 of the License, or (at your option) any later
-## version.
+## This program is free software; you can redistribute it and/or modify it
+## under the terms of the GNU General Public License as published by the Free
+## Software Foundation; either version 3 of the License, or (at your option)
+## any later version.
 ##
 ## 'usefr' is free software: you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -14,9 +14,9 @@
 ## (at your option) any later version.
 ##
 ## This program is distributed in the hope that it will be useful, but WITHOUT
-## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-## FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
-## details.
+## ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+## FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+## more details.
 ##
 ## You should have received a copy of the GNU General Public License along with
 ## this program; if not, see <http://www.gnu.org/licenses/>.
@@ -25,11 +25,12 @@
 #' @aliases estimateDirichDist
 #' @title Nonlinear Parameter Estimation for Dirichlet Distribution \eqn{}
 #' @description The parameter estimation is accomplished using a count data
-#' matrix. The estimation is based on the fact that if a variable \eqn{x = (x_1,
-#' x_2, ...x_n)} follows Dirichlet Distribution with parameters \eqn{\alpha =
-#' \alpha_1, ... , \alpha_n} (all positive reals), in short, \eqn{x ~
-#' Dir(\alpha)}, then \eqn{x_i ~ Beta(\alpha_i, \alpha_0 - \alpha_i)}, where
-#' Beta(.) stands for the Beta distribution and \eqn{\alpha_0 = \sum \alpha_i}.
+#' matrix. The estimation is based on the fact that if a variable
+#' \eqn{x = (x_1, x_2, ...x_n)} follows Dirichlet Distribution with parameters
+#' \eqn{\alpha = \alpha_1, ... , \alpha_n} (all positive reals), in short,
+#' \eqn{x ~ Dir(\alpha)}, then \eqn{x_i ~ Beta(\alpha_i, \alpha_0 - \alpha_i)},
+#' where Beta(.) stands for the Beta distribution and
+#' \eqn{\alpha_0 = \sum \alpha_i}.
 #'
 #' Dirichlet distribution is a family of continuous multivariate probability
 #' distributions, a multivariate generalization of the Beta distribution.
@@ -37,13 +38,13 @@
 #' @details As any non-linear fitting, results strongly depends on the start
 #' parameter values.
 #' @param x A matrix or a data.frame object carrying count data.
-#' @param start Initial parameter values for \eqn{\lapha =
+#' @param start Initial parameter values for \eqn{\alpha =
 #' \alpha_1, ... , \alpha_n} (all positive reals). Defaults is NULL.
 #' @param num.cores,tasks Parameters for parallel computation using
-#'     \code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to
-#'     use, i.e. at most how many child processes will be run simultaneously
-#'     (see \code{\link[BiocParallel]{bplapply}} and the number of tasks per job
-#'     (only for Linux OS).
+#' \code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to
+#' use, i.e. at most how many child processes will be run simultaneously (see
+#' \code{\link[BiocParallel]{bplapply}} and the number of tasks per job (only
+#' for Linux OS).
 #' @param verbose if TRUE, prints the function log to stdout and a progress bar
 #' @param ... Further arguments for \code{\link{betaDistEstimation}} function.
 #' @importFrom BiocParallel MulticoreParam SnowParam bplapply
@@ -66,7 +67,8 @@ estimateDirichDist <- function(x,
     refit = TRUE,
     verbose = TRUE,
     ...) {
-    if (!((is.vector(x) && is.numeric(x)) || is.matrix(x) || is.data.frame(x))) {
+    if (!((is.vector(x) && is.numeric(x)) || is.matrix(x) ||
+        is.data.frame(x))) {
         stop("\n*** 'x' must be a numerical vector, a matrix or a data.frame")
     }
 

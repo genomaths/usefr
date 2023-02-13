@@ -1,0 +1,394 @@
+---
+title: "Non-linear Fit of Mixture Distributions"
+author:
+    - name: Robersy Sanchez
+affiliation: Department of Biology.
+             Pennsylvania State University, University Park, PA 16802
+email: rus547@psu.edu
+date: "`r format(Sys.time(), '%d %B %Y')`"
+fontsize: 11pt
+fontfamily: "serif"
+output:
+    html_document:
+    keep_md: yes
+toc: true
+toc_depth: 4
+toc_float:
+    collapsed: false
+smooth_scroll: true
+number_sections: true
+theme: united
+geometry: margin=0.8in
+highlight: tango
+abstract: |
+    Frequently, experimental data sets are forcely modeled by specific 
+    probability distribution functions, when in fact they would be better 
+    modelled by mixture of probability distributions. But, how to do it? 
+    Where are the available tools? The _usefr_ R package provides some usefull
+    tools to help the identification of the best mixture distribution model.
+vignette: >
+  %\VignetteIndexEntry{Fisher's exact test failure can lead to biased results}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+# Background
+
+It is said that a distribution $f(x)$ is a mixture $k$ distributions component:
+$f_1(x), ..., f_k(x)$ if:
+
+
+$$f(x) = \sum_{i=1}^k \pi_i f_i(x)$$
+
+where $\pi_i$ are the so called mixing weights, $0 \le \pi_i \le 1$, and 
+$\pi_1 + ... + \pi_k = 1$. More information about mixture distribution can be
+read in [Wikipedia](https://en.wikipedia.org/wiki/Mixture_distribution).
+
+Herein, we will show how to fit numerical data to a mixture of probability
+distributions model using [usefr](https://genomaths.github.io/usefr/index.html)
+R package. 
+
+# Random values generated from a mixture of Gamma and Weibull distributions
+
+To generate from a mixture distribution the function  
+[mixtdistr](https://genomaths.github.io/usefr/reference/mixtdistr.html) will 
+be used.
+
+```{r lib, message=FALSE, warning=FALSE}
+library(usefr) 
+
+set.seed(3) # set a seed for random generation
+
+# ========= A mixture of three distributions ========= 
+phi = c(3/10, 7/10) # Mixture proportions 
+# --------------------------------------------------------- 
+# === Named vector of the corresponding distribution function parameters 
+# must be provided 
+args <- list(gamma = c(shape = 2, scale = 0.1), 
+            weibull = c(shape = 3, scale = 0.5)) 
+# ------------------------------------------------------------ 
+# ===== Sampling from the specified mixture distribution ==== 
+X <- rmixtdistr(n = 1e5, phi = phi , arg = args)
+X <- na.omit(X)
+X[1:20]
+```
+
+## The histogram of the mixture distribution
+
+The graphics for the simulated dataset and the corresponding theoretical 
+mixture distribution. The density curve is drawn applying function 
+[dmixtdistr](https://genomaths.github.io/usefr/reference/mixtdistr.html):
+
+```{r hist}
+hist(X, 90, freq = FALSE, las = 1, family = "serif", 
+panel.first={points(0, 0, pch=16, cex=1e6, col="grey95")
+grid(col="white", lty = 1)}, family = "serif", col = "cyan1",
+border = "deepskyblue", xlim = c(0, 1.5))
+x1 <- seq(-4, 1.5, by = 0.001)
+lines(x1, dmixtdistr(x1, phi = phi, arg = args), col = "red")
+```
+
+
+# Nonlinear fit of the mixture distribution
+
+The nonlinear fit of this dataset is NOT straightforward! Herein, we used 
+function [fitMixDist](https://genomaths.github.io/usefr/reference/fitMixDist.html)
+```{r fit, error=TRUE}
+FIT <- fitMixDist(X, args = list(gamma = c(shape = NULL, scale = NULL),
+                                weibull = c(shape = NULL, scale = NULL)), 
+                npoints = 50, usepoints = 1000)
+summary(FIT$fit)
+```
+
+It seems to be that, depending on the OS, numerical algorithm variant, or the 
+computer processor, the Cholesky factorization of a real symmetric 
+positive-definite square matrix can fail (see for example: the same example at:
+[genomaths.com](https://genomaths.com/stats/non-linear-fit-of-mixture-distributions/)).
+
+Fortunately, to bypass the numerical issue, we can apply a numerical trick.
+In the current case, Gamma and Weibull distribution of this data are not quite
+different. So, firstly, we can try the fitting to a mixture of Weibull 
+distributions and to get some guessing for starting parameter values for each 
+distribution.
+
+```{r fit-1}
+FIT <- fitMixDist(X, args = list(weibull = c(shape = NULL, scale = NULL),
+                                weibull = c(shape = NULL, scale = NULL)), 
+                npoints = 50, usepoints = 1000)
+summary(FIT$fit)
+```
+
+Next, the estimated parameter values are supplied as starting parameter values
+for the mixture of Gamma and Weibull distributions, and the numerical problem 
+is solved:
+
+```{r fit-2}
+FIT <- fitMixDist(X, args = list(gamma = c(shape = 1.55, scale = 0.31),
+                                weibull = c(shape = 3.4, scale = 0.52)), 
+                npoints = 50, usepoints = 1000)
+summary(FIT$fit)
+```
+
+## Graphics of the simulated dataset and the corresponding theoretical mixture distribution
+
+Function [dmixtdistr](https://genomaths.github.io/usefr/reference/mixtdistr.html)
+is applied to draw the density curve:
+```{r den-plot, fig.height=6}
+hist(X, 90, freq = FALSE, las = 1, family = "serif", 
+    panel.first={points(0, 0, pch=16, cex=1e6, col="grey95")
+                grid(col="white", lty = 1)},
+    family = "serif", col = "seagreen1", border = "deepskyblue", 
+    xlim = c(0, 1.5), cex.lab = 1.2, main = "")
+
+x1 <- seq(-4, 10, by = 0.001)
+lines(x1, dmixtdistr(x1, phi = FIT$phi, arg = FIT$args), col = "red")
+mtext("Histogram of Gamma & Weibull Mixture Distributions.",
+    cex = 1.4, font = 3, family = "serif")
+```
+
+## The GOF test for the mixture distribution
+
+## Bootstrap goodness-of-fit test
+
+A bootstrap goodness-of-fit (GOF) test is performed with function
+[mcgoftest](https://genomaths.github.io/usefr/reference/mcgoftest.html).
+
+The parameter values are taken from the previous fitted mixture distribution
+model. Notice the particular way to set up the list of parameters. The Null
+hypothesis is that the data set follows a mixture of Gamma and Weibull
+distributions with the estimated parameter values.
+
+```{r mcgoftest}
+pars <- c(list(phi = FIT$phi), arg = list(FIT$args))
+mcgoftest(varobj = X, distr = "mixtdistr", pars = pars, 
+        num.sampl = 999, sample.size = 99999, stat = "chisq", 
+        num.cores = 4, breaks = 200, seed = 123)
+```
+
+
+# Comparison with a forced single distribution model
+
+```{r hist2}
+set.seed(3) # set a seed for random generation
+
+# ========= A mixture of three distributions ========= 
+phi = c(3/10, 7/10) # Mixture proportions 
+
+# ------------------------------------------------------------ 
+# === Named vector of the corresponding distribution function parameters 
+# must be provided 
+args <- list(gamma = c(shape = 2, scale = 0.1), 
+            weibull = c(shape = 2.1, scale = 0.12)) 
+# ------------------------------------------------------------ 
+
+# ===== Sampling from the specified mixture distribution ==== 
+X <- rmixtdistr(n = 1e5, phi = phi , arg = args)
+
+# ---------------------- Histogram ---------------------------
+
+hist(X, 90, freq = FALSE, las = 1, family = "serif", 
+    panel.first={points(0, 0, pch=16, cex=1e6, col="grey95")
+                grid(col="white", lty = 1)},
+    family = "serif", col = "seagreen1", border = "deepskyblue", 
+    xlim = c(0, 1.5), cex.lab = 1.2, main = "")
+
+x1 <- seq(-4, 10, by = 0.001)
+lines(x1, dmixtdistr(x1, phi = phi, arg = args), col = "red")
+mtext("Histogram of Gamma & Weibull Mixture Distributions.",
+    cex = 1.4, font = 3, family = "serif")
+```
+
+
+## The single distribution model
+Next, a search of the best single probability distribution model is accomplished
+with function [fitCDF](https://genomaths.github.io/usefr/reference/fitCDF.html).
+
+The generalized Gamma distribution model seems to be the best fitted model,
+followed by the Gamma model.
+```{r fit2, warning=FALSE, fig.height=8}
+cdfp <- fitCDF(X,
+    distNames = c("Gamma", "Weibull", "3P Weibull", "Generalized 3P Gamma"),
+    xlabel = "My Nice Variable Label",
+    plot = TRUE, plot.num = 2, font.lab = 3, font = 2, 
+    font.axis = 2, family = "serif", cex.text = 1.2,
+    cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4
+)
+```
+
+
+Clearly, without the previous knowledge about the true CDF, the graphics cast a
+suspicion about how good the best fitted model is. Althout the Q-Q plot is not
+good, the cross-validation correlation coefficient R (R.Cross.val) support a
+strong average of cross-validation predictive power of the generalized Gamma
+distribution model:
+```{r crosv}
+cdfp$gof
+```
+
+Also, the GoF testing based on the Monte Carlos Anderson–Darling statistic does
+not reject the model.
+
+```{r mcgoftest1}
+mcgoftest(varobj = X, 
+        distr = "ggamma", 
+        pars = cdfp$bestfit$par, 
+        num.sampl = 999, stat = "ks",
+        sample.size = 99999, 
+        num.cores = 4)
+```
+
+## The mixture distribution model
+
+As before the Weibull distribution model seems to be the best mixture model
+```{r fit-4}
+FIT1 <- fitMixDist(X, args = list(weibull = c(shape = NULL, scale = NULL),
+                                weibull = c(shape = NULL, scale = NULL)), 
+                npoints = 100, usepoints = 2000)
+summary(FIT$fit)
+```
+
+The mixture distribution model using the Gamma as one of marginal distributions
+fails. 
+```{r fit5, error=TRUE}
+FIT2 <- fitMixDist(X, args = list(gamma = c(shape = NULL, scale = NULL),
+                                weibull = c(shape = NULL, scale = NULL)), 
+                npoints = 100, usepoints = 2000)
+summary(FIT2$fit)
+```
+
+Next, the estimated parameter values from the Weibull mixture distribution model
+are applied as starting parameter values to get the best fitting model for
+a Gamma-Weibull mixture distribution model.
+```{r fit4}
+FIT2 <- fitMixDist(X, args = list(gamma = FIT1$fit$par[1:2],
+                                weibull = FIT1$fit$par[1:2]), 
+                npoints = 100, usepoints = 2000)
+summary(FIT2$fit)
+```
+
+## The Q-Q Plot of the alternative models
+
+```{r qqplot, fig.width=12, fig.height=8}
+par(mfcol = c(2, 2))
+xl <- c(min(X, na.rm = TRUE), max(X, na.rm = TRUE))
+n = 1e5
+
+### ---------------------------------------------------------------------
+pars <- cdfp$bestfit$par
+set.seed(3) # set a seed for random generation
+xl <- c(min(X, na.rm = TRUE), max(X, na.rm = TRUE))
+
+q = rggamma(n = n, alpha = pars[1], scale = pars[2], psi = pars[3])
+
+qqplot(x = q, y = X, las = 1, family = "serif", bty="n",
+    panel.first={points(0, 0, pch=16, cex=1e6, col="grey95")
+                grid(col="white", lty = 1)},
+    family = "serif", col = "red",  cex.lab = 1.2, 
+    main = expression("Q-Q plot for the Generalized Gamma distribution model"),
+    xlab = "Theoretical Quantiles", ylab = "Sample Quantiles",
+    xlim = xl, ylim = xl)
+qqline(y = X, 
+    distribution = function(p) 
+        qggamma(p, alpha = pars[1], scale = pars[2], psi = pars[3]),
+    probs = c(0.1, 0.6), col = 2)
+
+### ---------------------------------------------------------------------
+
+
+q = rmixtdistr(n = n, phi = FIT1$phi , arg = FIT1$args)
+qqplot(x = q, y = X, las = 1, family = "serif", bty="n",
+    panel.first={points(0, 0, pch=16, cex=1e6, col="grey95")
+                grid(col="white", lty = 1)},
+    family = "serif", col = "red",  cex.lab = 1.2, 
+    main = expression("Q-Q plot for the Weibull mixture distribution model"),
+    xlab = "Theoretical Quantiles", ylab = "Sample Quantiles",
+    xlim = xl, ylim = xl)
+qqline(y = X, 
+    distribution = function(p) qmixtdistr(p, phi = FIT1$phi , arg = FIT1$args),
+    probs = c(0.1, 0.6), col = 2)
+
+### ---------------------------------------------------------------------
+
+set.seed(3) # set a seed for random generation
+pars = cdfp$fit$Gamma$par
+
+q = rgamma(n = n, shape = pars[1], scale = pars[2])
+
+qqplot(x = q, y = X, las = 1, family = "serif", bty="n",
+    panel.first={points(0, 0, pch=16, cex=1e6, col="grey95")
+                grid(col="white", lty = 1)},
+    family = "serif", col = "red",  cex.lab = 1.2, 
+    main = expression("Q-Q plot for the Gamma distribution model"),
+    xlab = "Theoretical Quantiles", ylab = "Sample Quantiles",
+    xlim = xl, ylim = xl)
+qqline(y = X, 
+    distribution = function(p) 
+        qgamma(p, shape = pars[1], scale = pars[2]),
+    probs = c(0.1, 0.6), col = 2)
+
+### ---------------------------------------------------------------------
+
+q = rmixtdistr(n = n, phi = FIT2$phi , arg = FIT2$args)
+qqplot(x = q, y = X, las = 1, family = "serif", bty="n",
+    panel.first={points(0, 0, pch=16, cex=1e6, col="grey95")
+                grid(col="white", lty = 1)},
+    family = "serif", col = "red", cex.lab = 1.2, 
+    main = expression("Q-Q plot for the Gamma-Weibull mixture distribution model"),
+    xlab = "Theoretical Quantiles", ylab = "Sample Quantiles",
+    xlim = xl, ylim = xl)
+qqline(y = X, 
+    distribution = function(p) qmixtdistr(p, phi = FIT2$phi , arg = FIT2$args),
+    probs = c(0.1, 0.6), col = 2)
+```
+
+The Q-Q plots suggest that the Gamma-Weibull mixture distribution model is the
+best fitted model.
+
+## The GOF test for the mixture distribution
+
+The Kolmogorov-Smirno test does not reject the Null hypothesis about that the 
+_X_ follows Gamma-Weibull mixture distribution model. 
+```{r gof_mixture}
+set.seed(1)
+pars <- c(list(phi = FIT2$phi), arg = list(FIT2$args))
+mcgoftest(varobj = X, distr = "mixtdistr", pars = pars, 
+        num.sampl = 999,
+        sample.size = 99999, stat = "ks", 
+        num.cores = 4, seed = 123)
+```
+
+
+Although the Monte Carlo $mc_p.value = 0.316$ is lower than the value estimated
+for the generalized gamma model ($mc_p.value = 1$), the 
+$KS.stat.p.value = 0.289$ of the simple Kolmogorov-Smirno test support the
+mixture model, which for case of the generalized gamma model 
+($KS.stat.p.value = 0$) is reject.
+
+
+# Conclusions
+
+
+To identify the best fitted probability distribution model for an experimental
+data set would be a laborious task. Usually, researcher move forward with the
+first single CDF model that is supported by the Goodness-of-Fit tests. However,
+digging deep in the structure of the experimental data, it would turn out that
+the data would come from a stratified population, better modelled by mixture of
+probability distribution functions.
+
+
+# Session info {.unnumbered}
+
+Here is the output of `sessionInfo()` on the system on which this document was
+compiled running pandoc `r rmarkdown::pandoc_version()`:
+
+
+```{r sessionInfo, echo=FALSE}
+sessionInfo()
+```
+
+
+
+
+
+

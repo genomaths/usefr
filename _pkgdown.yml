@@ -28,8 +28,12 @@ navbar:
       - text: "usefr"
         href: articles/usefr.html
       - text: ------
+      - text: "Nonlinear Fit of Mixture Distributions"
+        href: articles/Nonlinear_Fit_of_Mixture_Distributions.html
+      - text: ------
       - text: "Fisher's exact test failure can lead to biased results"
         href: articles/fisher-exact-test-failure-can-lead-to-biassed-results.html
+
     news:
       text: News
       href: news/index.html
@@ -95,4 +99,7 @@ articles:
   desc: ~
   contents:
   - '`usefr`'
+  - '`Nonlinear_Fit_of_Mixture_Distributions`'
   - '`fisher-exact-test-failure-can-lead-to-biassed-results`'
+
+

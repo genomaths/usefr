@@ -824,7 +824,7 @@ setMethod(
                     # par( mar = c( 5, 2, 1, 1) + 0.07, mgp = c(1.2,0.4,0))
                     if (!inherits(rdistr, "try-error") &&
                         !inherits(qdistr, "try-error")) {
-                        r <- rValues(rfunLIST[[k]], FITs, 1e4)
+                        r <- rValues(rfunLIST[[k]], FITs, length(X))
                         xl <- c(min(r, na.rm = TRUE), max(r, na.rm = TRUE))
                         qqplot(
                             x = r,
