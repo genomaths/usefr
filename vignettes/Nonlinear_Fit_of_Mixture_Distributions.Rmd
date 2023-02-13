@@ -211,8 +211,8 @@ cdfp <- fitCDF(X,
     distNames = c("Gamma", "Weibull", "3P Weibull", "Generalized 3P Gamma"),
     xlabel = "My Nice Variable Label",
     plot = TRUE, plot.num = 2, font.lab = 3, font = 2, 
-    font.axis = 2, family = "serif", cex.text = 1.2,
-    cex.main = 1.4, cex.lab = 1.4, cex.axis = 1.4
+    font.axis = 2, family = "serif",
+    cex.lab = 1.3, cex.axis = 1.3
 )
 ```
 
