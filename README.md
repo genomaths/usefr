@@ -51,11 +51,11 @@ e.g., _start_
 ## Tutorials:
 
 
-<a href="https://genomaths.github.io/usefr/articles/usefr.html/">Get started-with ‘usefr’</a>
+<a href="https://genomaths.github.io/usefr/articles/usefr.html">Get started-with ‘usefr’</a>
 
-<a href="https://genomaths.github.io/usefr/articles/Nonlinear_Fit_of_Mixture_Distributions.html/">Nonlinear Fit of Mixture Distributions</a>
+<a href="https://genomaths.github.io/usefr/articles/Nonlinear_Fit_of_Mixture_Distributions.html">Nonlinear Fit of Mixture Distributions</a>
     
-<a href="https://genomaths.github.io/usefr/articles/fisher-exact-test-failure-can-lead-to-biassed-results.html/">Fisher’s exact test failure can lead to biased results</a>
+<a href="https://genomaths.github.io/usefr/articles/fisher-exact-test-failure-can-lead-to-biassed-results.html">Fisher’s exact test failure can lead to biased results</a>
 
 
 A concrete example on the application of mixture of copula distributions is 
