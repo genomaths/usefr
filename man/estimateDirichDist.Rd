@@ -18,14 +18,14 @@ estimateDirichDist(
 \arguments{
 \item{x}{A matrix or a data.frame object carrying count data.}
 
-\item{start}{Initial parameter values for \eqn{\lapha =
+\item{start}{Initial parameter values for \eqn{\alpha =
 \alpha_1, ... , \alpha_n} (all positive reals). Defaults is NULL.}
 
 \item{num.cores, tasks}{Parameters for parallel computation using
 \code{\link[BiocParallel]{BiocParallel-package}}: the number of cores to
-use, i.e. at most how many child processes will be run simultaneously
-(see \code{\link[BiocParallel]{bplapply}} and the number of tasks per job
-(only for Linux OS).}
+use, i.e. at most how many child processes will be run simultaneously (see
+\code{\link[BiocParallel]{bplapply}} and the number of tasks per job (only
+for Linux OS).}
 
 \item{verbose}{if TRUE, prints the function log to stdout and a progress bar}
 
@@ -36,11 +36,12 @@ A vector of estimated parameter values
 }
 \description{
 The parameter estimation is accomplished using a count data
-matrix. The estimation is based on the fact that if a variable \eqn{x = (x_1,
-x_2, ...x_n)} follows Dirichlet Distribution with parameters \eqn{\alpha =
-\alpha_1, ... , \alpha_n} (all positive reals), in short, \eqn{x ~
-Dir(\alpha)}, then \eqn{x_i ~ Beta(\alpha_i, \alpha_0 - \alpha_i)}, where
-Beta(.) stands for the Beta distribution and \eqn{\alpha_0 = \sum \alpha_i}.
+matrix. The estimation is based on the fact that if a variable
+\eqn{x = (x_1, x_2, ...x_n)} follows Dirichlet Distribution with parameters
+\eqn{\alpha = \alpha_1, ... , \alpha_n} (all positive reals), in short,
+\eqn{x ~ Dir(\alpha)}, then \eqn{x_i ~ Beta(\alpha_i, \alpha_0 - \alpha_i)},
+where Beta(.) stands for the Beta distribution and
+\eqn{\alpha_0 = \sum \alpha_i}.
 
 Dirichlet distribution is a family of continuous multivariate probability
 distributions, a multivariate generalization of the Beta distribution.

@@ -121,7 +121,8 @@
 #' bicopulaGOF(
 #'     x = X, y = Y, copula = "normalCopula", sample.size = 1e2,
 #'     margins = margins, paramMargins = parMargins, nboots = 99,
-#'     Rosenblatt = TRUE, approach = "adgamma", num.cores = 1L
+#'     Rosenblatt = TRUE, approach = "adgamma", num.cores = 1L,
+#'     verbose = FALSE
 #' )
 #'
 #' bicopulaGOF(
@@ -154,7 +155,8 @@
 #'         gof <- bicopulaGOF(x = X, y = Y, copula = "normalCopula",
 #'                     margins = margins, paramMargins = parMargins,
 #'                     nboots = 99, approach = "Sn", seed = 12,
-#'                     num.cores = 2L)
+#'                     num.cores = 2L,
+#'                     verbose = FALSE)
 #'     )
 #'     (proc.time() - ptm)[3]/60 # in min
 #'     gof

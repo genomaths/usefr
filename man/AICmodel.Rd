@@ -50,7 +50,7 @@ round(AICmodel(nlm), 3) == round(AIC(nlm), 3)
 ## Now, using residuals from the fitted model:
 res = y - coef(nlm)[1] * exp(coef(nlm)[2] * x)
 
-round(AICmodel(residuals = res, np = 2)) == round(AIC(nlm))
+round(AICmodel(residuals = res, np = 2), 3) == round(AIC(nlm), 3)
 
 }
 \keyword{internal}

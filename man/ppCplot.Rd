@@ -79,8 +79,8 @@ estimated) see \code{\link[copula]{fitCopula}}.}
 \item{smoothing}{character string specifying whether the empirical
 distribution function (for F.n()) or copula (for C.n()) is computed (if
 smoothing = "none"), or whether the empirical beta copula (smoothing =
-"beta") or the empirical checkerboard copula (smoothing = "checkerboard")
-is computed (see \code{\link[copula]{empCopula}}.}
+"beta") or the empirical checkerboard copula (smoothing = "checkerboard") is
+computed (see \code{\link[copula]{empCopula}}.}
 
 \item{ties.method}{character string specifying how ranks should be computed
 if there are ties in any of the coordinate samples of x; passed to
@@ -123,13 +123,13 @@ is S' default.}
 
 \item{padj}{adjustment for each tick label perpendicular to the reading
 direction. For labels parallel to the axes, padj = 0 means right or top
-alignment, and padj = 1 means left or bottom alignment. This can be a
-vector given a value for each string, and will be recycled as necessary.}
+alignment, and padj = 1 means left or bottom alignment. This can be a vector
+given a value for each string, and will be recycled as necessary.}
 
 \item{hadj}{adjustment (see par("adj")) for all labels parallel
-(‘horizontal’) to the reading direction. If this is not a finite value,
-the default is used (centring for strings parallel to the axis,
-justification of the end nearest the axis otherwise).}
+(‘horizontal’) to the reading direction. If this is not a finite value, the
+default is used (centring for strings parallel to the axis, justification of
+the end nearest the axis otherwise).}
 
 \item{xcex, ycex}{A numerical value giving the amount by which axis labels
 should be magnified relative to the default.}
@@ -145,9 +145,9 @@ axes titles (see \code{\link[graphics]{par}}).}
 (see \code{\link[graphics]{par}}).}
 
 \item{cex}{A numerical value giving the amount by which plotting text and
-symbols should be magnified relative to the default. This starts as 1
-when a device is opened, and is reset when the layout is changed, e.g.
-by setting mfrow.}
+symbols should be magnified relative to the default. This starts as 1 when a
+device is opened, and is reset when the layout is changed, e.g. by setting
+mfrow.}
 
 \item{seed}{An integer used to set a 'seed' for random number generation.}
 
@@ -157,27 +157,26 @@ by setting mfrow.}
 }
 \value{
 The P-P plot and invisible temporary object with the
-    information to build the graphic which can be assigned to a variable
-    to use in further plots or analyses.
+information to build the graphic which can be assigned to a variable
+to use in further plots or analyses.
 }
 \description{
 The function build the P-P plot of Two-dimensional Copulas upon
-    the knowledge of the margin distribution provided by the user. The
-    empirical probabilities are computed using function
-    \code{\link[copula]{empCopula}} from package
-    \code{[copula-package]{copula}}.
+the knowledge of the margin distribution provided by the user. The empirical
+probabilities are computed using function \code{\link[copula]{empCopula}}
+from package \code{[copula-package]{copula}}.
 }
 \details{
 Empirical and theoretical probabilities are estimated using the
-    quantiles generated with the margin quantile functions. Nonlinear fit of
-    margin distributions can be previously accomplished using any of the
-    functions \code{\link{fitCDF}}, \code{\link[MASS]{fitdistr}}, or function
-    \code{\link{fitMixDist}} for the case where the margins are mixture of
-    distributions. \emph{npoints} random uniform and iid numbers from the
-    interval [0, 1] are generated and used to evaluate the quantile margin
-    distribution functions. Next, the quantiles are used to compute the
-    empirical and theoretical copulas, which will be used to estimate the
-    corresponding probabilities.
+quantiles generated with the margin quantile functions. Nonlinear fit of
+margin distributions can be previously accomplished using any of the
+functions \code{\link{fitCDF}}, \code{\link[MASS]{fitdistr}}, or function
+\code{\link{fitMixDist}} for the case where the margins are mixture of
+distributions. \emph{npoints} random uniform and iid numbers from the
+interval [0, 1] are generated and used to evaluate the quantile margin
+distribution functions. Next, the quantiles are used to compute the
+empirical and theoretical copulas, which will be used to estimate the
+corresponding probabilities.
 }
 \examples{
 set.seed(12)
@@ -203,8 +202,8 @@ g <- ppCplot(
 }
 \seealso{
 \code{\link{fitCDF}}, \code{\link[MASS]{fitdistr}},
-    \code{\link{fitMixDist}}, \code{\link{mutualinf}}, and
-    \code{\link{bicopulaGOF}}.
+\code{\link{fitMixDist}}, \code{\link{mutualinf}}, and
+\code{\link{bicopulaGOF}}.
 }
 \author{
 Robersy Sanchez (\url{https://genomaths.com}).

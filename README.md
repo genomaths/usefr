@@ -50,10 +50,19 @@ e.g., _start_
 
 ## Tutorials:
 
+
 <a href="https://genomaths.github.io/usefr/articles/usefr.html/">Get started-with ‘usefr’</a>
 
-
+<a href="https://genomaths.github.io/usefr/articles/Nonlinear_Fit_of_Mixture_Distributions.html/">Nonlinear Fit of Mixture Distributions</a>
+    
 <a href="https://genomaths.github.io/usefr/articles/fisher-exact-test-failure-can-lead-to-biassed-results.html/">Fisher’s exact test failure can lead to biased results</a>
+
+
+A concrete example on the application of mixture of copula distributions is 
+available in a tutorial from [MethylIT](https://genomaths.github.io/methylit/index.html)
+R package:    
+
+<a href="https://is.gd/6eJoKD">Association Between Gene Expression and Cytosine DNA Methylation at gene-body</a>
 
 
 ------------
