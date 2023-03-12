@@ -1,6 +1,6 @@
-## ########################################################################### #
+## ########################################################################## #
 ##
-## Copyright (C) 2019 Robersy Sanchez <https://genomaths.com/>
+## Copyright (C) 2019-2023 Robersy Sanchez <https://genomaths.com/>
 ##
 ## Author: Robersy Sanchez
 #
@@ -19,7 +19,7 @@
 ## You should have received a copy of the GNU General Public License along with
 ## this program; if not, see <http://www.gnu.org/licenses/>.
 ##
-## ########################################################################### #
+## ########################################################################## #
 #
 #' @rdname fitCDF
 #' @title Nonlinear fit of a commutative distribution function

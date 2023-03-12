@@ -165,6 +165,6 @@ rggamma <- function(n, alpha = 1, scale = 1, mu = 0,
         stop("'psi' parameter must be positive")
     }
 
-    r <- scale * (rgamma(n, psi * alpha)^(1 / alpha))
+    r <- scale * (rgamma(n, psi * alpha)^(1 / alpha)) + mu
     return(r)
 }
