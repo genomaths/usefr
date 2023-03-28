@@ -77,6 +77,10 @@ setGeneric(
 )
 
 setOldClass(c("CDFmodel", "CDFmodelList"))
+setOldClass("nls")
+setOldClass("nls.lm")
+setOldClass("nlsModel")
+
 setClassUnion("missingORNULL", c("missing", "NULL"))
 
 #' @rdname cdf_crossval
