@@ -462,8 +462,9 @@ setMethod(
             )
             if (inherits(distp, "try-error")) {
                 stop(
-                    "*** 'distf' must be a symbol to call a commulative ",
-                    "distribution function e.g, pnorm, pgamma"
+                    "*** 'distf' must be a symbol e.g, 'norm', 'gamma',",
+                    " which will call the corresponding commulative",
+                    "  distribution function, e.g, pnorm, pgamma."
                 )
             }
 
