@@ -166,7 +166,7 @@ Default is \emph{xlabel = "x"}.}
 
 \item{num.cores}{The number of cores to use, i.e. at most how many child
 processes will be run simultaneously. This argument will be passed to
-\code{\link[parallel]{mclapply}}.}
+\code{\link[parallel]{clusterApply}}.}
 }
 \value{
 After return the plots, a list with following values is provided:
@@ -199,7 +199,7 @@ estimated parameters. Hence, why not try to fit the CDF directly?
 \details{
 This function works as function \code{\link{fitCDF}}, except for
 the parallel computation, which is done applying function
-\code{\link[foreach]{foreach}} from the 'foreach' R package.
+\code{\link[parallel]{clusterApply}} from the 'parallel' R package.
 
 The nonlinear fit (NLF) problem for CDFs is addressed with
 Levenberg-Marquardt algorithm implemented in function
@@ -279,7 +279,8 @@ cdfp <- fitCDF2(x1,
           Uncertainty. R package version 1.0-4.
           http://CRAN.R-project.org/package=propagate
     \item Abramowitz, M. and Stegun, I. A. (1972) Handbook of Mathematical
-          Functions. New York: Dover. Chapter 6: Gamma and Related Functions.
+          Functions. New York: Dover. Chapter 6: Gamma and Related
+          Functions.
     \item Hand-book on STATISTICAL DISTRIBUTIONS for experimentalists
           (pag 73) by Christian Walck. Particle Physics Group Fysikum.
           University of Stockholm (e-mail: walck@physto.se).

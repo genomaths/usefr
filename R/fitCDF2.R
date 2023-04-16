@@ -111,14 +111,14 @@
 #' @param cex.text,cex.point Numerical value to scale text and points.
 #' @param num.cores The number of cores to use, i.e. at most how many child
 #' processes will be run simultaneously. This argument will be passed to
-#' \code{\link[parallel]{mclapply}}.
+#' \code{\link[parallel]{clusterApply}}.
 #' @param ... (Optional) Further graphical parameters (see
 #' \code{\link[graphics]{par}}). Graphical parameter will simultaneously affect
 #' all the plots.
 #' @param verbose Logic. If TRUE, prints the function log to stdout
 #' @details This function works as function \code{\link{fitCDF}}, except for
 #' the parallel computation, which is done applying function
-#' \code{\link[foreach]{foreach}} from the 'foreach' R package.
+#' \code{\link[parallel]{clusterApply}} from the 'parallel' R package.
 #'
 #' The nonlinear fit (NLF) problem for CDFs is addressed with
 #' Levenberg-Marquardt algorithm implemented in function
@@ -204,7 +204,8 @@
 #'           Uncertainty. R package version 1.0-4.
 #'           http://CRAN.R-project.org/package=propagate
 #'     \item Abramowitz, M. and Stegun, I. A. (1972) Handbook of Mathematical
-#'           Functions. New York: Dover. Chapter 6: Gamma and Related Functions.
+#'           Functions. New York: Dover. Chapter 6: Gamma and Related
+#'           Functions.
 #'     \item Hand-book on STATISTICAL DISTRIBUTIONS for experimentalists
 #'           (pag 73) by Christian Walck. Particle Physics Group Fysikum.
 #'           University of Stockholm (e-mail: walck@physto.se).
@@ -307,9 +308,7 @@ setClassUnion(
 
 #' @rdname fitCDF2
 #' @aliases fitCDF2
-#' @importFrom foreach foreach %dopar% %:%
-#' @importFrom doParallel registerDoParallel
-#' @importFrom parallel detectCores makeCluster stopCluster
+#' @importFrom parallel detectCores makeCluster stopCluster clusterApply
 #' @export
 setMethod(
     "fitCDF2", signature(varobj = "list_OR_matrix_OR_dataframe"),
@@ -428,12 +427,13 @@ setMethod(
         else
             cl <- makeCluster(num.cores, type = "SOCK")
 
-        registerDoParallel(cl)
+        # registerDoParallel(cl)
 
         ## -------------------------------------------------------- #
 
 
-        res <- foreach(k = seq_along(varobj)) %dopar% fitCDF(
+        res <- clusterApply(cl, seq_along(varobj), function(k) {
+                    fitCDF(
                     varobj = varobj[[k]],
                     distNames = distNames[[k]],
                     plot = plot,
@@ -455,7 +455,9 @@ setMethod(
                     cex.main = cex.main,
                     cex.text = cex.text,
                     cex.point = cex.point,
-                    verbose = FALSE)
+                    verbose = FALSE)})
+
+        stopCluster(cl)
 
         names(res) <- var_nms
         res$AICs <- summary_aic(res)
