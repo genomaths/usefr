@@ -164,6 +164,10 @@
 #'
 #' Where, shape_scale function is an internal function that can be
 #' retrieve by typing: usefr:::shape_scale.
+#'
+#' In case of failing the parallel computation, please, try with function:
+#' \code{\link{fitCDF2}}.
+#'
 #' @return After return the plots, a list with following values is provided:
 #'     \itemize{
 #'         \item aic: Akaike information creterion
@@ -192,8 +196,8 @@
 #' @importFrom graphics par grid lines mtext abline
 #' @export
 #' @author Robersy Sanchez (\url{https://genomaths.com}).
-#' @seealso \code{\link[MASS]{fitdistr}} and \code{\link{fitMixDist}} and
-#'     for goodness-of-fit: \code{\link{mcgoftest}}.
+#' @seealso \code{\link{fitCDF2}}, \code{\link[MASS]{fitdistr}} and
+#' \code{\link{fitMixDist}}, for goodness-of-fit: \code{\link{mcgoftest}}.
 #' @references
 #'   \enumerate{
 #'     \item Stevens JP. Applied Multivariate Statistics for the Social
@@ -259,7 +263,7 @@ setMethod(
     maxfev = 1e+5,
     ptol = 1e-12,
     nls.model = FALSE,
-    algorithm = "default",
+    algorithm = c("default", "plinear", "port"),
     xlabel = "x",
     mar = c(4, 4, 3, 1),
     mgp = c(2.5, 0.6, 0),
@@ -537,6 +541,7 @@ setMethod(
             }
 
             if (nls.model && !inherits(FIT, "try-error")) {
+                algorithm <- match.arg(algorithm)
                 pars <- names(coef(FIT))
                 pars <- paste(c("q", pars), collapse = ",")
                 formula <- as.formula(
@@ -550,7 +555,8 @@ setMethod(
                     formula,
                     data = data.frame(q = X, Y = pX),
                     start = as.list(coef(FIT)),
-                    control = list(maxiter = maxiter, tol = ptol)
+                    control = list(maxiter = maxiter, tol = ptol),
+                    algorithm = algorithm
                 ),
                 silent = TRUE
                 )
@@ -1036,17 +1042,20 @@ setMethod(
     function(varobj,
     distNames,
     plot = FALSE,
-    plot.num = 1,
+    plot.num = 1L,
     distf = NULL,
     start = NULL,
     loss.fun = c(
         "linear", "huber", "smooth",
         "cauchy", "arctg"
     ),
+    min.val = NULL,
     only.info = FALSE,
     maxiter = 1024,
     maxfev = 1e+5,
     ptol = 1e-12,
+    nls.model = FALSE,
+    algorithm = c("default", "plinear", "port"),
     xlabel = "x",
     mar = c(4, 4, 3, 1),
     mgp = c(2.5, 0.6, 0),
@@ -1152,10 +1161,13 @@ setMethod(
                         distf = distf[[k]],
                         start = start[[k]],
                         loss.fun = loss.fun[k],
+                        min.val = min.val,
                         only.info = only.info,
                         maxiter = maxiter,
                         maxfev = maxfev,
                         ptol = ptol,
+                        nls.model = nls.model,
+                        algorithm = algorithm,
                         xlabel = xlabel,
                         mar = mar,
                         mgp = mgp,
@@ -1165,7 +1177,7 @@ setMethod(
                         cex.point = cex.point,
                         num.cores = num.cores,
                         tasks = tasks,
-                        verbose = verbose,
+                        verbose = FALSE,
                         ...
                     )
                 },
@@ -1184,10 +1196,13 @@ setMethod(
                         distf = distf[[k]],
                         start = start[[k]],
                         loss.fun = loss.fun[k],
+                        min.val = min.val,
                         only.info = only.info,
                         maxiter = maxiter,
                         maxfev = maxfev,
                         ptol = ptol,
+                        nls.model = nls.model,
+                        algorithm = algorithm,
                         xlabel = xlabel,
                         mar = mar,
                         mgp = mgp,
