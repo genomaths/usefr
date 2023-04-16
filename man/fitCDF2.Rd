@@ -57,7 +57,6 @@ fitCDF2(varobj, ...)
   cex.text = 0.8,
   cex.point = 0.5,
   num.cores = 1L,
-  tasks = 0L,
   verbose = TRUE,
   ...
 )
@@ -65,8 +64,8 @@ fitCDF2(varobj, ...)
 \arguments{
 \item{varobj}{A a vector, a named list, a matrix or a data.frame, containing
 the observations from the variable for which the CDF parameters will be
-estimated. When the argument is a matrix or a data.frame, the columns must be
-named, carrying the objective variables.}
+estimated. When the argument is a matrix or a data.frame, the columns must
+be named, carrying the objective variables.}
 
 \item{...}{(Optional) Further graphical parameters (see
 \code{\link[graphics]{par}}). Graphical parameter will simultaneously affect
@@ -94,9 +93,9 @@ current 20 named distributions (see  details below). Default is NULL.}
 \item{start}{A named numerical vector giving the parameters to be optimized
 with initial values or a list of numerical vectors (only when
 \emph{\strong{varobj}} is a list, a matrix or a data.frame). This can be
-omitted for some of the named distributions (see Details). This argument will
-be used if provided for only one distribution. The default parameter values
-are:
+omitted for some of the named distributions (see Details). This argument
+will be used if provided for only one distribution. The default parameter
+values are:
 \enumerate{
     \item norm = c( mean = MEAN, sd = SD )
     \item lnorm = c(meanlog = mean( log1p(X), na.rm = TRUE),
@@ -192,10 +191,10 @@ And fitting details can be retrieved with summary(cdf$bestfit)
 }
 \description{
 Usually the parameter estimation of a cumulative distribution
-function (*CDF*) are accomplished using the corresponding probability density
-function (*PDF*). Different optimization algorithms can be used to
-accomplished this task and different algorithms can yield different estimated
-parameters. Hence, why not try to fit the CDF directly?
+function (*CDF*) are accomplished using the corresponding probability
+density function (*PDF*). Different optimization algorithms can be used to
+accomplished this task and different algorithms can yield different
+estimated parameters. Hence, why not try to fit the CDF directly?
 }
 \details{
 This function works as function \code{\link{fitCDF}}, except for

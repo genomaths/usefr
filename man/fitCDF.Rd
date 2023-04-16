@@ -22,7 +22,7 @@ fitCDF(varobj, ...)
   maxfev = 1e+05,
   ptol = 1e-12,
   nls.model = FALSE,
-  algorithm = "default",
+  algorithm = c("default", "plinear", "port"),
   xlabel = "x",
   mar = c(4, 4, 3, 1),
   mgp = c(2.5, 0.6, 0),
@@ -48,7 +48,7 @@ fitCDF(varobj, ...)
   maxfev = 1e+05,
   ptol = 1e-12,
   nls.model = FALSE,
-  algorithm = "default",
+  algorithm = c("default", "plinear", "port"),
   xlabel = "x",
   mar = c(4, 4, 3, 1),
   mgp = c(2.5, 0.6, 0),
@@ -56,6 +56,8 @@ fitCDF(varobj, ...)
   cex.main = 1,
   cex.text = 0.8,
   cex.point = 0.5,
+  num.cores = 1L,
+  tasks = 0L,
   verbose = TRUE,
   ...
 )

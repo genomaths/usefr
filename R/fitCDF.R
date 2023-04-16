@@ -465,6 +465,7 @@ setMethod(
                 silent = TRUE
             )
             if (inherits(distp, "try-error")) {
+                message(distp)
                 stop(
                     "*** 'distf' must be a symbol e.g, 'norm', 'gamma',",
                     " which will call the corresponding commulative",
