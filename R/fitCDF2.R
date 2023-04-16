@@ -109,16 +109,14 @@
 #' @param mar,mgp,las,cex.main (Optional) Graphical parameters (see
 #' \code{\link[graphics]{par}}).
 #' @param cex.text,cex.point Numerical value to scale text and points.
-#' @param num.cores The number of cores to use, i.e. at most how many child
-#' processes will be run simultaneously. This argument will be passed to
-#' \code{\link[parallel]{clusterApply}}.
 #' @param ... (Optional) Further graphical parameters (see
 #' \code{\link[graphics]{par}}). Graphical parameter will simultaneously affect
 #' all the plots.
 #' @param verbose Logic. If TRUE, prints the function log to stdout
-#' @details This function works as function \code{\link{fitCDF}}, except for
-#' the parallel computation, which is done applying function
-#' \code{\link[parallel]{clusterApply}} from the 'parallel' R package.
+#' @details This function works as function \code{\link{fitCDF}}, but without
+#' parallel computation. The reason is the parallelization fails in Windows OS.
+#' CDFs defined out the package are not passed to the parallel processes on
+#' Windows (so far).
 #'
 #' The nonlinear fit (NLF) problem for CDFs is addressed with
 #' Levenberg-Marquardt algorithm implemented in function
@@ -308,7 +306,7 @@ setClassUnion(
 
 #' @rdname fitCDF2
 #' @aliases fitCDF2
-#' @importFrom parallel detectCores makeCluster stopCluster clusterApply
+#' @importFrom pbapply pboptions pblapply
 #' @export
 setMethod(
     "fitCDF2", signature(varobj = "list_OR_matrix_OR_dataframe"),
@@ -413,51 +411,35 @@ setMethod(
                             rep(1:ncol(varobj), each = nrow(varobj)))
         }
 
-        ## ------------ Setting up parallel computation ------------ #
-
-        vlen <- length(varobj)
-        nc <- detectCores()
-        nc <- min(vlen, nc)
-
-        if (num.cores > nc)
-            num.cores <- nc
-
-        if (Sys.info()["sysname"] == "Linux")
-            cl <- makeCluster(num.cores, type = "FORK")
+        if (verbose)
+            pboptions(type = "timer", style = 1, char = "=")
         else
-            cl <- makeCluster(num.cores, type = "SOCK")
+            pboptions(type = "none")
 
-        # registerDoParallel(cl)
-
-        ## -------------------------------------------------------- #
-
-
-        res <- clusterApply(cl, seq_along(varobj), function(k) {
-                    fitCDF(
-                    varobj = varobj[[k]],
-                    distNames = distNames[[k]],
-                    plot = plot,
-                    plot.num = plot.num,
-                    distf = distf[[k]],
-                    start = start[[k]],
-                    loss.fun = loss.fun[k],
-                    min.val = min.val,
-                    only.info = only.info,
-                    maxiter = maxiter,
-                    maxfev = maxfev,
-                    ptol = ptol,
-                    nls.model = nls.model,
-                    algorithm = algorithm,
-                    xlabel = xlabel,
-                    mar = mar,
-                    mgp = mgp,
-                    las = las,
-                    cex.main = cex.main,
-                    cex.text = cex.text,
-                    cex.point = cex.point,
-                    verbose = FALSE)})
-
-        stopCluster(cl)
+        res <- pblapply(seq_along(varobj), function(k) {
+                    suppressWarnings(fitCDF(
+                            varobj = varobj[[k]],
+                            distNames = distNames[[k]],
+                            plot = plot,
+                            plot.num = plot.num,
+                            distf = distf[[k]],
+                            start = start[[k]],
+                            loss.fun = loss.fun[k],
+                            min.val = min.val,
+                            only.info = only.info,
+                            maxiter = maxiter,
+                            maxfev = maxfev,
+                            ptol = ptol,
+                            nls.model = nls.model,
+                            algorithm = algorithm,
+                            xlabel = xlabel,
+                            mar = mar,
+                            mgp = mgp,
+                            las = las,
+                            cex.main = cex.main,
+                            cex.text = cex.text,
+                            cex.point = cex.point,
+                            verbose = FALSE))})
 
         names(res) <- var_nms
         res$AICs <- summary_aic(res)

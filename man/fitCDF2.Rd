@@ -163,10 +163,6 @@ Default is \emph{xlabel = "x"}.}
 \item{cex.text, cex.point}{Numerical value to scale text and points.}
 
 \item{verbose}{Logic. If TRUE, prints the function log to stdout}
-
-\item{num.cores}{The number of cores to use, i.e. at most how many child
-processes will be run simultaneously. This argument will be passed to
-\code{\link[parallel]{clusterApply}}.}
 }
 \value{
 After return the plots, a list with following values is provided:
@@ -197,9 +193,10 @@ accomplished this task and different algorithms can yield different
 estimated parameters. Hence, why not try to fit the CDF directly?
 }
 \details{
-This function works as function \code{\link{fitCDF}}, except for
-the parallel computation, which is done applying function
-\code{\link[parallel]{clusterApply}} from the 'parallel' R package.
+This function works as function \code{\link{fitCDF}}, but without
+parallel computation. The reason is the parallelization fails in Windows OS.
+CDFs defined out the package are not passed to the parallel processes on
+Windows (so far).
 
 The nonlinear fit (NLF) problem for CDFs is addressed with
 Levenberg-Marquardt algorithm implemented in function

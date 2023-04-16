@@ -33,7 +33,7 @@ e.g., _start_
     BiocManager::install()
     
     BiocManager::install(c("BiocParallel","minpack.lm", "numDeriv", "copula", 
-                            "mclust", "nls2", "cubature", "mixdist"), 
+                        "mclust", "nls2", "cubature", "mixdist", "pbapply"), 
                         dependencies=TRUE)
 ```
 
