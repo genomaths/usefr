@@ -50,10 +50,10 @@
 #'     \item gnorm = c( mean = MEAN, sigma = SD, beta = 2)
 #'     \item tgnorm = c( mean = MEAN, sigma = SD, beta = 2)
 #'     \item laplace = c( mean = MEAN, sigma = sqrt( VAR))
-#'     \item gamma = c(shape_scale(X, gg = FALSE))
-#'     \item gamma3p = c(shape_scale(X, gg = FALSE), mu = 0),
-#'     \item ggamma = c(shape_scale(X, gg = TRUE), mu = MIN, psi = 1)
-#'     \item ggamma = c(shape_scale(X, gg = TRUE), psi = 1)
+#'     \item gamma = c(shape_scale_pars(X, gg = FALSE))
+#'     \item gamma3p = c(shape_scale_pars(X, gg = FALSE), mu = 0),
+#'     \item ggamma = c(shape_scale_pars(X, gg = TRUE), mu = MIN, psi = 1)
+#'     \item ggamma = c(shape_scale_pars(X, gg = TRUE), psi = 1)
 #'     \item weibull = c( shape = log( 2 ), scale = Q)
 #'     \item weibull3p = c( mu = MIN, shape = log( 2 ), scale = Q)
 #'     \item beta = c(shape1 = 1, shape2 = 2)
@@ -65,8 +65,8 @@
 #'     \item exp = c( rate = 1)
 #'     \item exp2 = c( rate = 1, mu = 0)
 #'     \item geom = c(prob = ifelse(MEAN > 0, 1/(1 + MEAN), 1))
-#'     \item lgamma = shape_scale(log1p(X), gg = FALSE)
-#'     \item lpgamma3p = c(shape_scale(log1p(X), gg = FALSE), mu = 0)
+#'     \item lgamma = shape_scale_pars(log1p(X), gg = FALSE)
+#'     \item lpgamma3p = c(shape_scale_pars(log1p(X), gg = FALSE), mu = 0)
 #' }
 #' @param loss.fun Loss function(s) used in the regression (see
 #' \href{https://en.wikipedia.org/wiki/Loss_function}{(Loss function)}). After
@@ -162,8 +162,8 @@
 #'         \item Log-Gamma 3P \href{https://is.gd/kMQVxX}{(Mathematica)}
 #'     }
 #'
-#' Where, shape_scale function is an internal function that can be
-#' retrieve by typing: usefr:::shape_scale.
+#' Where, shape_scale_pars function is an internal function that can be
+#' retrieve by typing: usefr:::shape_scale_pars.
 #'
 #' In case of failing the parallel computation, please, try with function:
 #' \code{\link{fitCDF2}}.
@@ -386,10 +386,10 @@ setMethod(
                 beta = 2
             ),
             laplace = c(mean = MEAN, sigma = sqrt(VAR)),
-            gamma = shape_scale(X, gg = FALSE),
-            gamma3p = c(shape_scale(X, gg = FALSE), mu = 0),
-            ggamma = c(shape_scale(X, gg = TRUE), mu = MIN, psi = 1),
-            ggamma = c(shape_scale(X, gg = TRUE), psi = 1),
+            gamma = shape_scale_pars(X, gg = FALSE),
+            gamma3p = c(shape_scale_pars(X, gg = FALSE), mu = 0),
+            ggamma = c(shape_scale_pars(X, gg = TRUE), mu = MIN, psi = 1),
+            ggamma = c(shape_scale_pars(X, gg = TRUE), psi = 1),
             weibull = weibullpars(mu = MEAN, sigma = SD),
             weibull3p = c(weibullpars(mu = MEAN, sigma = SD), mu = MIN),
             beta = beta_start_par(MEAN, VAR),
@@ -405,7 +405,7 @@ setMethod(
             bweibull = c(
                 alpha = 1,
                 beta = 2,
-                shape_scale(X, gg = FALSE)
+                shape_scale_pars(X, gg = FALSE)
             ),
             gbeta = c(
                 shape1 = 1,
@@ -521,6 +521,7 @@ setMethod(
             if (verbose) {
                 counter(i)
             }
+
             FIT <- try(nls.lm(
                 par = PARS,
                 fn = optFun,
@@ -1275,11 +1276,20 @@ loss <- function(z,
 }
 
 ## ---- parameter estimation of Gamma Dist
-shape_scale <- function(x, gg = TRUE) {
+shape_scale_pars <- function(x, gg = TRUE) {
+    if (gg)
+        x <- x[ x > 0 ]
+
     n <- length(x)
-    s1 <- n * sum(x * log(x)) - sum(log(x)) * sum(x)
-    alpha <- n * sum(x) / s1
+    s1 <- n * sum(x * log(x), na.rm = TRUE) -
+        sum(log(x), na.rm = TRUE) * sum(x, na.rm = TRUE)
+    alpha <- n * sum(x, na.rm = TRUE) / s1
+    if (is.na(alpha))
+        alpha <- 1
+
     scale <- s1 / n^2
+    if (is.na(scale))
+        scale <- 1
 
     if (gg) {
         return(c(alpha = alpha, scale = scale))
