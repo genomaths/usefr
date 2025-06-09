@@ -105,10 +105,10 @@ are:
     \item gnorm = c( mean = MEAN, sigma = SD, beta = 2)
     \item tgnorm = c( mean = MEAN, sigma = SD, beta = 2)
     \item laplace = c( mean = MEAN, sigma = sqrt( VAR))
-    \item gamma = c(shape_scale(X, gg = FALSE))
-    \item gamma3p = c(shape_scale(X, gg = FALSE), mu = 0),
-    \item ggamma = c(shape_scale(X, gg = TRUE), mu = MIN, psi = 1)
-    \item ggamma = c(shape_scale(X, gg = TRUE), psi = 1)
+    \item gamma = c(shape_scale_pars(X, gg = FALSE))
+    \item gamma3p = c(shape_scale_pars(X, gg = FALSE), mu = 0),
+    \item ggamma = c(shape_scale_pars(X, gg = TRUE), mu = MIN, psi = 1)
+    \item ggamma = c(shape_scale_pars(X, gg = TRUE), psi = 1)
     \item weibull = c( shape = log( 2 ), scale = Q)
     \item weibull3p = c( mu = MIN, shape = log( 2 ), scale = Q)
     \item beta = c(shape1 = 1, shape2 = 2)
@@ -120,8 +120,9 @@ are:
     \item exp = c( rate = 1)
     \item exp2 = c( rate = 1, mu = 0)
     \item geom = c(prob = ifelse(MEAN > 0, 1/(1 + MEAN), 1))
-    \item lgamma = shape_scale(log1p(X), gg = FALSE)
-    \item lpgamma3p = c(shape_scale(log1p(X), gg = FALSE), mu = 0)
+    \item bgeom = c(shape1 = 1, shape2 = 1)
+    \item lgamma = shape_scale_pars(log1p(X), gg = FALSE)
+    \item lpgamma3p = c(shape_scale_pars(log1p(X), gg = FALSE), mu = 0)
 }}
 
 \item{loss.fun}{Loss function(s) used in the regression (see
@@ -240,12 +241,14 @@ well. The list (so far) of possible CDFs is:
         \item Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
         \item 2P Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
         \item Geometric \href{https://is.gd/94HW4w}{(Wikipedia)}
+        \item "Beta-Geometric"
+              \url{https://www.statisticshowto.com/beta-geometric-distribution/}
         \item Log-Gamma \href{https://is.gd/kMQVxX}{(Mathematica)}
         \item Log-Gamma 3P \href{https://is.gd/kMQVxX}{(Mathematica)}
     }
 
-Where, shape_scale function is an internal function that can be
-retrieve by typing: usefr:::shape_scale.
+Where, shape_scale_pars function is an internal function that can be
+retrieve by typing: usefr:::shape_scale_pars.
 
 In case of failing the parallel computation, please, try with function:
 \code{\link{fitCDF2}}.

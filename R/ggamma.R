@@ -42,7 +42,12 @@
 #' \eqn{\psi}, and \eqn{\mu} has density:
 #'
 #' \deqn{f(x | \alpha, \beta, \mu, \psi) = \alpha exp(-((x-\mu)/
-#'     \beta)^\alpha) ((x-\mu)/\beta)^(\alpha * \psi - 1)/(\beta Gamma(\psi))}
+#'     \beta)^\alpha) ((x-\mu)/\beta)^(\alpha * \psi - 1)/(\beta \Gamma(\psi))}
+#'
+#' The entropy, as given in reference 4, is computed using the closed form:
+#' \deqn{S = {\ln \frac{\beta \,\Gamma \left( \delta \right)}
+#' {\alpha} + \psi \left( \delta \right)\left( {\frac{1}{\alpha }
+#' - \delta } \right) + \delta }},
 #'
 #' @param q numeric vector.
 #' @param n number of observations.
@@ -72,8 +77,9 @@
 #' 3. Stacy E, Mihram G (1965) Parameter estimation for a generalized gamma
 #' distribution. Technometrics 7: 349-358.
 #'
-#' 4. Sanchez, R. & Mackenzie, S. A. Information Thermodynamics of Cytosine DNA
-#' Methylation. PLoS One 11, e0150427 (2016).
+#' 4. Sanchez, R., & Mackenzie, S. A. (2023). On the thermodynamics of DNA
+#' methylation process. Scientific Reports, 13(1), 8914.
+#' https://doi.org/10.1038/s41598-023-35166-9.
 #'
 #' @examples
 #' q <- (1:9) / 10
@@ -153,8 +159,7 @@ qggamma <- function(p, alpha = 1, scale = 1, mu = 0,
 #' @title Generalized Gamma distribution
 #' @importFrom stats rgamma
 #' @export
-rggamma <- function(n, alpha = 1, scale = 1, mu = 0,
-    psi = 1) {
+rggamma <- function(n, alpha = 1, scale = 1, mu = 0, psi = 1) {
     if (scale <= 0) {
         stop("'scale' parameter must be positive")
     }
@@ -167,4 +172,22 @@ rggamma <- function(n, alpha = 1, scale = 1, mu = 0,
 
     r <- scale * (rgamma(n, psi * alpha)^(1 / alpha)) + mu
     return(r)
+}
+
+
+#' @name eggamma
+#' @rdname ggamma
+#' @title Generalized Gamma distribution
+#' @export
+eggamma <- function(alpha, scale, psi) {
+    # Input validation
+    if (alpha <= 0 || scale <= 0 || psi <= 0) {
+        stop("Parameters alpha, scale, and psi must be positive")
+    }
+
+    # Compute entropy
+    entropy <- -log(alpha) + log(scale) + lgamma(psi) +
+        psi - ((alpha * psi - 1)/alpha) * digamma(psi)
+
+    return(unname(entropy))
 }

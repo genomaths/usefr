@@ -6,6 +6,7 @@
 \alias{rggamma}
 \alias{pggamma}
 \alias{qggamma}
+\alias{eggamma}
 \title{Generalized Gamma distribution}
 \usage{
 dggamma(q, alpha = 1, scale = 1, mu = 0, psi = 1, log.p = FALSE)
@@ -31,6 +32,8 @@ qggamma(
 )
 
 rggamma(n, alpha = 1, scale = 1, mu = 0, psi = 1)
+
+eggamma(alpha, scale, psi)
 }
 \arguments{
 \item{q}{numeric vector.}
@@ -79,7 +82,12 @@ The GG distribution with parameters \eqn{\alpha}, \eqn{\beta} (scale),
 \eqn{\psi}, and \eqn{\mu} has density:
 
 \deqn{f(x | \alpha, \beta, \mu, \psi) = \alpha exp(-((x-\mu)/
-    \beta)^\alpha) ((x-\mu)/\beta)^(\alpha * \psi - 1)/(\beta Gamma(\psi))}
+    \beta)^\alpha) ((x-\mu)/\beta)^(\alpha * \psi - 1)/(\beta \Gamma(\psi))}
+
+The entropy, as given in reference 4, is computed using the closed form:
+\deqn{S = {\ln \frac{\beta \,\Gamma \left( \delta \right)}
+{\alpha} + \psi \left( \delta \right)\left( {\frac{1}{\alpha }
+- \delta } \right) + \delta }},
 }
 \examples{
 q <- (1:9) / 10
@@ -105,6 +113,7 @@ Stockholm (e-mail: walck@physto.se )
 3. Stacy E, Mihram G (1965) Parameter estimation for a generalized gamma
 distribution. Technometrics 7: 349-358.
 
-4. Sanchez, R. & Mackenzie, S. A. Information Thermodynamics of Cytosine DNA
-Methylation. PLoS One 11, e0150427 (2016).
+4. Sanchez, R., & Mackenzie, S. A. (2023). On the thermodynamics of DNA
+methylation process. Scientific Reports, 13(1), 8914.
+https://doi.org/10.1038/s41598-023-35166-9.
 }

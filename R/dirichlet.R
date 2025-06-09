@@ -352,7 +352,7 @@ mc_pdir <- function(q, alpha, n = 1e4, seed = 1) {
     sum(apply(x[, l], 1, function(x) prod(x <= q[l]))) / n
 }
 
-any.greater <- function(x, value, d = 1) {
+any_greater <- function(x, value, d = 1) {
     if (d > 1) {
         res <- any(colSums(x) > value)
     } else {

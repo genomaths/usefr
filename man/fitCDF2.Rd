@@ -119,6 +119,7 @@ values are:
     \item exp = c( rate = 1)
     \item exp2 = c( rate = 1, mu = 0)
     \item geom = c(prob = ifelse(MEAN > 0, 1/(1 + MEAN), 1))
+    \item bgeom = c(shape1 = 1, shape2 = 1)
     \item lgamma = shape_scale(log1p(X), gg = FALSE)
     \item lpgamma3p = c(shape_scale(log1p(X), gg = FALSE), mu = 0)
 }}
@@ -238,6 +239,8 @@ well. The list (so far) of possible CDFs is:
         \item Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
         \item 2P Exponential \href{https://goo.gl/stVsi7}{(Wikipedia)}
         \item Geometric \href{https://is.gd/94HW4w}{(Wikipedia)}
+        \item "Beta-Geometric"
+              \url{https://www.statisticshowto.com/beta-geometric-distribution/}
         \item Log-Gamma \href{https://is.gd/kMQVxX}{(Mathematica)}
         \item Log-Gamma 3P \href{https://is.gd/kMQVxX}{(Mathematica)}
     }

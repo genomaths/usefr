@@ -142,7 +142,7 @@ observation category.}
 }}
 
 \item{min.val}{A number denoting the lower bound of the domain where CDF
-is defined.}
+is defined (only values with min.val > 0 are used).}
 
 \item{breaks}{Default is NULL. Basically, the it is same as in function
 \code{\link[graphics]{hist}}. If \emph{breaks} = NULL, then function
