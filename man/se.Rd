@@ -6,7 +6,7 @@
 \alias{se.nls.lm}
 \alias{se.CDFmodel}
 \alias{se.CDFmodelList}
-\title{Sum of Squares Statistics}
+\title{Sum of Squares of Error Statistics}
 \usage{
 se(model, stat)
 
@@ -30,9 +30,9 @@ of error or the square errors of residuals.}
 The requested statistic for each model.
 }
 \description{
-Computes the residual sum of squares for models: \code{\link[stats]{nls}},
-\code{\link[minpack.lm]{nls.lm}}, and models CDFmodel and CDFmodelList
-obatained with [fitCDF].
+Computes the residual sum of squares and the root of the mean of for squares
+for models: \code{\link[stats]{nls}}, \code{\link[minpack.lm]{nls.lm}}, and
+models CDFmodel and CDFmodelList obatained with [fitCDF].
 }
 \examples{
 ## Simulate data from Normal distribution
