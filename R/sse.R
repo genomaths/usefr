@@ -21,13 +21,18 @@
 ##
 ## ########################################################################## #
 
-#' @name se
-#' @aliases se
+#' @name sse
+#' @aliases sse
 #' @title Sum of Squares of Error Statistics
 #' @description
 #' Computes the residual sum of squares and the root of the mean of for squares
 #' for models: \code{\link[stats]{nls}}, \code{\link[minpack.lm]{nls.lm}}, and
 #' models CDFmodel and CDFmodelList obatained with [fitCDF].
+#'
+#' For a \code{\link[stats]{nls}} the RMSE is computed as:
+#' \deqn{ y = resid(model)}
+#' \deqn{RMSE = sqrt(mean(y^2))}
+#'
 #' @param model An object from one of the classes: \code{\link[stats]{nls}},
 #' \code{\link[minpack.lm]{nls.lm}}, CDFmodel or CDFmodelList, which are
 #' obtained after running [fitCDF].
@@ -44,63 +49,64 @@
 #' models
 #'
 #' ## In the current case Weibull is also the model with the lowest error
-#' se(model)
+#' sse(model)
 #'
-se <- function(model, stat) {
-    UseMethod("se")
+#' @export
+sse <- function(model, stat) {
+    UseMethod("sse")
 }
 
-#' @rdname se
-#' @aliases se
+#' @rdname sse
+#' @aliases sse
 #' @export
-se.nls <- function(model, stat = c("rmse", "sme")) {
+sse.nls <- function(model, stat = c("rmse", "sse")) {
 
         stat <- match.arg(stat)
         y <- resid(model)
 
         switch(stat,
             "rmse" = sqrt(mean(y^2)),
-            "sme" = sum(y^2)
+            "sse" = sum(y^2)
         )
 }
 
 
-#' @rdname se
-#' @aliases se
+#' @rdname sse
+#' @aliases sse
 #' @export
-se.nls.lm <- function(model, stat = c("rmse", "sme")) {
+sse.nls.lm <- function(model, stat = c("rmse", "sse")) {
 
     stat <- match.arg(stat)
     y <- resid(model)
 
     switch(stat,
            "rmse" = sqrt(mean(y^2)),
-           "sme" = sum(y^2)
+           "sse" = sum(y^2)
     )
 }
 
 
-#' @rdname se
-#' @aliases se
+#' @rdname sse
+#' @aliases sse
 #' @export
-se.CDFmodel <- function(model, stat = c("rmse", "sme")) {
+sse.CDFmodel <- function(model, stat = c("rmse", "sse")) {
     stat <- match.arg(stat)
     sapply(model$fit, function(y) {
-        se(model = y, stat = stat)
+        sse(model = y, stat = stat)
     })
 }
 
 
-#' @rdname se
-#' @aliases se
+#' @rdname sse
+#' @aliases sse
 #' @export
-se.CDFmodelList <- function(model, stat = c("rmse", "sme")) {
+sse.CDFmodelList <- function(model, stat = c("rmse", "sse")) {
         stat <- match.arg(stat)
         n <- length(model)
         m <- model[-n]
         sapply(m, function(x) {
             sapply(x$fit, function(y) {
-                se(model = y, stat = stat)
+                sse(model = y, stat = stat)
             })
     })
 }
