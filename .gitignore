@@ -1,6 +1,8 @@
 .Rproj.user/
 .Rhistory
 .RData
+*.Rproj
+usefr.Rproj
 .Ruserdata
 /*.Rcheck/
 /*.tar.gz

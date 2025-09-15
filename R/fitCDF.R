@@ -421,9 +421,7 @@ setMethod(
             exp = c(rate = 1),
             exp2 = c(rate = 1, mu = 0),
             geom = c(prob = ifelse(MEAN > 0, 1 / (1 + MEAN), 1)),
-            bgeom = c(shape1 = 1.5 * (VAR - MEAN^2) /
-                            (VAR - MEAN - 2 * MEAN^2),
-                        shape2 = MEAN),
+            bgeom = bg_pars(X),
             lgamma = c(shape = 1, scale = 1),
             lgamma3p = c(shape = 1, scale = 1, mu = 0)
         )
@@ -1539,3 +1537,92 @@ summary_aic <- function(m) {
     rownames(res) <- nms
     return(res)
 }
+
+
+#' Estimate Parameters of the Beta-Geometric Distribution Using Method of Moments
+#'
+#' This function estimates the parameters of the beta-geometric distribution
+#' using the method of moments. The beta-geometric distribution models
+#' the number of trials until the first success, where the success
+#' probability follows a Beta(\code{alpha}, \code{beta}) distribution.
+#'
+#' #' @param data A numeric vector of observations (positive integers >= 1).
+#'
+#' @return A list containing the estimated \code{alpha} and \code{beta} parameters.
+#'
+#' @details
+#' The method assumes \code{alpha > 2} for finite variance. If the sample
+#' variance is not greater than \code{mean*(mean-1)}, the estimates may not be
+#' valid (indicating no heterogeneity, reducing to geometric distribution).
+#'
+#' To derive the estimators, begin with the population moments of the beta-geometric
+#' distribution, where \eqn{X} represents the number of trials until the first success,
+#' and the success probability \eqn{p \sim \text{Beta}(\alpha, \beta)}.
+#'
+#' The expected value is \eqn{\mu = \mathbb{E}[X] = \frac{\alpha + \beta - 1}{\alpha - 1}}.
+#'
+#' The variance is \eqn{\sigma^2 = \text{Var}(X) = 2 \mathbb{E}[1/p^2] - \mu - \mu^2},
+#' where \eqn{\mathbb{E}[1/p^2] = \frac{(\alpha + \beta - 1)(\alpha + \beta - 2)}{(\alpha - 1)(\alpha - 2)}}.
+#'
+#' Set \eqn{a = \alpha - 1}, so \eqn{\beta = a (\mu - 1)} and \eqn{\mu = 1 + \beta / a}.
+#'
+#' Substitute to express \eqn{\mathbb{E}[1/p^2] = \mu (\mu a - 1) / (a - 1)}.
+#'
+#' Then, \eqn{\sigma^2 = 2 \mu (\mu a - 1) / (a - 1) - \mu - \mu^2}.
+#'
+#' Solving for \eqn{a} yields \eqn{a = [\mu (\mu - 1) + \sigma^2] / [\sigma^2 - \mu (\mu - 1)]}.
+#'
+#' Thus, \eqn{\alpha = a + 1} and \eqn{\beta = a (\mu - 1)}.
+#'
+#' In the function, replace \eqn{\mu} and \eqn{\sigma^2} with the sample mean \code{m}
+#' and moment-matched variance \code{v = mean(data^2) - m^2}.
+#'
+#' The beta-geometric distribution describes the number of trials required until
+#' the first success in a sequence of independent Bernoulli trials, where the
+#' success probability $p$ is heterogeneous and follows a
+#' \eqn{Beta(\alpha, \beta)} prior distribution. In this framework, the random
+#' variable \emph{X} (representing the trial count until success) inherently
+#' takes values in the set of positive integers starting from 1.
+#'
+#' @examples
+#' # Generate sample data from a beta-geometric distribution
+#' set.seed(123)
+#' alpha_true <- 3
+#' beta_true <- 5
+#' p <- rbeta(1000, alpha_true, beta_true)
+#' data <- rgeom(1000, p) + 1  # Trials until first success
+#' estimates <- estimate_bg_mom(data)
+#' estimates
+bg_pars <- function(data) {
+    if (!is.numeric(data) || any(data < 1) || any(data != floor(data))) {
+        stop("Data must be positive integers >= 1.")
+    }
+
+    n <- length(data)
+    if (n < 2) {
+        stop("At least two observations are required.")
+    }
+
+    m <- mean(data, na.rm = TRUE)
+    # Compute second moment for method of moments variance
+    m2 <- mean(data^2, na.rm = TRUE)
+    v <- m2 - m^2
+
+    # Check if variance exceeds that of a geometric distribution
+    geom_var <- m * (m - 1)
+    if (v <= geom_var) {
+        warning("Sample variance does not exceed mean*(mean-1);",
+                " data may fit a geometric distribution better.",
+                " Parameters not estimable.")
+        return(c(shape1 = 1, shape2 = 1))
+    }
+
+    num <- m * (m - 1) + v
+    den <- v - m * (m - 1)
+    a <- num / den
+    alpha_hat <- a + 1
+    beta_hat <- a * (m - 1)
+
+    return(list(shape1 = alpha_hat, shape2 = beta_hat))
+}
+
